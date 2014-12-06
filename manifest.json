@@ -1,0 +1,45 @@
+{
+	"name": "Raid Facile",
+	"version": "8.4.3",
+	"description": "Raid facile pour Ogame",
+	"homepage_url": "http://lastworld.etenity.free.fr/ogame/raid_facile/",
+	"update_url": "http://lastworld.etenity.free.fr/ogame/raid_facile/?check=chrome",
+	"manifest_version": 2,
+	"content_scripts": [ {
+		"exclude_globs": [
+			"http://*.ogame.gameforge.com/game/index.php\\?page=buddies*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=notices*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=search*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=combatreport*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=eventList*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=jump*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=phalanx*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=techtree*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=techinfo*",
+			"http://*.ogame.gameforge.com/game/index.php\\?page=globalTechtree*"
+		],
+		"exclude_matches": [  ],
+		"include_globs": [
+			"http://*.ogame.gameforge.com/game/index.php\\?page=*"
+		],
+		"js": [
+			"js/jquery-1.9.0.min.js",
+			"js/jquery-ui-1.10.0.custom.min.js",
+			"js/raid_facile 1.js",
+			"js/raid_facile 2.js",
+			"js/raid_facile injected.js"
+		],
+		"matches": [
+			"http://*/*",
+			"https://*/*"	
+		],
+		"all_frames": true,
+		"run_at": "document_idle"
+	} ],
+	// "permissions": [],
+	"icons": {
+		"16": "icon16.png",
+		"48": "icon48.png",
+		"128": "icon128.png"
+	}
+}
