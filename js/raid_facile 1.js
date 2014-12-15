@@ -2381,13 +2381,13 @@ bbcode_balisef[8] = '[/color]';
 
 		{//mon compte
 			// Vos technos
-				var techno_arme = document.getElementsByClassName('valeur_arme')[0].value;
-				var techno_boulier = document.getElementsByClassName('valeur_boulier')[0].value;
-				var techno_protect = document.getElementsByClassName('valeur_protection')[0].value;
+				var techno_arme = parseInt(document.getElementById('valeur_arme').value, 10);
+				var techno_boulier = parseInt(document.getElementById('valeur_boulier').value, 10);
+				var techno_protect = parseInt(document.getElementById('valeur_protection').value, 10);
 
-				var techno_combu = document.getElementsByClassName('valeur_combustion')[0].value;
-				var techno_impu = document.getElementsByClassName('valeur_impulsion')[0].value;
-				var techno_hyper = document.getElementsByClassName('valeur_hyper')[0].value;
+				var techno_combu = parseInt(document.getElementById('valeur_combustion').value, 10);
+				var techno_impu = parseInt(document.getElementById('valeur_impulsion').value, 10);
+				var techno_hyper = parseInt(document.getElementById('valeur_hyper').value, 10);
 
 			// Autre
 				var coordonee_depart = document.getElementsByClassName('valeur_coordonee')[0].value;
@@ -2416,9 +2416,9 @@ bbcode_balisef[8] = '[/color]';
 
 		{//choix variable
 			//Selection de scan :
-				var ressource_prend = document.getElementsByClassName('valeur_ressource_mini')[0].value;
-				var cdr_prend = document.getElementById('valeur_cdr_mini').value;
-				var tot_prend = document.getElementById('valeur_tot_mini').value;
+				var ressource_prend = parseInt(document.getElementById('val_res_min').value, 10);
+				var cdr_prend = parseInt(document.getElementById('valeur_cdr_mini').value, 10);
+				var tot_prend = parseInt(document.getElementById('valeur_tot_mini').value, 10);
 
 				var prend_type0 = document.getElementById("prend_type0").checked;
 				var prend_type1 = document.getElementById("prend_type1").checked;
@@ -2436,9 +2436,9 @@ bbcode_balisef[8] = '[/color]';
 				var q_reverse_croissant = document.getElementById("q_reverse_croissant").checked;
 				var q_reverse_c = q_reverse_croissant === true ? 0 : 1;
 
-				var taux_m_rep = document.getElementById('q_taux_m').value;
-				var taux_c_rep = document.getElementById('q_taux_c').value;
-				var taux_d_rep = document.getElementById('q_taux_d').value;
+				var taux_m_rep = parseFloat(document.getElementById('q_taux_m').value, 10);
+				var taux_c_rep = parseFloat(document.getElementById('q_taux_c').value, 10);
+				var taux_d_rep = parseFloat(document.getElementById('q_taux_d').value, 10);
 
 			//Options de sauvegarde de scan :
 				var save_auto_scan_non_q = document.getElementById("save_auto_scan_non").checked;
@@ -2613,7 +2613,7 @@ bbcode_balisef[8] = '[/color]';
 				} else {
 					q_galaxie_rep = 2;
 				}
-				var galaxie_demande_rep = document.getElementById('galaxie_demande').value;
+				var galaxie_demande_rep = parseInt(document.getElementById('galaxie_demande').value, 10);
 				var galaxie_demande_plus_moin_text_rep = document.getElementById('galaxie_demande_plus_moin_text').value;
 
 				var afficher_lune_planet = document.getElementById("afficher_lune_planet").checked;
@@ -2639,10 +2639,7 @@ bbcode_balisef[8] = '[/color]';
 			//{ Autre :
 				var qq_techzero = checkedFromIdToInt('q_techzero_non');
 
-				var tableau_raide_facile_q = document.getElementById('tableau_raide_facile_q').value;
-				if (tableau_raide_facile_q.replace( /[^0-9-]/g, "") === '') {
-					tableau_raide_facile_q = 100;
-				}
+				var tableau_raide_facile_q = parseInt(document.getElementById('tableau_raide_facile_q').value, 10);
 
 				var q_icone_mess_rep = checkedFromIdToInt('icone_parti_mess_non');
 			//}
