@@ -3,7 +3,7 @@ ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y
 aâàã eéêè iîì ñ oôòõ uûù €
 */
 
-/************************* PAGE DE MESSAGE *************************/{
+/************************* PAGE DE MESSAGE *************************///{
 	// function suprimer un scan depuis le pop-up
 	function supr_scan1(serveur){
 		var dateCombat = $('div.showmessage[data-message-id] .infohead tr:eq(3) td').text().match(/(\d+)\.(\d+)\.(\d+) (\d+):(\d+):(\d+)/);
@@ -309,7 +309,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			else {
 				nb_def_type = '?';
 				valeur_attaque_def = '?';
-				defense_scan = new Array("?", "?", "?", "?", "?", "?", "?", "?", "?", "?")
+				defense_scan = new Array("?", "?", "?", "?", "?", "?", "?", "?", "?", "?");
 				nb_def_s = -1;
 				var cdr_def = '?/?/?';
 			}
@@ -474,9 +474,9 @@ aâàã eéêè iîì ñ oôòõ uûù €
 
 
 			// merci a sylvercloud pour les icones
-			document.getElementById("scan_mess_a").addEventListener("click", function(event){supr_scan_dep_mess(1, true);if(info.firefox){unsafeWindow.mod = 9;}else{window.mod = 9;};document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
-			document.getElementById("scan_mess_s").addEventListener("click", function(event){supr_scan_dep_mess(2, true);if(info.firefox){unsafeWindow.mod = 7;}else{window.mod = 7;};document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
-			document.getElementById("scan_mess_ns").addEventListener("click", function(event){supr_scan_dep_mess(2, false);if(info.firefox){unsafeWindow.mod = 10;}else{window.mod = 10;};document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
+			document.getElementById("scan_mess_a").addEventListener("click", function(event){supr_scan_dep_mess(1, true);if(info.firefox){unsafeWindow.mod = 9;}else{window.mod = 9;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
+			document.getElementById("scan_mess_s").addEventListener("click", function(event){supr_scan_dep_mess(2, true);if(info.firefox){unsafeWindow.mod = 7;}else{window.mod = 7;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
+			document.getElementById("scan_mess_ns").addEventListener("click", function(event){supr_scan_dep_mess(2, false);if(info.firefox){unsafeWindow.mod = 10;}else{window.mod = 10;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
 
 			document.getElementById("scan_a").addEventListener("click", function(event){supr_scan_dep_mess(1, true);}, true);
 			document.getElementById("scan_s").addEventListener("click", function(event){supr_scan_dep_mess(2, true);}, true);
@@ -598,7 +598,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			newElement.insertBefore('.toolbar .delete', pop_up);
 		}
 	}
-}
+//}
 
 /*######################################### SCRIPT  ################################################## */
 
@@ -989,15 +989,15 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		if (classement == 2 || classement == 3) {			// si c'est un classement par rapport au nom de joueur ou de planète
 			var sort_Info = function(a, b) {
 				return strcmp(a[parseInt(classement.replace( /[^0-9-]/g, ""))], b[parseInt(classement.replace( /[^0-9-]/g, ""))]);
-			}
+			};
 		} else if(classement == 12 || classement == 1) { 	// si c'est par ressources ou par coordonnées
 			var sort_Info = function(a, b) {
 				return b[20] - a[20];
-			}
+			};
 		} else {
 			var sort_Info = function(a, b) {
 				return b[parseInt(classement.replace( /[^0-9-]/g, ""))] - a[parseInt(classement.replace( /[^0-9-]/g, ""))];
-			}
+			};
 		}
 
 		if(parseInt(classement.replace( /[^0-9-]/g, "")) > -1)
@@ -1029,7 +1029,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		var ligne_tableau = ' ';
 		var nb = scan_info.length ;
 
-		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, info.url, nb)
+		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, info.url, nb);
 		var nb_scan_fin = nb_scan_deb_fin[0];
 		var nb_scan_deb = nb_scan_deb_fin[1];
 
@@ -1261,7 +1261,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var cdr_possible_c = Math.round(parseInt(scan_info_i[16])*pourcent_cdr);
 
 							// on verifie que cdr possible existe et soit un chiffre
-							if(cdr_possible == '?' || isNaN(cdr_possible)){var cdr_aff = 0;cdr_possible = '?'}
+							if(cdr_possible == '?' || isNaN(cdr_possible)){ var cdr_aff = 0;cdr_possible = '?'; }
 							else{var cdr_aff = cdr_possible;}
 
 							// cdr de défense
@@ -1405,16 +1405,15 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						//url d'attaque		//am202 = pt / am203 = gt
 							var url_fleet1 = document.getElementById("menuTable").getElementsByClassName('menubutton ')[7].href;
 							var url_attaquer = url_fleet1 + '&galaxy='+ galaxie +'&system='+ systeme +'&position='+ planette +'&type='+ type_planette +'&mission=1';
-							if (lien_raide_nb_pt_gt == 2) {}
-							else if (lien_raide_nb_pt_gt == 1) {
+							if (lien_raide_nb_pt_gt == 1) {
 								var nb_pt2;
 								if (nb_ou_pourcent == 1) {
 									nb_pt2 = nb_pt + nb_pourcent_ajout_lien;
 								} else {
 									nb_pt2 = Math.ceil(nb_pt + (nb_pt/100)*nb_pourcent_ajout_lien);
 								}
-								url_attaquer += '&am202='+ nb_pt2;}
-							else if (lien_raide_nb_pt_gt == 0) {
+								url_attaquer += '&am202='+ nb_pt2;
+							} else if (lien_raide_nb_pt_gt == 0) {
 								var nb_gt2;
 								if (nb_ou_pourcent == 1) {
 									nb_gt2 = nb_gt + nb_pourcent_ajout_lien;
@@ -1632,8 +1631,8 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							if(q_compteur_attaque == 1)
 								ligne_tableau += '<td class="nombreAttaque">'+ attaque_deja_fait +'</td>';
 
-							ligne_tableau += '<td> <a href="'+ espionnage +'" title="'+ text.espionner +'"> <img src="http://gf2.geo.gfsrv.net/45/f8eacc254f16d0bafb85e1b1972d80.gif" height="16" width="16"></a></td>'
-							ligne_tableau += '<td> <a class="del1_scan" id="del1_scan'+i+'" title="'+ text.eff_rapp +'" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>'
+							ligne_tableau += '<td> <a href="'+ espionnage +'" title="'+ text.espionner +'"> <img src="http://gf2.geo.gfsrv.net/45/f8eacc254f16d0bafb85e1b1972d80.gif" height="16" width="16"></a></td>';
+							ligne_tableau += '<td> <a class="del1_scan" id="del1_scan'+i+'" title="'+ text.eff_rapp +'" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>';
 							var target;
 							if (stockageOption.get('attaquer nouvel onglet') === 1) {
 								target = '';
@@ -2123,11 +2122,11 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 					document.getElementsByClassName('del1_scan')[t].addEventListener("click", function(event) {
 						// on recupere le numero de scans dans le split d'enregistrement ( enregistrer dans l'id)
 						var numero_scan = this.id.split('del1_scan')[1]; // todo : mettre le numéro dans le HTML
-						
+
 						var scanList = GM_getValue('scan'+ serveur, '').split('#');
 						scanList.splice(numero_scan, 1);
 						GM_setValue('scan'+ serveur, scanList.join('#'));
-						
+
 						remlir_tableau(serveur, -1, 0);
 					}, true);
 				}
@@ -2315,10 +2314,10 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		var contenu = $('#' + titre.data('cible'));
 
 		var closed = contenu.css('display') === 'none';
-		
+
 		// on ferme tous les panneaux d'option
 		titre.parent().children('.open').removeClass('open');
-		
+
 		// si le contenu est caché alors on ouvre ce panneau
 		if (closed) {
 			titre.addClass('open');
@@ -2329,21 +2328,21 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			}
 		}
 	};
-	
+
 	/* permet d'afficher/masquer un élément en cliquant sur un lien
 	 * l'élément affiché/masqué est celui désigné par l'attribut "data-cible" du lien
 	 */
 	var afficherMasquerPanneau = function(eventObject) {
 		var titre = $(eventObject.target);
 		var contenu = $('#' + titre.data('cible'));
-		
+
 		titre.toggleClass('open');
 		contenu.toggleClass('open');
-		
+
 		if (eventObject.data !== null && eventObject.data.callback !== undefined) {
 			eventObject.data.callback();
 		}
-	}
+	};
 
 	// fonction qui met le listener pour afficher/masquer le textarea de simulation
 	function display_change(idclique, idouvre_f){
@@ -2355,13 +2354,13 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 	// afficher/masquer les options
 	$('#optionclique').click(afficherMasquerOptions);
-	
+
 	// afficher/masque les panneaux d'options
 	$('#option_script > .sectionTitreOptions').click(changeDisplayedOption);
-	
+
 	// afficher/masquer l'import/export
 	$('#imp_exp_clique').click(afficherMasquerPanneau);
-	
+
 	// afficher/masquer le bbcode + html
 	$('#htmlclique').click({
 		callback: export_html.bind(this, info.serveur, false, info.url, nb_scan_page)

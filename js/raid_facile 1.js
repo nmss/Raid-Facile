@@ -20,10 +20,10 @@ Logger.prototype.log = function(message) {
 	var messageParts = [];
 	for (var i = 0; i < arguments.length; i++) {
 		messageParts.push(arguments[i]);
-	};
+	}
 	this.logs.push(messageParts);
 	console.debug.apply(console, ['[raid facile]'].concat(messageParts));
-}
+};
 var logger = new Logger();
 logger.log('Salut :)');
 
@@ -40,7 +40,7 @@ var remplirInfo = function() {
 	var parseOgameMeta = function () {
 		var content, name;
 		var metaVars = $('meta[name^=ogame-]', document.head);
-		
+
 		info.ogameMeta = {};
 		for (var i = 0; i < metaVars.length; ++i) {
 			name = metaVars[i].getAttribute('name');
@@ -303,7 +303,7 @@ var i18n;
 //}endregion
 
 /** Fonctions de correction **///{region
-	
+
 /** Ajuste la taille de la "box" d'ogame, au cas où le tableau prend trop de place pour le menu */
 function ajusterTailleBox() {
 	var tailleBox = $('#box').width();
@@ -314,7 +314,7 @@ function ajusterTailleBox() {
 	if (changementTaille > 0) {
 		$('#box').width(tailleBox + changementTaille);
 		$('#contentWrapper').width( $('#contentWrapper').width() + changementTaille);
-		
+
 		var bannerSkyscraperLeft = parseInt($('#banner_skyscraper').css('left').slice(0, -2)) + changementTaille;
 		$('#banner_skyscraper').css('left', bannerSkyscraperLeft);
 	}
@@ -348,27 +348,27 @@ function ogameStyleSelectFix(selects) {
 function init() {
 	// exportOptions();
 	remplirInfo();
-	logger.log('Version', info.version)
+	logger.log('Version', info.version);
 	setPage();
 	if (info.page === 'optionsRaidFacile') { // impossible d'afficher la page options au départ on affiche donc le tableau
 		info.hash.raidFacile = 'tableau';
 	}
 	rebuildHash();
-	logger.log('Page', info.page)
+	logger.log('Page', info.page);
 	logger.log('Navigateur', JSON.stringify({ chrome:info.chrome, firefox:info.firefox, opera:info.opera, tampermonkey:info.tampermonkey }));
-	
+
 	intercom = new Intercom();
-	
+
 	stockageOption = new Stockage('options');
 	stockageData = new Stockage('données');
 	stockageOption.load();
 	stockageData.load();
 
 	i18n = new I18n();
-	
+
 	window.addEventListener('hashchange', onHashChange, false);
 	window.addEventListener('keyup', keyShortcut, false);
-	
+
 	plusTard(checkUpdate);
 	logger.log('Init ok');
 }
@@ -469,7 +469,7 @@ function afficher_lien() {
 	} else {
 		selector = '#menuTable > li:nth-child(8) > .menu_icon > a';
 	}
-		
+
 	var url = new Url(document.querySelector(selector).getAttribute('href')).hashes(info.hash);
 	var li = $('<li id="raide-facile"></li>');
 	if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
@@ -481,7 +481,7 @@ function afficher_lien() {
 		$('.textlabel', li).css('color', 'orange');
 	}
 	li.appendTo('#menuTableTools');
-	logger.log('Lien ajouté dans le menu')
+	logger.log('Lien ajouté dans le menu');
 	if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
 		// On déselectionne le lien sélectionné
 		$('#menuTable .menubutton.selected').removeClass('selected');
@@ -527,10 +527,10 @@ function showAttaque(data) {
 		couleur = null;
 		classe = '';
 		cible = missions[destination];
-		
+
 		// On récupère les lignes du tableau de raid facile qui correspondent (il peut y en avoir plusieurs quand on ne supprime pas l'ancien scan)
 		lignes = $(document.getElementsByClassName(destination));
-		
+
 		/* cf l'api http://uni116.ogame.fr/api/localization.xml pour les nombres
 			1 Attaquer - 2 Attaque groupée - 3 Transporter - 4 Stationner - 5 Stationner - 6 Espionner - 7 Coloniser - 8 Recycler - 9 Détruire - 15 Expédition */
 		if (cible[9]) { // Détruire
@@ -696,7 +696,7 @@ Url.prototype = {
 		var params = url.split('?')[1] || '';
 		params = params.split('&');
 		this.url = url.split('?')[0];
-		
+
 		var i, arg, kvp;
 		if (params[0] !== '') {
 			for (i = 0; i < params.length; i++) {
@@ -737,11 +737,11 @@ Url.prototype = {
 		var url = this.url;
 
 		var params = [];
-		for (var key in this._params) {
-			if (this._params[key] === 'true') {
-				params.push(key);
+		for (var pkey in this._params) {
+			if (this._params[pkey] === 'true') {
+				params.push(pkey);
 			} else {
-				params.push(key + '=' + this._params[key]);
+				params.push(pkey + '=' + this._params[pkey]);
 			}
 		}
 		if (params.length) {
@@ -749,11 +749,11 @@ Url.prototype = {
 		}
 
 		var hash = [];
-		for (var key in this._hashes) {
-			if (this._hashes[key] === 'true') {
-				hash.push(key);
+		for (var hkey in this._hashes) {
+			if (this._hashes[hkey] === 'true') {
+				hash.push(hkey);
 			} else {
-				hash.push(key + '=' + this._hashes[key]);
+				hash.push(hkey + '=' + this._hashes[hkey]);
 			}
 		}
 		if (hash.length) {
@@ -1237,15 +1237,11 @@ bbcode_balisef[8] = '[/color]';
 			add_scan_ns:'Ajouter Scan Non Sélectionné',
 			add_scan_s:'Ajouter Scan Sélectionné',
 			rep_mess_add:'Scan ajoutés',
-		
+
 		lm: 'Lanceur de missiles', lle: 'Artillerie laser légère', llo: 'Artillerie laser lourde', gauss: 'Canon de Gauss', ion: 'Artillerie à ions', pla: 'Lanceur de plasma', pb: 'Petit bouclier', gb: 'Grand bouclier', mic: 'Missile d`interception', mip: 'Missile Interplanétaire'
-		
-		
 	};
 	i18n.importer('fr', text);
-	if (langue == 'fr') {
-	}
-	else if (langue == 'ro') {
+	if (langue == 'ro') {
 		text = {
 			//option mon compte
 			moncompte:'Contul meu ',
@@ -1743,7 +1739,7 @@ bbcode_balisef[8] = '[/color]';
 		};
 		i18n.importer('es', text);
 	}
-	else /* anglais */ {
+	else if (langue !== 'fr') { /* anglais */
 		text = {
 			//{ Global
 			'raid facile': 'Easy Raid',
@@ -2002,7 +1998,7 @@ bbcode_balisef[8] = '[/color]';
 			add_scan_ns:'Add unselected esp report',
 			add_scan_s:'Add selected esp Report',
 			rep_mess_add:'esp Report added',
-		
+
 			lm: 'Rocket Launcher',
 			lle: 'Light Laser',
 			llo: 'Heavy Laser',
@@ -2264,7 +2260,7 @@ bbcode_balisef[8] = '[/color]';
 			return  signe + (((n % 3) ? str.substr(0, n % 3) + '.' : '') + str.substr(n % 3).match(new RegExp('[0-9]{3}', 'g')).join('.'));
 		}*/
 	}
-	
+
 	function addPoints2(nombre) {
 		if (nombre === '?' || nombre < 1000) {
 			return nombre;
@@ -2382,7 +2378,7 @@ bbcode_balisef[8] = '[/color]';
 			}
 			return elem.checked === true ? 0 : 1;
 		};
-		
+
 		{//mon compte
 			// Vos technos
 				var techno_arme = document.getElementsByClassName('valeur_arme')[0].value;
@@ -2489,7 +2485,7 @@ bbcode_balisef[8] = '[/color]';
 
 		stockageOption.set('couleur attaque', document.getElementById('att1').value);
 		stockageOption.set('couleur attaque retour', document.getElementById('att1_r').value);
-		
+
 		stockageOption.set('couleur attaque2', document.getElementById('att2').value);
 		stockageOption.set('couleur attaque2 retour', document.getElementById('att2_r').value);
 		stockageOption.set('couleur espionnage', document.getElementById('colEspio').value);
@@ -2560,7 +2556,7 @@ bbcode_balisef[8] = '[/color]';
 			//}
 
 			//{ Affichage de Colonne :
-			
+
 				var q_rep_compteur_attaque = checkedFromIdToInt('compteur_attaque_aff_non');
 				var q_vid_colo_rep = checkedFromIdToInt('aff_vid_colo_non');
 				var rassemble_qrep = checkedFromIdToInt('rassemble_cdr_ress_non');
@@ -2577,7 +2573,7 @@ bbcode_balisef[8] = '[/color]';
 				var affiche_nom_joueur = checkedFromIdToInt('nom_joueur_affi_non');
 				var affiche_nom_planet = checkedFromIdToInt('nom_planet_affi_non');
 				var affiche_coor_q = checkedFromIdToInt('coord_affi_non');
-				
+
 				var affiche_def_non = document.getElementById("defense_q_n").checked;
 				var affiche_def_oui_nb = document.getElementById("defense_q_nb").checked;
 				var affiche_def;
@@ -2586,7 +2582,7 @@ bbcode_balisef[8] = '[/color]';
 				} else if (affiche_def_oui_nb === true) {
 					affiche_def = 1;
 				} else {
-					affiche_def = 2;					 
+					affiche_def = 2;
 				}
 
 				var affiche_flotte_non = document.getElementById("vaisseau_q_n").checked;
@@ -2756,7 +2752,7 @@ bbcode_balisef[8] = '[/color]';
 			} else {
 				num_page = 1 ;
 			}
-			
+
 			if (!num_page || num_page === 1) {
 				nb_scan_deb = 0;
 				nb_scan_fin = nb_scan_page;
