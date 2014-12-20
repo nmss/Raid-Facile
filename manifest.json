@@ -23,15 +23,15 @@
 			"http://*.ogame.gameforge.com/game/index.php\\?page=*"
 		],
 		"js": [
-			"js/jquery-1.9.0.min.js",
-			"js/jquery-ui-1.10.0.custom.min.js",
+			"deps/jquery-1.9.0.min.js",
+			"deps/jquery-ui-1.10.0.custom.min.js",
 			"js/raid_facile 1.js",
 			"js/raid_facile 2.js",
 			"js/raid_facile injected.js"
 		],
 		"matches": [
 			"http://*/*",
-			"https://*/*"	
+			"https://*/*"
 		],
 		"all_frames": true,
 		"run_at": "document_idle"
