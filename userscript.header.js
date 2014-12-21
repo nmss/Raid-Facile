@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Raide Facile [modified by Deberron]
 // @namespace      Snaquekiller
-// @version        8.4.3
+// @version        8.4.4
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile

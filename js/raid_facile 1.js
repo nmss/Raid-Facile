@@ -609,7 +609,7 @@ function mise_a_jour(version) {
 		// pas de mise à jour
 		return;
 	}
-	var popup = $('<div title="' + i18n('raid facile') + ' - Mise à jour">' +
+	var popup = $('<div title="' + i18n.get('raid facile') + ' - Mise à jour">' +
 		'<p>La version <b>'+version+'</b> est maintenant disponible.</p><br>' +
 		'<p>Vous avez actuelement la version <b>'+info.version+'</b><br>' +
 		'Voulez vous installer la mise à jour ?</p>'
@@ -680,6 +680,36 @@ function checkUpdate() {
 		}
 	}
 }
+
+/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
+var numberConverter = {
+	toInt: function(number, useShortNotation) {
+		var str = number.toString();
+		if (useShortNotation) {
+			str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
+		}
+		str = str.replace(/ /g, '');
+		return parseInt(str, 10);
+	},
+	shortenNumber: function(number, factor) {
+		return Math.round(number / factor);
+	},
+	toPrettyString: function(number) {
+		var k = 1000;
+		var m = 1000000;
+		var g = 1000000000;
+		if (number >= g * 100) {
+			return this.shortenNumber(number, g) + 'G';
+		}
+		if (number >= m * 100) {
+			return this.shortenNumber(number, m) + 'M';
+		}
+		if (number >= k * 100) {
+			return this.shortenNumber(number, k) + 'k';
+		}
+		return number;
+	}
+};
 
 /** Construit une URL */
 function Url(url) {
@@ -989,14 +1019,13 @@ bbcode_balisef[8] = '[/color]';
 		choix_certaine_vari:'Choix pour certaines variables',
 		selec_scan_st:'Sélection de scan',
 			q_apartir:'Butin',
-				apartir:'',
 			q_cdrmin:'CDR ',
 			q_totmin:'CDR + Butin',
 			q_prend_type:'Ne prendre les rapports avec ',
-				rep_0_prend1:' Un CDR >',
-				rep_0_prend2:' ou un butin >',
-				rep_1_prend1:' Un CDR >',
-				rep_1_prend2:' et un butin >',
+				rep_0_prend1:' Un CDR > ',
+				rep_0_prend2:' ou un butin > ',
+				rep_1_prend1:' Un CDR > ',
+				rep_1_prend2:' et un butin > ',
 				rep_2_prend:' Un CDR + butin > ',
 
 		classement_st:'Classement',
@@ -1254,7 +1283,6 @@ bbcode_balisef[8] = '[/color]';
 			// option variable
 			choix_certaine_vari:'Alege câteva variabile',
 			q_apartir:'ia rapoarte de spionaj din',
-			apartir:'totalul de resurse.',
 			q_cdrmin:'Câmp de Ramasite minim ',
 			q_totmin:'Câmp de Ramasite + minimum de Resurse recuperabile ',
 			q_prend_type:'Ia doar scanari cu ',
@@ -1500,7 +1528,6 @@ bbcode_balisef[8] = '[/color]';
 			choix_certaine_vari:'Selecciona algunas variables',
 			selec_scan_st:'Selección del informe de espionaje',
 				q_apartir:'leer el informe de espionaje de',
-					apartir:'recursos totales.',
 				q_cdrmin:'Escombros mínimo ',
 				q_totmin:'Escombros + Recursos mínimos recuperables ',
 				q_prend_type:'Leer sólo lecturas con ',
@@ -1759,7 +1786,6 @@ bbcode_balisef[8] = '[/color]';
 			choix_certaine_vari:'Choice for some variables',
 			selec_scan_st:'Selection of espionage report',
 				q_apartir:'take espionage report from',
-					apartir:'resources recoverable.',
 				q_cdrmin:'Minimal Debris field ',
 				q_totmin:'Debris Field + minimum of Resources recoverable ',
 				q_prend_type:'Take only scans with ',
@@ -2416,9 +2442,9 @@ bbcode_balisef[8] = '[/color]';
 
 		{//choix variable
 			//Selection de scan :
-				var ressource_prend = parseInt(document.getElementById('val_res_min').value, 10);
-				var cdr_prend = parseInt(document.getElementById('valeur_cdr_mini').value, 10);
-				var tot_prend = parseInt(document.getElementById('valeur_tot_mini').value, 10);
+				var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value, true);
+				var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value, true);
+				var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value, true);
 
 				var prend_type0 = document.getElementById("prend_type0").checked;
 				var prend_type1 = document.getElementById("prend_type1").checked;
