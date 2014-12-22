@@ -1,4 +1,5 @@
-/* Pour éditer ce fichier je conseille Notepad++ ou Brackets
+/* Pour éditer ce fichier je conseille Sublime Text, Notepad++ ou Brackets
+	lien: http://www.sublimetext.com/
 	lien: http://notepad-plus-plus.org/fr
 	lien: http://brackets.io/
 	il permet de masquer certaines partie du code pour que celui-ci soir mieux organisé, et plus compréhensible */
@@ -9,993 +10,991 @@ aâàã eéêè iîì ñ oôòõ uûù €
 */
 
 
-/** Logger **/
-function Logger() {
-	this.logs = [];
-}
-Logger.prototype.log = function(message) {
-	if (info && !info.args.raidFacileDebug) {
-		return;
+/** Logger **///{region
+	function Logger() {
+		this.logs = [];
 	}
-	var messageParts = [];
-	for (var i = 0; i < arguments.length; i++) {
-		messageParts.push(arguments[i]);
-	}
-	this.logs.push(messageParts);
-	console.debug.apply(console, ['[raid facile]'].concat(messageParts));
-};
-var logger = new Logger();
+	Logger.prototype.log = function(message) {
+		if (info && !info.args.raidFacileDebug) {
+			return;
+		}
+		var messageParts = [];
+		for (var i = 0; i < arguments.length; i++) {
+			messageParts.push(arguments[i]);
+		}
+		this.logs.push(messageParts);
+		console.debug.apply(console, ['[raid facile]'].concat(messageParts));
+	};
+	var logger = new Logger();
+//}endregion
 logger.log('Salut :)');
 
-
 /** Variables utilitaires **///{region
-// Si jQuery n'est pas dans le scope courant c'est qu'il est dans le scope de l'unsafeWindow
-if (typeof $ === 'undefined') {
-	var $ = unsafeWindow.$;
-}
-// Variable contenant tout un tas d'informations utiles, pour ne pas laisser les variables dans le scope global.
-var info;
-/** Initialise et rempli la variable info */
-var remplirInfo = function() {
-	var parseOgameMeta = function () {
-		var content, name;
-		var metaVars = $('meta[name^=ogame-]', document.head);
+	// Si jQuery n'est pas dans le scope courant c'est qu'il est dans le scope de l'unsafeWindow
+	if (typeof $ === 'undefined') {
+		var $ = unsafeWindow.$;
+	}
+	// Variable contenant tout un tas d'informations utiles, pour ne pas laisser les variables dans le scope global.
+	var info;
+	/** Initialise et rempli la variable info */
+	var remplirInfo = function() {
+		var parseOgameMeta = function () {
+			var content, name;
+			var metaVars = $('meta[name^=ogame-]', document.head);
 
-		info.ogameMeta = {};
-		for (var i = 0; i < metaVars.length; ++i) {
-			name = metaVars[i].getAttribute('name');
-			content = metaVars[i].getAttribute('content');
-			info.ogameMeta[name] = content;
+			info.ogameMeta = {};
+			for (var i = 0; i < metaVars.length; ++i) {
+				name = metaVars[i].getAttribute('name');
+				content = metaVars[i].getAttribute('content');
+				info.ogameMeta[name] = content;
+			}
+		};
+		info = {
+			siteUrl: 'http://lastworld.etenity.free.fr/ogame/raid_facile/',
+			firefox: navigator.userAgent.indexOf("Firefox") > -1 || navigator.userAgent.indexOf("Iceweasel") > -1,
+			chrome: navigator.userAgent.indexOf("Chrome") > -1,
+			opera: navigator.userAgent.indexOf('Opera')>-1,
+			url: location.href,
+			serveur: location.hostname,
+			univers: location.hostname.replace('ogame.', ''),
+			date: new Date(),
+			startTime: (new Date()).getTime(),
+			session: $('meta[name=ogame-session]').attr('content') || location.href.replace(/^.*&session=([0-9a-f]*).*$/i,"$1"),
+			pseudo: $('meta[name=ogame-player-name]').attr('content'),
+			playerId: $('meta[name=ogame-player-id]').attr('content')
+			// version
+			// Tampermonkey
+			// ogameMeta
+			// args
+			// hash
+		};
+		parseUrl();
+		parseOgameMeta();
+		if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
+			// pour les extensions Chrome
+			info.version = chrome.runtime.getManifest().version;
+			info.tampermonkey = false;
+		}
+		if (typeof GM_info !== 'undefined') {
+			// pour greasemonkey et ceux qui ont GM_info (greasemonkey et tampermonkey)
+			info.version = GM_info.script.version;
+			info.tampermonkey = GM_info.scriptHandler === "Tampermonkey";
 		}
 	};
-	info = {
-		siteUrl: 'http://lastworld.etenity.free.fr/ogame/raid_facile/',
-		firefox: navigator.userAgent.indexOf("Firefox") > -1 || navigator.userAgent.indexOf("Iceweasel") > -1,
-		chrome: navigator.userAgent.indexOf("Chrome") > -1,
-		opera: navigator.userAgent.indexOf('Opera')>-1,
-		url: location.href,
-		serveur: location.hostname,
-		univers: location.hostname.replace('ogame.', ''),
-		date: new Date(),
-		startTime: (new Date()).getTime(),
-		session: $('meta[name=ogame-session]').attr('content') || location.href.replace(/^.*&session=([0-9a-f]*).*$/i,"$1"),
-		pseudo: $('meta[name=ogame-player-name]').attr('content'),
-		playerId: $('meta[name=ogame-player-id]').attr('content')
-		// version
-		// Tampermonkey
-		// ogameMeta
-		// args
-		// hash
+	/** Parsing des paramètres situé après le "?" dans l'url, stoque les résultat dans info */
+	var parseUrl = function() {
+		info.args = {};
+		info.hash = {};
+		var argString = location.search.substring(1).split('&');
+		var i, arg, kvp;
+		if (argString[0] !== '') {
+			for (i = 0; i < argString.length; i++) {
+				arg = decodeURIComponent(argString[i]);
+				if (arg.indexOf('=') === -1) {
+					info.args[arg] = true;
+				} else {
+					kvp = arg.split('=');
+					info.args[kvp[0]] = kvp[1];
+				}
+			}
+		}
+		if (location.hash.length > 0) {
+			var hashString = location.hash.substring(1).split('&');
+			for (i = 0; i < hashString.length; i++) {
+				arg = decodeURIComponent(hashString[i]);
+				if (arg.indexOf('=') === -1) {
+					info.args[arg] = true;
+					info.hash[arg] = true;
+				} else {
+					kvp = arg.split('=');
+					info.args[kvp[0]] = kvp[1];
+					info.hash[kvp[0]] = kvp[1];
+				}
+			}
+		}
 	};
-	parseUrl();
-	parseOgameMeta();
-	if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
-		// pour les extensions Chrome
-		info.version = chrome.runtime.getManifest().version;
-		info.tampermonkey = false;
-	}
-	if (typeof GM_info !== 'undefined') {
-		// pour greasemonkey et ceux qui ont GM_info (greasemonkey et tampermonkey)
-		info.version = GM_info.script.version;
-		info.tampermonkey = GM_info.scriptHandler === "Tampermonkey";
-	}
-};
-/** Parsing des paramètres situé après le "?" dans l'url, stoque les résultat dans info */
-var parseUrl = function() {
-	info.args = {};
-	info.hash = {};
-	var argString = location.search.substring(1).split('&');
-	var i, arg, kvp;
-	if (argString[0] !== '') {
-		for (i = 0; i < argString.length; i++) {
-			arg = decodeURIComponent(argString[i]);
-			if (arg.indexOf('=') === -1) {
-				info.args[arg] = true;
-			} else {
-				kvp = arg.split('=');
-				info.args[kvp[0]] = kvp[1];
-			}
-		}
-	}
-	if (location.hash.length > 0) {
-		var hashString = location.hash.substring(1).split('&');
-		for (i = 0; i < hashString.length; i++) {
-			arg = decodeURIComponent(hashString[i]);
-			if (arg.indexOf('=') === -1) {
-				info.args[arg] = true;
-				info.hash[arg] = true;
-			} else {
-				kvp = arg.split('=');
-				info.args[kvp[0]] = kvp[1];
-				info.hash[kvp[0]] = kvp[1];
-			}
-		}
-	}
-};
 //}endregion
 
 /** Fonctions de compatibilité **///{region
-// Si ces fonctions n'existent pas, elle sont créées
-if (typeof GM_getValue === 'undefined') {
-	var GM_getValue = function(key, defaultValue) {
-		var retValue = localStorage.getItem(key);
-		if (!retValue) {
-			retValue = defaultValue;
-		}
-		return retValue;
-	};
-}
-if (typeof GM_setValue === 'undefined') {
-	var GM_setValue = function(key, value) {
-		localStorage.setItem(key, value);
-	};
-}
-if (typeof GM_deleteValue === 'undefined') {
-	var GM_deleteValue = function(key) {
-		localStorage.removeItem(key);
-	};
-}
-if (typeof GM_addStyle === 'undefined') {
-	var addStyle = function(css, url) {
-		if (url) {
-			$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
-		} else {
-			$('<style type="text/css">' + css + '</style>').appendTo(document.head);
-		}
-	};
-} else {
-	var addStyle = function(css, url) {
-		if (url) {
-			$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
-		} else {
-			GM_addStyle(css);
-		}
-	};
-}
+	// Si ces fonctions n'existent pas, elle sont créées
+	if (typeof GM_getValue === 'undefined') {
+		var GM_getValue = function(key, defaultValue) {
+			var retValue = localStorage.getItem(key);
+			if (!retValue) {
+				retValue = defaultValue;
+			}
+			return retValue;
+		};
+	}
+	if (typeof GM_setValue === 'undefined') {
+		var GM_setValue = function(key, value) {
+			localStorage.setItem(key, value);
+		};
+	}
+	if (typeof GM_deleteValue === 'undefined') {
+		var GM_deleteValue = function(key) {
+			localStorage.removeItem(key);
+		};
+	}
+	if (typeof GM_addStyle === 'undefined') {
+		var addStyle = function(css, url) {
+			if (url) {
+				$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
+			} else {
+				$('<style type="text/css">' + css + '</style>').appendTo(document.head);
+			}
+		};
+	} else {
+		var addStyle = function(css, url) {
+			if (url) {
+				$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
+			} else {
+				GM_addStyle(css);
+			}
+		};
+	}
 //}endregion
 
 /** Classe gérant le stockage de données **///{region
-function Stockage(namespace) {
-	this.storageKeyName = 'RaidFacile ' + info.univers + ' ' + info.ogameMeta['ogame-player-id'] + ' ' + namespace;
-	/* Le mapping sert à :
-		- ce que ça prenne moins de place dans le stockage, mais qu'on ait toujours un texte compréhensible dans le code
-		- définir la valeur par défaut au cas ou rien n'est encore stocké
-	*/
-	this.mapping = {
-		// 'nom complet': ['nom court', 'valeur par défaut']
-		'attaquer nouvel onglet': ['a', 1],
-		'couleur attaque': ['b', '#c7050d'],
-		'couleur attaque retour': ['c', '#e75a4f'],
-		'couleur attaque2': ['d', '#c7050d'],
-		'couleur attaque2 retour': ['e', '#e75a4f'],
-		'couleur espionnage': ['f', '#FF8C00'],
-		'couleur espionnage retour': ['f_r', '']
+	function Stockage(namespace) {
+		this.storageKeyName = 'RaidFacile ' + info.univers + ' ' + info.ogameMeta['ogame-player-id'] + ' ' + namespace;
+		/* Le mapping sert à :
+			- ce que ça prenne moins de place dans le stockage, mais qu'on ait toujours un texte compréhensible dans le code
+			- définir la valeur par défaut au cas ou rien n'est encore stocké
+		*/
+		this.mapping = {
+			// 'nom complet': ['nom court', 'valeur par défaut']
+			'attaquer nouvel onglet': ['a', 1],
+			'couleur attaque': ['b', '#c7050d'],
+			'couleur attaque retour': ['c', '#e75a4f'],
+			'couleur attaque2': ['d', '#c7050d'],
+			'couleur attaque2 retour': ['e', '#e75a4f'],
+			'couleur espionnage': ['f', '#FF8C00'],
+			'couleur espionnage retour': ['f_r', '']
+		};
+		if (!this.checkMappingCount()) {
+			throw 'Erreur de mapping, ya pas le bon nombre!';
+		}
+	}
+	Stockage.prototype = {
+		/** Renvoie la valeur d'une donnée en mémoire */
+		get: function(nom) {
+			var key = this.mapping[nom][0];
+			if (this.data.hasOwnProperty(key)) {
+				return this.data[key];
+			} else {
+				return this.mapping[nom][1];
+			}
+		},
+		/** Change la valeur en mémoire d'une donnée */
+		set: function(nom, valeur) {
+			this.data[this.mapping[nom][0]] = valeur;
+		},
+		/** Charge en mémoire les données du stockage */
+		load: function() {
+			this.data = JSON.parse(GM_getValue(this.storageKeyName, '{}'));
+		},
+		/** Sauvegarde dans le stockage les données en mémoire */
+		save: function() {
+			GM_setValue(this.storageKeyName, JSON.stringify(this.data));
+		},
+		/** Vérification qu'il n'y a pas eu d'erreur de mapping (que chaque valeur n'est utilisée qu'une fois) */
+		checkMappingCount: function() {
+			var mappingCount = 0;
+			var mappingCountCheck = 0;
+			var mappingKeys = {};
+			for (var prop in this.mapping) {
+				if (this.mapping.hasOwnProperty(prop)) {
+					++mappingCount;
+					mappingKeys[this.mapping[prop][0]] = true;
+				}
+			}
+			for (prop in mappingKeys) {
+				if (mappingKeys.hasOwnProperty(prop)) {
+					++mappingCountCheck;
+				}
+			}
+			return mappingCount === mappingCountCheck;
+		}
 	};
-	if (!this.checkMappingCount()) {
-		throw 'Erreur de mapping, ya pas le bon nombre!';
-	}
-}
-Stockage.prototype = {
-	/** Renvoie la valeur d'une donnée en mémoire */
-	get: function(nom) {
-		var key = this.mapping[nom][0];
-		if (this.data.hasOwnProperty(key)) {
-			return this.data[key];
-		} else {
-			return this.mapping[nom][1];
-		}
-	},
-	/** Change la valeur en mémoire d'une donnée */
-	set: function(nom, valeur) {
-		this.data[this.mapping[nom][0]] = valeur;
-	},
-	/** Charge en mémoire les données du stockage */
-	load: function() {
-		this.data = JSON.parse(GM_getValue(this.storageKeyName, '{}'));
-	},
-	/** Sauvegarde dans le stockage les données en mémoire */
-	save: function() {
-		GM_setValue(this.storageKeyName, JSON.stringify(this.data));
-	},
-	/** Vérification qu'il n'y a pas eu d'erreur de mapping (que chaque valeur n'est utilisée qu'une fois) */
-	checkMappingCount: function() {
-		var mappingCount = 0;
-		var mappingCountCheck = 0;
-		var mappingKeys = {};
-		for (var prop in this.mapping) {
-			if (this.mapping.hasOwnProperty(prop)) {
-				++mappingCount;
-				mappingKeys[this.mapping[prop][0]] = true;
-			}
-		}
-		for (prop in mappingKeys) {
-			if (mappingKeys.hasOwnProperty(prop)) {
-				++mappingCountCheck;
-			}
-		}
-		return mappingCount === mappingCountCheck;
-	}
-};
-var stockageOption;
-var stockageData;
+	var stockageOption;
+	var stockageData;
 //}endregion
 
 /** Classe de communication avec la page **///{region
-var Intercom = function() {
-	this.loaded = false;
-	this.listen();
-	this.listeAttente = [];
-};
-Intercom.prototype = {
-	/**	send envoie un message à l'autre classe Intercom
-		action (string) le nom de l'action
-		data (object)(facultatif) les données à transmettre
-	*/
-	send: function(action, data) {
-		// Si l'autre intercom n'est pas encore chargé on met les messages en attente
-		if (this.loaded === false) {
-			this.listeAttente.push([action, data]);
-			return;
-		}
-		var données = {
-			fromPage: false,
-			namespace: 'Raid facile',
-			action: action,
-			data: data === undefined ? {} : data
-		};
-		window.postMessage(données, '*');
-	},
-	/** Permet de recevoir les messages de l'autre intercom */
-	listen: function() {
-		window.addEventListener('message', this.received.bind(this), false);
-	},
-	/** Défini les action à effectuer en cas de message reçu */
-	received: function(event) {
-		// On s'assure que le message est bien pour nous
-		if (event.data.namespace !== 'Raid facile' || event.data.fromPage === false) {
-			return;
-		}
-		switch(event.data.action) {
-		case 'loaded':
-			// l'autre intercom est chargé, on peut donc traiter les messages en attente
-			this.loaded = true;
-			this.traiterListeAttente();
-			break;
-		}
-	},
-	traiterListeAttente: function() {
-		// On envoie tous les messages de la liste d'attente puis on vide la liste
-		for (var i = 0; i < this.listeAttente.length; ++i) {
-			this.send.apply(this, this.listeAttente[i]);
-		}
+	var Intercom = function() {
+		this.loaded = false;
+		this.listen();
 		this.listeAttente = [];
-	}
-};
-var intercom;
+	};
+	Intercom.prototype = {
+		/**	send envoie un message à l'autre classe Intercom
+			action (string) le nom de l'action
+			data (object)(facultatif) les données à transmettre
+		*/
+		send: function(action, data) {
+			// Si l'autre intercom n'est pas encore chargé on met les messages en attente
+			if (this.loaded === false) {
+				this.listeAttente.push([action, data]);
+				return;
+			}
+			var données = {
+				fromPage: false,
+				namespace: 'Raid facile',
+				action: action,
+				data: data === undefined ? {} : data
+			};
+			window.postMessage(données, '*');
+		},
+		/** Permet de recevoir les messages de l'autre intercom */
+		listen: function() {
+			window.addEventListener('message', this.received.bind(this), false);
+		},
+		/** Défini les action à effectuer en cas de message reçu */
+		received: function(event) {
+			// On s'assure que le message est bien pour nous
+			if (event.data.namespace !== 'Raid facile' || event.data.fromPage === false) {
+				return;
+			}
+			switch(event.data.action) {
+			case 'loaded':
+				// l'autre intercom est chargé, on peut donc traiter les messages en attente
+				this.loaded = true;
+				this.traiterListeAttente();
+				break;
+			}
+		},
+		traiterListeAttente: function() {
+			// On envoie tous les messages de la liste d'attente puis on vide la liste
+			for (var i = 0; i < this.listeAttente.length; ++i) {
+				this.send.apply(this, this.listeAttente[i]);
+			}
+			this.listeAttente = [];
+		}
+	};
+	var intercom;
 //}endregion
 
 /** Classe d'internationalisation  **///{region
-function I18n() {
-	this.init();
-}
-I18n.prototype = {
-	init: function() {
-		this.langue = langue;
-	},
-	get: function(key) {
-		var local = this[langue][key];
-		if (local === undefined && langue !== 'en') {
-			local = this.en[key];
-		}
-		if (local === undefined && langue !== 'fr') {
-			local = this.fr[key];
-		}
-		return local;
-	},
-	exporter: function(langue) {
-		return this[langue];
-	},
-	importer: function(langue, data) {
-		this[langue] = data;
+	function I18n() {
+		this.init();
 	}
-};
-var i18n;
+	I18n.prototype = {
+		init: function() {
+			this.langue = langue;
+		},
+		get: function(key) {
+			var local = this[langue][key];
+			if (local === undefined && langue !== 'en') {
+				local = this.en[key];
+			}
+			if (local === undefined && langue !== 'fr') {
+				local = this.fr[key];
+			}
+			return local;
+		},
+		exporter: function(langue) {
+			return this[langue];
+		},
+		importer: function(langue, data) {
+			this[langue] = data;
+		}
+	};
+	var i18n;
 //}endregion
 
 /** Fonctions de correction **///{region
 
-/** Ajuste la taille de la "box" d'ogame, au cas où le tableau prend trop de place pour le menu */
-function ajusterTailleBox() {
-	var tailleBox = $('#box').width();
-	var tailleMenuGauche = $('#links').outerWidth(true);
-	var tailleMenuPlanetes = $('#rechts').outerWidth(true);
-	var tailleRaidFacile = $('#div_raide_facile').outerWidth(true);
-	var changementTaille = (tailleMenuGauche + tailleMenuPlanetes + tailleRaidFacile) - tailleBox;
-	if (changementTaille > 0) {
-		$('#box').width(tailleBox + changementTaille);
-		$('#contentWrapper').width( $('#contentWrapper').width() + changementTaille);
+	/** Ajuste la taille de la "box" d'ogame, au cas où le tableau prend trop de place pour le menu */
+	function ajusterTailleBox() {
+		var tailleBox = $('#box').width();
+		var tailleMenuGauche = $('#links').outerWidth(true);
+		var tailleMenuPlanetes = $('#rechts').outerWidth(true);
+		var tailleRaidFacile = $('#div_raide_facile').outerWidth(true);
+		var changementTaille = (tailleMenuGauche + tailleMenuPlanetes + tailleRaidFacile) - tailleBox;
+		if (changementTaille > 0) {
+			$('#box').width(tailleBox + changementTaille);
+			$('#contentWrapper').width( $('#contentWrapper').width() + changementTaille);
 
-		var bannerSkyscraperLeft = parseInt($('#banner_skyscraper').css('left').slice(0, -2)) + changementTaille;
-		$('#banner_skyscraper').css('left', bannerSkyscraperLeft);
-	}
-}
-
-/** Certains select s'affichent façon ogame mais avec une largeur de 0px, cette fonction corrige le problème
- * en paramètre la fonction prend un objet jQuery contenant 1 ou plusieurs select
- */
-function ogameStyleSelectFix(selects) {
-	var ok = false;
-	for (var i = 0; i < selects.length; ++i) {
-		var select = $(selects[i]);
-		var span = select.next();
-		if (span.width() === 0) {
-			span.remove();
-			select.removeClass('dropdownInitialized');
-			ok = true;
+			var bannerSkyscraperLeft = parseInt($('#banner_skyscraper').css('left').slice(0, -2)) + changementTaille;
+			$('#banner_skyscraper').css('left', bannerSkyscraperLeft);
 		}
-		select.addClass('fixed');
 	}
-	if (ok) {
-		intercom.send('ogame style');
-	}
-}
 
+	/** Certains select s'affichent façon ogame mais avec une largeur de 0px, cette fonction corrige le problème
+	 * en paramètre la fonction prend un objet jQuery contenant 1 ou plusieurs select
+	 */
+	function ogameStyleSelectFix(selects) {
+		var ok = false;
+		for (var i = 0; i < selects.length; ++i) {
+			var select = $(selects[i]);
+			var span = select.next();
+			if (span.width() === 0) {
+				span.remove();
+				select.removeClass('dropdownInitialized');
+				ok = true;
+			}
+			select.addClass('fixed');
+		}
+		if (ok) {
+			intercom.send('ogame style');
+		}
+	}
 //}endregion
 
 /** Fonctions utilitaires **///{region
 
-/** un des première fonction à être appelée, initialise un peu tout */
-function init() {
-	// exportOptions();
-	remplirInfo();
-	logger.log('Version', info.version);
-	setPage();
-	if (info.page === 'optionsRaidFacile') { // impossible d'afficher la page options au départ on affiche donc le tableau
-		info.hash.raidFacile = 'tableau';
-	}
-	rebuildHash();
-	logger.log('Page', info.page);
-	logger.log('Navigateur', JSON.stringify({ chrome:info.chrome, firefox:info.firefox, opera:info.opera, tampermonkey:info.tampermonkey }));
-
-	intercom = new Intercom();
-
-	stockageOption = new Stockage('options');
-	stockageData = new Stockage('données');
-	stockageOption.load();
-	stockageData.load();
-
-	i18n = new I18n();
-
-	window.addEventListener('hashchange', onHashChange, false);
-	window.addEventListener('keyup', keyShortcut, false);
-
-	plusTard(checkUpdate);
-	logger.log('Init ok');
-}
-function init2() {
-	logger.log('Init 2');
-	afficher_lien();
-	logger.log('Init 2 ok');
-}
-
-/** Fait l'action appropiée quand une touche du clavier est appuyée */
-function keyShortcut(eventObject) {
-	// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
-	if (eventObject.which === 80) { // Touche P
-		if (info.page === 'tableauRaidFacile') {
-			eventObject.preventDefault();
-			eventObject.stopPropagation();
-			var ligneAttaquer = $('#corps_tableau2 > tr:not(.attaque):eq(0)');
-			var lienAttaquer = $('> td.boutonAttaquer > a', ligneAttaquer);
-			lienAttaquer[0].click();
-			ligneAttaquer.addClass('attaque');
+	/** un des première fonction à être appelée, initialise un peu tout */
+	function init() {
+		// exportOptions();
+		remplirInfo();
+		logger.log('Version', info.version);
+		setPage();
+		if (info.page === 'optionsRaidFacile') { // impossible d'afficher la page options au départ on affiche donc le tableau
+			info.hash.raidFacile = 'tableau';
 		}
-	}
-}
-
-/** Permet d'exécuter une fonction, mais plus tard */
-function plusTard(callback, temps) {
-	if (temps === undefined) {
-		temps = Math.random() * 1000 + 1500; // entre 1.5s et 2.5s
-	}
-	window.setTimeout(callback, temps);
-}
-
-/** Met à jour le hash et les variables correspondantes
- * Supprime le "go" du hash s'il est présent
- */
-function rebuildHash() {
-	var lengthDiff = 0;
-	if (info.hash.go !== undefined) {
-		delete info.hash.go;
-		lengthDiff++;
-	}
-	var newHash = [];
-	for (var key in info.hash) {
-		if (info.hash[key] === true) {
-			newHash.push(key);
-		} else {
-			newHash.push(key + '=' + info.hash[key]);
-		}
-	}
-	if (newHash.length === 0 && lengthDiff === 0) {
-		return;
-	}
-	location.hash = newHash.join('&');
-	parseUrl();
-}
-
-/** Fait l'action appropriée quand le hash de la page change */
-function onHashChange(/*eventObject*/) {
-	parseUrl();
-	if (info.hash.go !== undefined) {
 		rebuildHash();
-		location.reload();
-	}
-}
+		logger.log('Page', info.page);
+		logger.log('Navigateur', JSON.stringify({ chrome:info.chrome, firefox:info.firefox, opera:info.opera, tampermonkey:info.tampermonkey }));
 
-/** met à jour info.page en fonction de l'URL */
-function setPage() {
-	info.page = info.args.page;
-	if (info.args.raidefacil === 'scriptOptions' || info.args.raidFacile === 'tableau') {
-		info.page = 'tableauRaidFacile';
-	}
-	else if (info.args.raidFacile === 'options') {
-		info.page = 'optionsRaidFacile';
-	}
-}
+		intercom = new Intercom();
 
-/** Affiche ou masque les options
-	si elle sont déjà affichées elles seront masquées et le tableau des scans sera affiché,
-	si elle sont masquée elle seront affichées et le tableau des scans sera masqué
-*/
-function afficherMasquerOptions(eventObject) {
-	eventObject.preventDefault();
-	if ($('#option_script').css('display') === 'none') {
-		info.hash.raidFacile = 'options';
-	} else {
-		info.hash.raidFacile = 'tableau';
-	}
-	$('#option_script, #div_tableau_raide_facile').toggle();
-	rebuildHash();
-}
+		stockageOption = new Stockage('options');
+		stockageData = new Stockage('données');
+		stockageOption.load();
+		stockageData.load();
 
-/** Affiche le lien de Raid facile */
-function afficher_lien() {
-	var selector;
-	// si on est sur la page mouvements on prend l'url de la page flotte, sinon celle de la page mouvements
-	if (info.args.page === 'movement') {
-		selector = '#menuTable > li:nth-child(8) > a.menubutton';
-	} else {
-		selector = '#menuTable > li:nth-child(8) > .menu_icon > a';
+		i18n = new I18n();
+
+		window.addEventListener('hashchange', onHashChange, false);
+		window.addEventListener('keyup', keyShortcut, false);
+
+		plusTard(checkUpdate);
+		logger.log('Init ok');
+	}
+	function init2() {
+		logger.log('Init 2');
+		afficher_lien();
+		logger.log('Init 2 ok');
 	}
 
-	var url = new Url(document.querySelector(selector).getAttribute('href')).hashes(info.hash);
-	var li = $('<li id="raide-facile"></li>');
-	if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
-		li.append('<span class="menu_icon"><a href="'+url.hashes({ raidFacile: 'options' })+'" title="'+i18n.get('options de')+' '+i18n.get('raid facile')+'"><div class="menuImage traderOverview"></div></a></span>');
-		$('.menu_icon a', li).click(afficherMasquerOptions);
-	}
-	li.append('<a href="'+url.hashes({ raidFacile: 'tableau' })+'" class="menubutton" id="lien_raide"><span class="textlabel">'+ i18n.get('raid facile') + '</span></a>');
-	if (!GM_getValue("aJours_d", true)) {
-		$('.textlabel', li).css('color', 'orange');
-	}
-	li.appendTo('#menuTableTools');
-	logger.log('Lien ajouté dans le menu');
-	if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
-		// On déselectionne le lien sélectionné
-		$('#menuTable .menubutton.selected').removeClass('selected');
-		$('#menuTable .menuImage.highlighted').removeClass('highlighted');
-		// On sélectionne le lien de Raid facile
-		$('.menubutton', li).addClass('selected');
-		$('.menuImage', li).addClass('highlighted');
-		intercom.send('tooltip', {
-			selector: '#raide-facile .menu_icon a',
-			settings: {
-				hook: 'rightmiddle'
-			}
-		});
-	}
-}
-
-/** Colore les lignes en fonction des missions en cours */
-function showAttaque(data) {
-	var traiteFlotte = function(elem) {
-		var destination = $.trim($('.destCoords a', elem).text());
-		var missionType = elem.data('mission-type');
-		var retour = elem.data('return-flight') ? 1 : 0;
-		if (missions[destination] === undefined) {
-			missions[destination] = {};
-		}
-		if (missions[destination][missionType] === undefined) {
-			missions[destination][missionType] = [0, 0];
-		}
-		missions[destination][missionType][retour]++;
-	};
-	var missions = {};
-	var html = $($.trim(data));
-	// On va chercher toutes les flottes (allers + retours)
-	var flottes = $('#eventContent .eventFleet', html[0]);
-	for (var i = 0; i < flottes.length; ++i) {
-		traiteFlotte($(flottes[i]));
-	}
-	var couleur;
-	var classe;
-	var cible;
-	var lignes;
-	for (var destination in missions) {
-		couleur = null;
-		classe = '';
-		cible = missions[destination];
-
-		// On récupère les lignes du tableau de raid facile qui correspondent (il peut y en avoir plusieurs quand on ne supprime pas l'ancien scan)
-		lignes = $(document.getElementsByClassName(destination));
-
-		/* cf l'api http://uni116.ogame.fr/api/localization.xml pour les nombres
-			1 Attaquer - 2 Attaque groupée - 3 Transporter - 4 Stationner - 5 Stationner - 6 Espionner - 7 Coloniser - 8 Recycler - 9 Détruire - 15 Expédition */
-		if (cible[9]) { // Détruire
-			if (cible[9][0]) { // aller
-				lignes.addClass('detruire');
-				couleur = col_dest;
-			}
-			else { // retour
-				lignes.addClass('detruireRet');
-				couleur = col_dest_r;
+	/** Fait l'action appropiée quand une touche du clavier est appuyée */
+	function keyShortcut(eventObject) {
+		// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
+		if (eventObject.which === 80) { // Touche P
+			if (info.page === 'tableauRaidFacile') {
+				eventObject.preventDefault();
+				eventObject.stopPropagation();
+				var ligneAttaquer = $('#corps_tableau2 > tr:not(.attaque):eq(0)');
+				var lienAttaquer = $('> td.boutonAttaquer > a', ligneAttaquer);
+				lienAttaquer[0].click();
+				ligneAttaquer.addClass('attaque');
 			}
 		}
-		else if (cible[2]) { // Attaque groupée
-			if (cible[2][0]) { // aller
-				lignes.addClass('attaqueGr');
-				couleur = col_att_g;
-			} else { // retour
-				lignes.addClass('attaqueGrRet');
-				couleur = col_att_g_r;
-			}
+	}
+
+	/** Permet d'exécuter une fonction, mais plus tard */
+	function plusTard(callback, temps) {
+		if (temps === undefined) {
+			temps = Math.random() * 1000 + 1500; // entre 1.5s et 2.5s
 		}
-		else if (cible[1]) { // Attaquer
-			if (cible[1][0] >= 2) {
-				lignes.addClass('attaque').addClass('attaque2');
-				couleur = stockageOption.get('couleur attaque2');
-			} else if (cible[1][1] >= 2) {
-				lignes.addClass('attaqueRet').addClass('attaque2Ret');
-				couleur = stockageOption.get('couleur attaque2 retour');
+		window.setTimeout(callback, temps);
+	}
+
+	/** Met à jour le hash et les variables correspondantes
+	 * Supprime le "go" du hash s'il est présent
+	 */
+	function rebuildHash() {
+		var lengthDiff = 0;
+		if (info.hash.go !== undefined) {
+			delete info.hash.go;
+			lengthDiff++;
+		}
+		var newHash = [];
+		for (var key in info.hash) {
+			if (info.hash[key] === true) {
+				newHash.push(key);
 			} else {
-				if (cible[1][0]) { // aller
-					lignes.addClass('attaque');
-					couleur = col_att;
-				} else { // retour
-					lignes.addClass('attaqueRet');
-					couleur = col_att_r;
-				}
+				newHash.push(key + '=' + info.hash[key]);
 			}
 		}
-		else if (cible[6] && cible[6][0]) { // Espionner, mais pas les retour
-			lignes.addClass('espio');
-			couleur = stockageOption.get('couleur espionnage');
+		if (newHash.length === 0 && lengthDiff === 0) {
+			return;
 		}
-		var titre = 'Mission actuellement en cours<div class="splitLine"></div>';
-		for (var typeMission in cible) {
-			titre += '<p>' + localization.missions[typeMission] + ' : ' + cible[typeMission][0] + ' +' + (cible[typeMission][1]-cible[typeMission][0]) + ' retour' + '</p>';
+		location.hash = newHash.join('&');
+		parseUrl();
+	}
+
+	/** Fait l'action appropriée quand le hash de la page change */
+	function onHashChange(/*eventObject*/) {
+		parseUrl();
+		if (info.hash.go !== undefined) {
+			rebuildHash();
+			location.reload();
 		}
-		$('.nombreAttaque', lignes).attr('title', titre);
 	}
-	intercom.send('tooltip', {selector:'#corps_tableau2 .nombreAttaque[title]'});
-}
 
-/** Permet de récupérer un objet contenant toutes les options */
-function exportOptions() {
-	var optionExport = {};
-	optionExport.optionNew = {
-		data: stockageOption.data,
-		keyName: stockageOption.storageKeyName
-	};
-	optionExport.optionOld = {
-		option1: GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1'),
-		option2: GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0'),
-		option3: GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F'),
-		option4: GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1'),
-		option5: GM_getValue('option5'+ info.serveur, navigator.language),
-		vitesse_uni: parseInt(GM_getValue('vitesse_uni', '1'))
-	};
-	prompt("Voice l'export des options", JSON.stringify(optionExport));
-}
-
-/** Affiche qu'il y a une mise à jour de disponible */
-function mise_a_jour(version) {
-	if (!/^\d+\.\d+(\.\d+(\.\d+)?)?$/.test(version)) {
-		return;
-	}
-	if (version.split('.') <= info.version.split('.')) {
-		// pas de mise à jour
-		return;
-	}
-	var popup = $('<div title="' + i18n.get('raid facile') + ' - Mise à jour">' +
-		'<p>La version <b>'+version+'</b> est maintenant disponible.</p><br>' +
-		'<p>Vous avez actuelement la version <b>'+info.version+'</b><br>' +
-		'Voulez vous installer la mise à jour ?</p>'
-		//+'<p>Prochain rappel dans 6h.</p></div>'
-	).dialog({
-		width: 500,
-		// modal: true,
-		// resizable: false,
-		buttons: {
-			"Installer": function() {
-				// preference.get()['lastUpdateCheck'] = info.now;
-				// preference.save();
-				location.href = info.siteUrl;
-				// popup.html('<iframe src="'+info.siteUrl+'" style="width:100%; height:98%"></iframe>').css({
-					// width:'590px', height:'400px'
-				// }).parent().css({
-					// width:'auto', height:'auto'
-				// });
-				GM_setValue("date_mise_ajours", ''+ info.startTime +'');
-				popup.dialog('destroy');
-			},
-			"Changelog": function() {
-				location.href = info.siteUrl + '?changelog';
-				// popup.html('<iframe src="'+info.siteUrl+'?changelog" style="width:100%; height:98%"></iframe>');
-			},
-			"Plus tard": function() {
-				// preference.get()['lastUpdateCheck'] = info.now;
-				// preference.save();
-				popup.dialog('destroy');
-				GM_setValue("date_mise_ajours", ''+ ( info.startTime + 1000*60*60*24*7 ) +'');
-			}
+	/** met à jour info.page en fonction de l'URL */
+	function setPage() {
+		info.page = info.args.page;
+		if (info.args.raidefacil === 'scriptOptions' || info.args.raidFacile === 'tableau') {
+			info.page = 'tableauRaidFacile';
 		}
-	});
-	popup.css({
-		background: 'initial'
-	}).parent().css({
-		'z-index': '3001',
-		background: 'black url(http://gf1.geo.gfsrv.net/cdn09/3f1cb3e1709fa2fa1c06b70a3e64a9.jpg) -200px -200px no-repeat'
-	});
-}
+		else if (info.args.raidFacile === 'options') {
+			info.page = 'optionsRaidFacile';
+		}
+	}
 
-/** Renvoie un objet contenant toutes les données utiles pour les statistiques */
-var getStatData = function() {
-	var data = {
-		id: info.ogameMeta['ogame-player-id'],
-		univers: info.ogameMeta['ogame-universe']
-	};
-	return data;
-};
-
-/** Vérifie s'il y a une mise à jour */
-function checkUpdate() {
-	var lastUpdateDate = GM_getValue("date_mise_ajours", "0");
-	if((info.startTime - parseInt(lastUpdateDate)) > 1000*60*60*6) { // vérification toutes les 6h
-		var params = getStatData();
-		params.check = true;
-		var url = new Url(info.siteUrl).params(params).toString();
-		if (typeof GM_xmlhttpRequest === 'undefined') {
-			$.get(url, mise_a_jour);
+	/** Affiche ou masque les options
+		si elle sont déjà affichées elles seront masquées et le tableau des scans sera affiché,
+		si elle sont masquée elle seront affichées et le tableau des scans sera masqué
+	*/
+	function afficherMasquerOptions(eventObject) {
+		eventObject.preventDefault();
+		if ($('#option_script').css('display') === 'none') {
+			info.hash.raidFacile = 'options';
 		} else {
-			GM_xmlhttpRequest({
-				method: 'GET',
-				url: url,
-				onload: function(response) {
-					mise_a_jour(response.responseText);
+			info.hash.raidFacile = 'tableau';
+		}
+		$('#option_script, #div_tableau_raide_facile').toggle();
+		rebuildHash();
+	}
+
+	/** Affiche le lien de Raid facile */
+	function afficher_lien() {
+		var selector;
+		// si on est sur la page mouvements on prend l'url de la page flotte, sinon celle de la page mouvements
+		if (info.args.page === 'movement') {
+			selector = '#menuTable > li:nth-child(8) > a.menubutton';
+		} else {
+			selector = '#menuTable > li:nth-child(8) > .menu_icon > a';
+		}
+
+		var url = new Url(document.querySelector(selector).getAttribute('href')).hashes(info.hash);
+		var li = $('<li id="raide-facile"></li>');
+		if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
+			li.append('<span class="menu_icon"><a href="'+url.hashes({ raidFacile: 'options' })+'" title="'+i18n.get('options de')+' '+i18n.get('raid facile')+'"><div class="menuImage traderOverview"></div></a></span>');
+			$('.menu_icon a', li).click(afficherMasquerOptions);
+		}
+		li.append('<a href="'+url.hashes({ raidFacile: 'tableau' })+'" class="menubutton" id="lien_raide"><span class="textlabel">'+ i18n.get('raid facile') + '</span></a>');
+		if (!GM_getValue("aJours_d", true)) {
+			$('.textlabel', li).css('color', 'orange');
+		}
+		li.appendTo('#menuTableTools');
+		logger.log('Lien ajouté dans le menu');
+		if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
+			// On déselectionne le lien sélectionné
+			$('#menuTable .menubutton.selected').removeClass('selected');
+			$('#menuTable .menuImage.highlighted').removeClass('highlighted');
+			// On sélectionne le lien de Raid facile
+			$('.menubutton', li).addClass('selected');
+			$('.menuImage', li).addClass('highlighted');
+			intercom.send('tooltip', {
+				selector: '#raide-facile .menu_icon a',
+				settings: {
+					hook: 'rightmiddle'
 				}
 			});
 		}
 	}
-}
 
-/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
-var numberConverter = {
-	toInt: function(number, useShortNotation) {
-		var str = number.toString();
-		if (useShortNotation) {
-			str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
+	/** Colore les lignes en fonction des missions en cours */
+	function showAttaque(data) {
+		var traiteFlotte = function(elem) {
+			var destination = $.trim($('.destCoords a', elem).text());
+			var missionType = elem.data('mission-type');
+			var retour = elem.data('return-flight') ? 1 : 0;
+			if (missions[destination] === undefined) {
+				missions[destination] = {};
+			}
+			if (missions[destination][missionType] === undefined) {
+				missions[destination][missionType] = [0, 0];
+			}
+			missions[destination][missionType][retour]++;
+		};
+		var missions = {};
+		var html = $($.trim(data));
+		// On va chercher toutes les flottes (allers + retours)
+		var flottes = $('#eventContent .eventFleet', html[0]);
+		for (var i = 0; i < flottes.length; ++i) {
+			traiteFlotte($(flottes[i]));
 		}
-		str = str.replace(/ /g, '');
-		return parseInt(str, 10);
-	},
-	shortenNumber: function(number, factor) {
-		return Math.round(number / factor);
-	},
-	toPrettyString: function(number) {
-		var k = 1000;
-		var m = 1000000;
-		var g = 1000000000;
-		if (number >= g * 100) {
-			return this.shortenNumber(number, g) + 'G';
-		}
-		if (number >= m * 100) {
-			return this.shortenNumber(number, m) + 'M';
-		}
-		if (number >= k * 100) {
-			return this.shortenNumber(number, k) + 'k';
-		}
-		return number;
-	}
-};
+		var couleur;
+		var classe;
+		var cible;
+		var lignes;
+		for (var destination in missions) {
+			couleur = null;
+			classe = '';
+			cible = missions[destination];
 
-/** Construit une URL */
-function Url(url) {
-	this.parse(url);
-}
-Url.prototype = {
-	parse: function(url) {
-		this._params = {};
-		this._hashes = {};
+			// On récupère les lignes du tableau de raid facile qui correspondent (il peut y en avoir plusieurs quand on ne supprime pas l'ancien scan)
+			lignes = $(document.getElementsByClassName(destination));
 
-		var hash = url.split('#')[1] || '';
-		hash = hash.split('&');
-		url = url.split('#')[0];
-		var params = url.split('?')[1] || '';
-		params = params.split('&');
-		this.url = url.split('?')[0];
-
-		var i, arg, kvp;
-		if (params[0] !== '') {
-			for (i = 0; i < params.length; i++) {
-				arg = decodeURIComponent(params[i]);
-				if (arg.indexOf('=') === -1) {
-					this._params[arg] = true;
-				} else {
-					kvp = arg.split('=');
-					this._params[kvp[0]] = kvp[1];
+			/* cf l'api http://uni116.ogame.fr/api/localization.xml pour les nombres
+				1 Attaquer - 2 Attaque groupée - 3 Transporter - 4 Stationner - 5 Stationner - 6 Espionner - 7 Coloniser - 8 Recycler - 9 Détruire - 15 Expédition */
+			if (cible[9]) { // Détruire
+				if (cible[9][0]) { // aller
+					lignes.addClass('detruire');
+					couleur = col_dest;
+				}
+				else { // retour
+					lignes.addClass('detruireRet');
+					couleur = col_dest_r;
 				}
 			}
-		}
-		if (hash[0] !== '') {
-			for (i = 0; i < hash.length; i++) {
-				arg = decodeURIComponent(hash[i]);
-				if (arg.indexOf('=') === -1) {
-					this._hashes[arg] = true;
-				} else {
-					kvp = arg.split('=');
-					this._hashes[kvp[0]] = kvp[1];
+			else if (cible[2]) { // Attaque groupée
+				if (cible[2][0]) { // aller
+					lignes.addClass('attaqueGr');
+					couleur = col_att_g;
+				} else { // retour
+					lignes.addClass('attaqueGrRet');
+					couleur = col_att_g_r;
 				}
 			}
-		}
-	},
-	params: function(params) {
-		for (var key in params) {
-			this._params[encodeURIComponent(key)] = encodeURIComponent(params[key]);
-		}
-		return this;
-	},
-	hashes: function(hashes) {
-		for (var key in hashes) {
-			this._hashes[encodeURIComponent(key)] = encodeURIComponent(hashes[key]);
-		}
-		return this;
-	},
-	toString: function() {
-		var url = this.url;
-
-		var params = [];
-		for (var pkey in this._params) {
-			if (this._params[pkey] === 'true') {
-				params.push(pkey);
-			} else {
-				params.push(pkey + '=' + this._params[pkey]);
+			else if (cible[1]) { // Attaquer
+				if (cible[1][0] >= 2) {
+					lignes.addClass('attaque').addClass('attaque2');
+					couleur = stockageOption.get('couleur attaque2');
+				} else if (cible[1][1] >= 2) {
+					lignes.addClass('attaqueRet').addClass('attaque2Ret');
+					couleur = stockageOption.get('couleur attaque2 retour');
+				} else {
+					if (cible[1][0]) { // aller
+						lignes.addClass('attaque');
+						couleur = col_att;
+					} else { // retour
+						lignes.addClass('attaqueRet');
+						couleur = col_att_r;
+					}
+				}
 			}
-		}
-		if (params.length) {
-			url += '?' + params.join('&');
-		}
-
-		var hash = [];
-		for (var hkey in this._hashes) {
-			if (this._hashes[hkey] === 'true') {
-				hash.push(hkey);
-			} else {
-				hash.push(hkey + '=' + this._hashes[hkey]);
+			else if (cible[6] && cible[6][0]) { // Espionner, mais pas les retour
+				lignes.addClass('espio');
+				couleur = stockageOption.get('couleur espionnage');
 			}
+			var titre = 'Mission actuellement en cours<div class="splitLine"></div>';
+			for (var typeMission in cible) {
+				titre += '<p>' + localization.missions[typeMission] + ' : ' + cible[typeMission][0] + ' +' + (cible[typeMission][1]-cible[typeMission][0]) + ' retour' + '</p>';
+			}
+			$('.nombreAttaque', lignes).attr('title', titre);
 		}
-		if (hash.length) {
-			url += '#' + hash.join('&');
-		}
-
-		return url;
+		intercom.send('tooltip', {selector:'#corps_tableau2 .nombreAttaque[title]'});
 	}
-};
 
+	/** Permet de récupérer un objet contenant toutes les options */
+	function exportOptions() {
+		var optionExport = {};
+		optionExport.optionNew = {
+			data: stockageOption.data,
+			keyName: stockageOption.storageKeyName
+		};
+		optionExport.optionOld = {
+			option1: GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1'),
+			option2: GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0'),
+			option3: GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F'),
+			option4: GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1'),
+			option5: GM_getValue('option5'+ info.serveur, navigator.language),
+			vitesse_uni: parseInt(GM_getValue('vitesse_uni', '1'))
+		};
+		prompt("Voice l'export des options", JSON.stringify(optionExport));
+	}
+
+	/** Renvoie un objet contenant toutes les données utiles pour les statistiques */
+	var getStatData = function() {
+		var data = {
+			id: info.ogameMeta['ogame-player-id'],
+			univers: info.ogameMeta['ogame-universe']
+		};
+		return data;
+	};
+
+	/** Affiche qu'il y a une mise à jour de disponible */
+	function mise_a_jour(version) {
+		if (!/^\d+\.\d+(\.\d+(\.\d+)?)?$/.test(version)) {
+			return;
+		}
+		if (version.split('.') <= info.version.split('.')) {
+			// pas de mise à jour
+			return;
+		}
+		var popup = $('<div title="' + i18n.get('raid facile') + ' - Mise à jour">' +
+			'<p>La version <b>'+version+'</b> est maintenant disponible.</p><br>' +
+			'<p>Vous avez actuelement la version <b>'+info.version+'</b><br>' +
+			'Voulez vous installer la mise à jour ?</p>'
+			//+'<p>Prochain rappel dans 6h.</p></div>'
+		).dialog({
+			width: 500,
+			// modal: true,
+			// resizable: false,
+			buttons: {
+				"Installer": function() {
+					// preference.get()['lastUpdateCheck'] = info.now;
+					// preference.save();
+					location.href = info.siteUrl;
+					// popup.html('<iframe src="'+info.siteUrl+'" style="width:100%; height:98%"></iframe>').css({
+						// width:'590px', height:'400px'
+					// }).parent().css({
+						// width:'auto', height:'auto'
+					// });
+					GM_setValue("date_mise_ajours", ''+ info.startTime +'');
+					popup.dialog('destroy');
+				},
+				"Changelog": function() {
+					location.href = info.siteUrl + '?changelog';
+					// popup.html('<iframe src="'+info.siteUrl+'?changelog" style="width:100%; height:98%"></iframe>');
+				},
+				"Plus tard": function() {
+					// preference.get()['lastUpdateCheck'] = info.now;
+					// preference.save();
+					popup.dialog('destroy');
+					GM_setValue("date_mise_ajours", ''+ ( info.startTime + 1000*60*60*24*7 ) +'');
+				}
+			}
+		});
+		popup.css({
+			background: 'initial'
+		}).parent().css({
+			'z-index': '3001',
+			background: 'black url(http://gf1.geo.gfsrv.net/cdn09/3f1cb3e1709fa2fa1c06b70a3e64a9.jpg) -200px -200px no-repeat'
+		});
+	}
+
+	/** Vérifie s'il y a une mise à jour */
+	function checkUpdate() {
+		var lastUpdateDate = GM_getValue("date_mise_ajours", "0");
+		if((info.startTime - parseInt(lastUpdateDate)) > 1000*60*60*6) { // vérification toutes les 6h
+			var params = getStatData();
+			params.check = true;
+			var url = new Url(info.siteUrl).params(params).toString();
+			if (typeof GM_xmlhttpRequest === 'undefined') {
+				$.get(url, mise_a_jour);
+			} else {
+				GM_xmlhttpRequest({
+					method: 'GET',
+					url: url,
+					onload: function(response) {
+						mise_a_jour(response.responseText);
+					}
+				});
+			}
+		}
+	}
+
+	/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
+	var numberConverter = {
+		toInt: function(number, useShortNotation) {
+			var str = number.toString();
+			if (useShortNotation) {
+				str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
+			}
+			str = str.replace(/ /g, '');
+			return parseInt(str, 10);
+		},
+		shortenNumber: function(number, factor) {
+			return Math.round(number / factor);
+		},
+		toPrettyString: function(number) {
+			var k = 1000;
+			var m = 1000000;
+			var g = 1000000000;
+			if (number >= g * 100) {
+				return this.shortenNumber(number, g) + 'G';
+			}
+			if (number >= m * 100) {
+				return this.shortenNumber(number, m) + 'M';
+			}
+			if (number >= k * 100) {
+				return this.shortenNumber(number, k) + 'k';
+			}
+			return number;
+		}
+	};
+
+	/** Construit une URL */
+	function Url(url) {
+		this.parse(url);
+	}
+	Url.prototype = {
+		parse: function(url) {
+			this._params = {};
+			this._hashes = {};
+
+			var hash = url.split('#')[1] || '';
+			hash = hash.split('&');
+			url = url.split('#')[0];
+			var params = url.split('?')[1] || '';
+			params = params.split('&');
+			this.url = url.split('?')[0];
+
+			var i, arg, kvp;
+			if (params[0] !== '') {
+				for (i = 0; i < params.length; i++) {
+					arg = decodeURIComponent(params[i]);
+					if (arg.indexOf('=') === -1) {
+						this._params[arg] = true;
+					} else {
+						kvp = arg.split('=');
+						this._params[kvp[0]] = kvp[1];
+					}
+				}
+			}
+			if (hash[0] !== '') {
+				for (i = 0; i < hash.length; i++) {
+					arg = decodeURIComponent(hash[i]);
+					if (arg.indexOf('=') === -1) {
+						this._hashes[arg] = true;
+					} else {
+						kvp = arg.split('=');
+						this._hashes[kvp[0]] = kvp[1];
+					}
+				}
+			}
+		},
+		params: function(params) {
+			for (var key in params) {
+				this._params[encodeURIComponent(key)] = encodeURIComponent(params[key]);
+			}
+			return this;
+		},
+		hashes: function(hashes) {
+			for (var key in hashes) {
+				this._hashes[encodeURIComponent(key)] = encodeURIComponent(hashes[key]);
+			}
+			return this;
+		},
+		toString: function() {
+			var url = this.url;
+
+			var params = [];
+			for (var pkey in this._params) {
+				if (this._params[pkey] === 'true') {
+					params.push(pkey);
+				} else {
+					params.push(pkey + '=' + this._params[pkey]);
+				}
+			}
+			if (params.length) {
+				url += '?' + params.join('&');
+			}
+
+			var hash = [];
+			for (var hkey in this._hashes) {
+				if (this._hashes[hkey] === 'true') {
+					hash.push(hkey);
+				} else {
+					hash.push(hkey + '=' + this._hashes[hkey]);
+				}
+			}
+			if (hash.length) {
+				url += '#' + hash.join('&');
+			}
+
+			return url;
+		}
+	};
 //}endregion
 
 init();
 
 /** initialisation des variables d'option **///{region
 
-/* Explication des options
-x/x/x/x/x/.... signifie
-arme/bouclier/protect/combus/impul/hyper/coordonee/date/option/ressource/classement/sauvegard auto/temps garde scan/exversion/coul_att/coul_att_g/coul_dest/lien/remplace/lien esp/rec/itesse/tps_vol/nom_j/nom_p/coord_q/prod_h/ress_h
-*/
-var option1 = GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
-var option2 = GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
-var option3 = GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
-var option4 = GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
-var option5 = GM_getValue('option5'+ info.serveur, navigator.language);
+	/* Explication des options
+	x/x/x/x/x/.... signifie
+	arme/bouclier/protect/combus/impul/hyper/coordonee/date/option/ressource/classement/sauvegard auto/temps garde scan/exversion/coul_att/coul_att_g/coul_dest/lien/remplace/lien esp/rec/itesse/tps_vol/nom_j/nom_p/coord_q/prod_h/ress_h
+	*/
+	var option1 = GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
+	var option2 = GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
+	var option3 = GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
+	var option4 = GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
+	var option5 = GM_getValue('option5'+ info.serveur, navigator.language);
 
-var option1_split = option1.split('/');
-var option2_split = option2.split('/');
-var option3_split = option3.split('/');
-var option4_split = option4.split('/');
-var option5_split = option5;
+	var option1_split = option1.split('/');
+	var option2_split = option2.split('/');
+	var option3_split = option3.split('/');
+	var option4_split = option4.split('/');
+	var option5_split = option5;
 
-//votre compte
-/**option1_mon_compte**/{
+	//votre compte
+	/**option1_mon_compte**/{
 
-//Vos techno :
-var tech_arme_a = option1_split[0];
-var tech_bouclier_a = option1_split[1];
-var tech_protect_a = option1_split[2];
+		//Vos techno :
+		var tech_arme_a = option1_split[0];
+		var tech_bouclier_a = option1_split[1];
+		var tech_protect_a = option1_split[2];
 
-var tech_combus_a = option1_split[3];
-var tech_impul_a = option1_split[4];
-var tech_hyper_a = option1_split[5];
+		var tech_combus_a = option1_split[3];
+		var tech_impul_a = option1_split[4];
+		var tech_hyper_a = option1_split[5];
 
-// Autre :
-var pos_depart = option1_split[6];
-var vaisseau_lent = option1_split[7];
-var pourcent_cdr =  parseFloat(option1_split[8]);
-var pourcent_cdr_def =  parseFloat(option1_split[9]);
-var vitesse_uni = parseInt(GM_getValue('vitesse_uni', '1'));
-}
+		// Autre :
+		var pos_depart = option1_split[6];
+		var vaisseau_lent = option1_split[7];
+		var pourcent_cdr =  parseFloat(option1_split[8]);
+		var pourcent_cdr_def =  parseFloat(option1_split[9]);
+		var vitesse_uni = parseInt(GM_getValue('vitesse_uni', '1'));
+	}
 
-//choix
-/**option2_variable**/{
-//Selection de scan :
-var nb_scan_accpte = option2_split[0];// valeur de ressource a partir de laquel il prend le scan
-var valeur_cdr_mini = option2_split[1];// valeur de cdr a partir de laquel il prend le scan
-var valeur_tot_mini = option2_split[2];// valeur de total a partir de laquel il prend le scan
-var type_prend_scan = option2_split[3];// choix entre les 3options du haut a partir de laquel il prend le scan
+	//choix
+	/**option2_variable**/{
+		//Selection de scan :
+		var nb_scan_accpte = option2_split[0];// valeur de ressource a partir de laquel il prend le scan
+		var valeur_cdr_mini = option2_split[1];// valeur de cdr a partir de laquel il prend le scan
+		var valeur_tot_mini = option2_split[2];// valeur de total a partir de laquel il prend le scan
+		var type_prend_scan = option2_split[3];// choix entre les 3options du haut a partir de laquel il prend le scan
 
-//Classement :
-var classement = option2_split[4];//0 date ; 1 coordonee ; 2 joueur ; 3 nom ^planette ; 4 ressource  metal; 5 cristal ; 6 deut ; 7 activite  ; 8 cdr possible ; 9 vaisseau; 10 defense ; 11 idrc ; 12 ressource total,13 reherche , 14 type de planette (lune ou planette)
-var reverse = option2_split[9];
-if (option2_split[11] !== undefined) { var q_taux_m = option2_split[11]; } else { var q_taux_m = 1; }
-if (option2_split[12] !== undefined) { var q_taux_c = option2_split[12]; } else { var q_taux_c = 1; }
-if (option2_split[13] !== undefined) { var q_taux_d = option2_split[13]; } else { var q_taux_d = 1; }
+		//Classement :
+		var classement = option2_split[4];//0 date ; 1 coordonee ; 2 joueur ; 3 nom ^planette ; 4 ressource  metal; 5 cristal ; 6 deut ; 7 activite  ; 8 cdr possible ; 9 vaisseau; 10 defense ; 11 idrc ; 12 ressource total,13 reherche , 14 type de planette (lune ou planette)
+		var reverse = option2_split[9];
+		if (option2_split[11] !== undefined) { var q_taux_m = option2_split[11]; } else { var q_taux_m = 1; }
+		if (option2_split[12] !== undefined) { var q_taux_c = option2_split[12]; } else { var q_taux_c = 1; }
+		if (option2_split[13] !== undefined) { var q_taux_d = option2_split[13]; } else { var q_taux_d = 1; }
 
-//Options de sauvegarde de scan :
-var scan_preenrgistre = option2_split[5];// si le scan est enregistre lorsqu'on le regarde ou seulement quand on clique sur enregistre.
-var scan_remplace = option2_split[6];
-var nb_minutesgardescan = option2_split[7];
-var minutes_opt = Math.floor(parseInt(nb_minutesgardescan) % 60);
-var nb_minutesgardescan2 = parseInt(nb_minutesgardescan) - minutes_opt;
-var heures_opt = Math.floor(Math.floor(parseInt(nb_minutesgardescan2) / 60) % 24);
-nb_minutesgardescan2 = parseInt(nb_minutesgardescan2) - heures_opt * 60;
-var jours_opt = Math.floor(parseInt(nb_minutesgardescan2) / 60 / 24);
-var nb_ms_garde_scan = nb_minutesgardescan * 60 * 1000;
-if (option2_split[10] !== undefined) { var nb_max_def = option2_split[10]; } else { var nb_max_def = 0; }
+		//Options de sauvegarde de scan :
+		var scan_preenrgistre = option2_split[5];// si le scan est enregistre lorsqu'on le regarde ou seulement quand on clique sur enregistre.
+		var scan_remplace = option2_split[6];
+		var nb_minutesgardescan = option2_split[7];
+		var minutes_opt = Math.floor(parseInt(nb_minutesgardescan) % 60);
+		var nb_minutesgardescan2 = parseInt(nb_minutesgardescan) - minutes_opt;
+		var heures_opt = Math.floor(Math.floor(parseInt(nb_minutesgardescan2) / 60) % 24);
+		nb_minutesgardescan2 = parseInt(nb_minutesgardescan2) - heures_opt * 60;
+		var jours_opt = Math.floor(parseInt(nb_minutesgardescan2) / 60 / 24);
+		var nb_ms_garde_scan = nb_minutesgardescan * 60 * 1000;
+		if (option2_split[10] !== undefined) { var nb_max_def = option2_split[10]; } else { var nb_max_def = 0; }
 
-//Autre :
-var import_q_rep = option2_split[8];
-if (option2_split[14] !== undefined) { var lien_raide_nb_pt_gt = option2_split[14]; } else { var lien_raide_nb_pt_gt = 2; }
-if (option2_split[15] !== undefined) { var nb_pourcent_ajout_lien = parseInt(option2_split[15]); } else { var nb_pourcent_ajout_lien = 0; }
-if (option2_split[16] !== undefined) { var nb_ou_pourcent = option2_split[16]; } else { var nb_ou_pourcent = 0; }
-}
+		//Autre :
+		var import_q_rep = option2_split[8];
+		if (option2_split[14] !== undefined) { var lien_raide_nb_pt_gt = option2_split[14]; } else { var lien_raide_nb_pt_gt = 2; }
+		if (option2_split[15] !== undefined) { var nb_pourcent_ajout_lien = parseInt(option2_split[15]); } else { var nb_pourcent_ajout_lien = 0; }
+		if (option2_split[16] !== undefined) { var nb_ou_pourcent = option2_split[16]; } else { var nb_ou_pourcent = 0; }
+	}
 
-//couleur
-/**option3_couleur**/{
-var col_att = option3_split[0];
-var col_att_g = option3_split[1];
-var col_dest = option3_split[2];
-var col_att_r = option3_split[3];
-var col_att_g_r = option3_split[4];
-var col_dest_r = option3_split[5];
-}
+	//couleur
+	/**option3_couleur**/{
+		var col_att = option3_split[0];
+		var col_att_g = option3_split[1];
+		var col_dest = option3_split[2];
+		var col_att_r = option3_split[3];
+		var col_att_g_r = option3_split[4];
+		var col_dest_r = option3_split[5];
+	}
 
-//afichage
-/**option4_variable**/{
-//Changement dans les colonnes :
-var q_date_type_rep = option4_split[8];
-var cdr_q_type_affiche = option4_split[2];
+	//afichage
+	/**option4_variable**/{
+		//Changement dans les colonnes :
+		var q_date_type_rep = option4_split[8];
+		var cdr_q_type_affiche = option4_split[2];
 
-//Changement dans boutons de droites :
-var simulateur = option4_split[11];
-var q_mess = option4_split[12];
-var espionnage_lien = option4_split[1];
-if (option4_split[25] !== undefined) { var q_lien_simu_meme_onglet = option4_split[25]; } else { var q_lien_simu_meme_onglet = 1; }
+		//Changement dans boutons de droites :
+		var simulateur = option4_split[11];
+		var q_mess = option4_split[12];
+		var espionnage_lien = option4_split[1];
+		if (option4_split[25] !== undefined) { var q_lien_simu_meme_onglet = option4_split[25]; } else { var q_lien_simu_meme_onglet = 1; }
 
-//Affichage de Colonne :
-if (option4_split[21] !== undefined) { var q_compteur_attaque = option4_split[21]; } else { var q_compteur_attaque = 0; }
-if (option4_split[17] !== undefined) { var q_vid_colo = option4_split[17]; } else { var q_vid_colo = 0; }
-var question_rassemble_col = option4_split[14];
-var prod_h_q = option4_split[9];
-var prod_gg = option4_split[10];
-var prod_min_g = Math.floor(parseInt(prod_gg)%60);
-var nb_minutesgardescan3 = parseInt(prod_gg) - prod_min_g;
-var prod_h_g = Math.floor(Math.floor(parseInt(nb_minutesgardescan3)/60)%24);
-nb_minutesgardescan3 = parseInt(nb_minutesgardescan3) - prod_h_g*60;
-var prod_j_g = Math.floor(parseInt(nb_minutesgardescan3)/60/24);
-var date_affiche = option4_split[7];//0 date non affiche, 1 date affiche
-var tps_vol_q = option4_split[3];
-var nom_j_q_q = option4_split[4];
-var nom_p_q_q = option4_split[5];
-var coor_q_q = option4_split[6];
-if (option4_split[26] !== undefined) { var defense_question = option4_split[26]; } else { var defense_question = 1; }
-if (option4_split[27] !== undefined) { var vaisseau_question = option4_split[27]; } else { var vaisseau_question = 1; }
-if (option4_split[32] !== undefined) { var pt_gt = option4_split[32]; } else { var pt_gt = 1; }
-if (option4_split[33] !== undefined) { var tech_q = option4_split[33]; } else { var tech_q = 1; }
+		//Affichage de Colonne :
+		if (option4_split[21] !== undefined) { var q_compteur_attaque = option4_split[21]; } else { var q_compteur_attaque = 0; }
+		if (option4_split[17] !== undefined) { var q_vid_colo = option4_split[17]; } else { var q_vid_colo = 0; }
+		var question_rassemble_col = option4_split[14];
+		var prod_h_q = option4_split[9];
+		var prod_gg = option4_split[10];
+		var prod_min_g = Math.floor(parseInt(prod_gg)%60);
+		var nb_minutesgardescan3 = parseInt(prod_gg) - prod_min_g;
+		var prod_h_g = Math.floor(Math.floor(parseInt(nb_minutesgardescan3)/60)%24);
+		nb_minutesgardescan3 = parseInt(nb_minutesgardescan3) - prod_h_g*60;
+		var prod_j_g = Math.floor(parseInt(nb_minutesgardescan3)/60/24);
+		var date_affiche = option4_split[7];//0 date non affiche, 1 date affiche
+		var tps_vol_q = option4_split[3];
+		var nom_j_q_q = option4_split[4];
+		var nom_p_q_q = option4_split[5];
+		var coor_q_q = option4_split[6];
+		if (option4_split[26] !== undefined) { var defense_question = option4_split[26]; } else { var defense_question = 1; }
+		if (option4_split[27] !== undefined) { var vaisseau_question = option4_split[27]; } else { var vaisseau_question = 1; }
+		if (option4_split[32] !== undefined) { var pt_gt = option4_split[32]; } else { var pt_gt = 1; }
+		if (option4_split[33] !== undefined) { var tech_q = option4_split[33]; } else { var tech_q = 1; }
 
-//Affichage Global :
-if (option4_split[22] !== undefined) { var q_galaxie_scan = option4_split[22]; } else { var q_galaxie_scan = 0; }
-if (option4_split[23] !== undefined) { var galaxie_demande = option4_split[23]; } else { var galaxie_demande = 1; }
-if (option4_split[31] !== undefined) { var galaxie_plus_ou_moins = parseInt(option4_split[31]); } else { var galaxie_plus_ou_moins = 1; }
-if (option4_split[24] !== undefined) { var afficher_seulement = option4_split[24]; } else { var afficher_seulement = 0; }
-if (option4_split[19] !== undefined) { var q_def_vis = option4_split[19]; } else { var q_def_vis = 1; }
-if (option4_split[18] !== undefined) { var q_flo_vis = option4_split[18]; } else { var q_flo_vis = 1; }
-var nb_scan_page = parseInt(option4_split[13]);
+		//Affichage Global :
+		if (option4_split[22] !== undefined) { var q_galaxie_scan = option4_split[22]; } else { var q_galaxie_scan = 0; }
+		if (option4_split[23] !== undefined) { var galaxie_demande = option4_split[23]; } else { var galaxie_demande = 1; }
+		if (option4_split[31] !== undefined) { var galaxie_plus_ou_moins = parseInt(option4_split[31]); } else { var galaxie_plus_ou_moins = 1; }
+		if (option4_split[24] !== undefined) { var afficher_seulement = option4_split[24]; } else { var afficher_seulement = 0; }
+		if (option4_split[19] !== undefined) { var q_def_vis = option4_split[19]; } else { var q_def_vis = 1; }
+		if (option4_split[18] !== undefined) { var q_flo_vis = option4_split[18]; } else { var q_flo_vis = 1; }
+		var nb_scan_page = parseInt(option4_split[13]);
 
-//Autre :
-var q_techzero = option4_split[15];
-if (option4_split[30] !== undefined) { var tableau_raide_facile_value = option4_split[30]; } else { var tableau_raide_facile_value = 100; }
-var q_icone_mess = option4_split[16];
-}
+		//Autre :
+		var q_techzero = option4_split[15];
+		if (option4_split[30] !== undefined) { var tableau_raide_facile_value = option4_split[30]; } else { var tableau_raide_facile_value = 100; }
+		var q_icone_mess = option4_split[16];
+	}
 
-// langue
-var langue = option5_split;
+	// langue
+	var langue = option5_split;
 //}endregion
 
 /** initialisation des filtres **///{region
-var filtre_actif_inactif = 0;
-var filtre_joueur = '';
+	var filtre_actif_inactif = 0;
+	var filtre_joueur = '';
 //}endregion
 
 /** option initialisation bbcode **///{region
-var option_bbcode_split = GM_getValue('option_bbcode' + info.serveur, '#872300/#EF8B16/#DFEF52/#CDF78B/#6BD77A/#6BD7AC/#6BC5D7/#6B7ED7/1/1/0/1').split('/');
-var center_typeq = option_bbcode_split[7];
-var q_url_type = option_bbcode_split[8];
-var q_centre = option_bbcode_split[9];
-var q_cite = option_bbcode_split[10];
+	var option_bbcode_split = GM_getValue('option_bbcode' + info.serveur, '#872300/#EF8B16/#DFEF52/#CDF78B/#6BD77A/#6BD7AC/#6BC5D7/#6B7ED7/1/1/0/1').split('/');
+	var center_typeq = option_bbcode_split[7];
+	var q_url_type = option_bbcode_split[8];
+	var q_centre = option_bbcode_split[9];
+	var q_cite = option_bbcode_split[10];
 
-var couleur2 = [];
-var bbcode_baliseo = [];
-var bbcode_balisem = [];
-var bbcode_balisef = [];
+	var couleur2 = [];
+	var bbcode_baliseo = [];
+	var bbcode_balisem = [];
+	var bbcode_balisef = [];
 
-couleur2[1]= option_bbcode_split[0];
-couleur2[2]= option_bbcode_split[1];
-couleur2[3]= option_bbcode_split[2];
-couleur2[4]= option_bbcode_split[3];
-couleur2[5]= option_bbcode_split[4];
-couleur2[6]= option_bbcode_split[5];
-couleur2[7]= option_bbcode_split[6];
+	couleur2[1]= option_bbcode_split[0];
+	couleur2[2]= option_bbcode_split[1];
+	couleur2[3]= option_bbcode_split[2];
+	couleur2[4]= option_bbcode_split[3];
+	couleur2[5]= option_bbcode_split[4];
+	couleur2[6]= option_bbcode_split[5];
+	couleur2[7]= option_bbcode_split[6];
 
-bbcode_baliseo[0] = '[b]';
-bbcode_balisef[0] = '[/b]';
+	bbcode_baliseo[0] = '[b]';
+	bbcode_balisef[0] = '[/b]';
 
-bbcode_baliseo[1] = '[i]';
-bbcode_balisef[1] = '[/i]';
+	bbcode_baliseo[1] = '[i]';
+	bbcode_balisef[1] = '[/i]';
 
-bbcode_baliseo[2] = '[u]';
-bbcode_balisef[2] = '[/u]';
+	bbcode_baliseo[2] = '[u]';
+	bbcode_balisef[2] = '[/u]';
 
-bbcode_baliseo[3] = '[u]';
-bbcode_balisef[3] = '[/u]';
+	bbcode_baliseo[3] = '[u]';
+	bbcode_balisef[3] = '[/u]';
 
-bbcode_baliseo[4] = '[quote]';
-bbcode_balisef[4] = '[/quote]';
+	bbcode_baliseo[4] = '[quote]';
+	bbcode_balisef[4] = '[/quote]';
 
-if (option_bbcode_split[8] == 1) {
-	bbcode_baliseo[5] = '[url=\'';
-	bbcode_balisem[5] = '\']';
-	bbcode_balisef[5] = '[/url]';
-}
-else {
-	bbcode_baliseo[5] = '[url=';
-	bbcode_balisem[5] = ']';
-	bbcode_balisef[5] = '[/url]';
-}
+	if (option_bbcode_split[8] == 1) {
+		bbcode_baliseo[5] = '[url=\'';
+		bbcode_balisem[5] = '\']';
+		bbcode_balisef[5] = '[/url]';
+	}
+	else {
+		bbcode_baliseo[5] = '[url=';
+		bbcode_balisem[5] = ']';
+		bbcode_balisef[5] = '[/url]';
+	}
 
-if (option_bbcode_split[7] == 1) {
-	bbcode_baliseo[10] = '[align=center';
-	bbcode_balisem[10] = ']';
-	bbcode_balisef[10] = '[/align]';
-} else {
-	bbcode_baliseo[10] = '[center';
-	bbcode_balisem[10] = ']';
-	bbcode_balisef[10] = '[/center]';
-}
+	if (option_bbcode_split[7] == 1) {
+		bbcode_baliseo[10] = '[align=center';
+		bbcode_balisem[10] = ']';
+		bbcode_balisef[10] = '[/align]';
+	} else {
+		bbcode_baliseo[10] = '[center';
+		bbcode_balisem[10] = ']';
+		bbcode_balisef[10] = '[/center]';
+	}
 
-bbcode_baliseo[8] = '[color=';
-bbcode_balisem[8] = ']';
-bbcode_balisef[8] = '[/color]';
+	bbcode_baliseo[8] = '[color=';
+	bbcode_balisem[8] = ']';
+	bbcode_balisef[8] = '[/color]';
 //}endregion
 
 /** Variables de langues **///{region
@@ -3140,7 +3139,6 @@ bbcode_balisef[8] = '[/color]';
 		sp1.innerHTML = erreur;
 		document.getElementById('contentWrapper').insertBefore(sp1,document.getElementById(lieu));
 	}
-
 //}endregion
 
 /** page de combat report **///{region
