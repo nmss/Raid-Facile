@@ -170,7 +170,8 @@ logger.log('Salut :)');
 			'couleur attaque2': ['d', '#c7050d'],
 			'couleur attaque2 retour': ['e', '#e75a4f'],
 			'couleur espionnage': ['f', '#FF8C00'],
-			'couleur espionnage retour': ['f_r', '']
+			'couleur espionnage retour': ['f_r', ''],
+			'touche raid suivant': ['trs', 80], // touche P
 		};
 		if (!this.checkMappingCount()) {
 			throw 'Erreur de mapping, ya pas le bon nombre!';
@@ -189,14 +190,17 @@ logger.log('Salut :)');
 		/** Change la valeur en mémoire d'une donnée */
 		set: function(nom, valeur) {
 			this.data[this.mapping[nom][0]] = valeur;
+			return this;
 		},
 		/** Charge en mémoire les données du stockage */
 		load: function() {
 			this.data = JSON.parse(GM_getValue(this.storageKeyName, '{}'));
+			return this;
 		},
 		/** Sauvegarde dans le stockage les données en mémoire */
 		save: function() {
 			GM_setValue(this.storageKeyName, JSON.stringify(this.data));
+			return this;
 		},
 		/** Vérification qu'il n'y a pas eu d'erreur de mapping (que chaque valeur n'est utilisée qu'une fois) */
 		checkMappingCount: function() {
@@ -621,7 +625,8 @@ logger.log('Salut :)');
 
 	/** Affiche qu'il y a une mise à jour de disponible */
 	function mise_a_jour(version) {
-		if (!/^\d+\.\d+(\.\d+(\.\d+)?)?$/.test(version)) {
+		if (!/^\d+(?:\.\d+){1,3}$/.test(version)) {
+			// La version ne ressemble pas à 8.4.4
 			return;
 		}
 		if (version.split('.') <= info.version.split('.')) {
@@ -803,6 +808,50 @@ logger.log('Salut :)');
 			return url;
 		}
 	};
+
+	/** Demande à l'utilisateur d'appuyer sur une touche du clavier et détecte laquelle */
+	function findKey() {
+		var which;
+		function findKeyCallback (eventData) {
+			eventData.preventDefault();
+			eventData.stopPropagation();
+			which = eventData.which;
+			$('#which', popup).text(which);
+		}
+		var buttons = {};
+		buttons[i18n.get('ok')] = function() {
+			if (which) {
+				stockageOption.set('touche raid suivant', which).save();
+			}
+			popup.dialog('close');
+		};
+		buttons[i18n.get('cancel')] = function() {
+			popup.dialog('close');
+		};
+		popupHtml = [
+			'<div title="'+ i18n.get('raid facile') +'">',
+			'<p>'+ i18n.get('quelle_touche') +'</p><br>',
+			'<p>Le code de la touche choisie est : <span id="which">'+ stockageOption.get('touche raid suivant') +'</span></p>',
+			'</div>'
+		].join('');
+		var popup = $(popupHtml).dialog({
+			width: 500,
+			modal: true,
+			buttons: buttons,
+			close: function() {
+				$(document).off('keyup', findKeyCallback);
+				popup.dialog('destroy');
+			}
+		});
+		popup.css({
+			background: 'initial'
+		}).parent().css({
+			background: 'black url(http://gf1.geo.gfsrv.net/cdn09/3f1cb3e1709fa2fa1c06b70a3e64a9.jpg) -200px -200px no-repeat'
+		});
+
+		$(document).on('keyup', findKeyCallback);
+	}
+	plusTard(findKey, 500);
 //}endregion
 
 init();
@@ -1171,6 +1220,8 @@ init();
 		//global
 			oui:'oui',
 			non:'non',
+			ok: 'Ok',
+			cancel: 'Annuler',
 
 		//option langue
 		option_langue:'Language',
@@ -1241,6 +1292,7 @@ init();
 			option_sv:'Options de Raide-Facile sauvegardées',
 			del_scan:'Scans supprimés, rafraîchissement de la page',
 			rep_mess_supri:'Messages Supprimés',
+			quelle_touche: 'Quelle touche veux-tu utiliser ?',
 
 		// ecrit dans les scans en pop up
 			del_scan_d:'Effacer ce message',
@@ -1930,6 +1982,8 @@ init();
 		   //global
 				oui:'yes',
 				non:'no',
+				ok: 'Ok',
+				cancel: 'Cancel',
 
 			//option langue
 			option_langue:'Language',
@@ -1999,6 +2053,7 @@ init();
 			option_sv:'Options of Raide-Facile saved',
 			del_scan:'Spying reports deleted, pages refresh',
 			rep_mess_supri:'Posts deleted',
+			quelle_touche: 'What key do you want to use ?',
 
 			// ecrit dans les scans en pop up
 			del_scan_d:'|delete this message',
