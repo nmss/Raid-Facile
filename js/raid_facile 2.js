@@ -1796,6 +1796,9 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						+ '<tr><td><label>• '+ text.import_q +' </label> </td><td><label for="import_rajoute">'+ text.import_rajoute +'</label>&nbsp<input type="radio" name="import_q" value="1" id="import_rajoute" />&nbsp<label for="import_remplace">'+ text.import_remplace +'</label>&nbsp<input type="radio" name="import_q" value="0" id="import_remplace" /></td></tr>'
 						+ '<tr><td><label>• '+ text.lien_raide_nb_pt_gt +' </label> </td><td><label for="lien_raide_nb_pt_remplit">'+ text.nb_pt +'</label>&nbsp<input type="radio" name="lien_raide_nb_pt_gt" value="1" id="lien_raide_nb_pt_remplit" />&nbsp<label for="lien_raide_nb_gt_remplit">'+ text.nb_gt +'</label>&nbsp<input type="radio" name="lien_raide_nb_pt_gt" value="0" id="lien_raide_nb_gt_remplit" />&nbsp<label for="lien_raide_nb_pt_gt2">'+ text.rien +'</label>&nbsp<input type="radio" name="lien_raide_nb_pt_gt" value="2" id="lien_raide_nb_pt_gt2" /></td></tr>'
 						+ '<tr><td><label>• '+ text.lien_raide_ajout_nb_pourcent +' </label></td><td> <input type="text" id="nb_pourcent_ajout_lien"  value="'+ nb_pourcent_ajout_lien +'" style="width:20px;" />&nbsp<select name="nb_ou_pourcent" id="nb_ou_pourcent"><option value="0"> %</option> <option value="1"> en plus</option></select></td></tr>'
+
+					+ '<tr></tr><tr></tr><tr><td colspan="4" class="titre_interne"><strong> '+ i18n('raccourcis') +'</strong></td></tr>'
+						+ '<tr><td><label>'+ i18n('shortcut_attack_next') +'</label></td><td><input type="button" id="shortcut_attack_next" value="'+ stockageOption.get('touche raid suivant') +'"></td></tr>'
 					+'</table>'
 				+'</div>'
 
@@ -2351,6 +2354,19 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			cellule.toggle();
 		}, true);
 	}
+
+	// Afficher la fenêtre de choix de touche
+ 	$('#shortcut_attack_next').click(function() {
+		findKey({
+			defaultValue: stockageOption.get('touche raid suivant'),
+			callback: function(which) {
+				if (which) {
+					stockageOption.set('touche raid suivant', which).save();
+					logger.log('touche choisie : ' + which);
+				}
+			}
+		});
+	});
 
 	// afficher/masquer les options
 	$('#optionclique').click(afficherMasquerOptions);

@@ -852,17 +852,6 @@ logger.log('Salut :)');
 
 		$(document).on('keyup', findKeyCallback);
 	}
-	plusTard(function() {
-		findKey({
-			defaultValue: stockageOption.get('touche raid suivant'),
-			callback: function(which) {
-				if (which) {
-					stockageOption.set('touche raid suivant', which).save();
-					logger.log('touche choisie : ' + which);
-				}
-			}
-		});
-	}, 500);
 //}endregion
 
 init();
@@ -1145,6 +1134,9 @@ init();
 				//nb_gt:'Le nb de GT',
 				rien:'rien',
 			lien_raide_ajout_nb_pourcent:"Rajouter au nombre de PT/GT preselectionner de base",
+
+		raccourcis:'Raccourcis',
+			shortcut_attack_next:'Raccourci pour attaquer la cible suivante',
 
 		//couleur ligne
 		couleur_ligne:'Couleur ligne ',
