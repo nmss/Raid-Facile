@@ -810,8 +810,8 @@ logger.log('Salut :)');
 	};
 
 	/** Demande à l'utilisateur d'appuyer sur une touche du clavier et détecte laquelle */
-	function findKey() {
-		var which;
+	function findKey(options) {
+		var which = options.defaultValue;
 		function findKeyCallback (eventData) {
 			eventData.preventDefault();
 			eventData.stopPropagation();
@@ -821,17 +821,18 @@ logger.log('Salut :)');
 		var buttons = {};
 		buttons[i18n.get('ok')] = function() {
 			if (which) {
-				stockageOption.set('touche raid suivant', which).save();
+				popup.dialog('close');
+				options.callback(which);
 			}
-			popup.dialog('close');
 		};
 		buttons[i18n.get('cancel')] = function() {
 			popup.dialog('close');
+			options.callback();
 		};
-		popupHtml = [
+		var popupHtml = [
 			'<div title="'+ i18n.get('raid facile') +'">',
 			'<p>'+ i18n.get('quelle_touche') +'</p><br>',
-			'<p>Le code de la touche choisie est : <span id="which">'+ stockageOption.get('touche raid suivant') +'</span></p>',
+			'<p>Le code de la touche choisie est : <span id="which">'+ which +'</span></p>',
 			'</div>'
 		].join('');
 		var popup = $(popupHtml).dialog({
@@ -851,7 +852,17 @@ logger.log('Salut :)');
 
 		$(document).on('keyup', findKeyCallback);
 	}
-	plusTard(findKey, 500);
+	plusTard(function() {
+		findKey({
+			defaultValue: stockageOption.get('touche raid suivant'),
+			callback: function(which) {
+				if (which) {
+					stockageOption.set('touche raid suivant', which).save();
+					logger.log('touche choisie : ' + which);
+				}
+			}
+		});
+	}, 500);
 //}endregion
 
 init();
