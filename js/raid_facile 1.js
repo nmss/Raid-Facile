@@ -277,12 +277,9 @@ logger.log('Salut :)');
 
 /** Classe d'internationalisation  **///{region
 	function I18n() {
-		this.init();
+		this.langue = langue;
 	}
 	I18n.prototype = {
-		init: function() {
-			this.langue = langue;
-		},
 		get: function(key) {
 			var local = this[langue][key];
 			if (local === undefined && langue !== 'en') {
@@ -364,7 +361,7 @@ logger.log('Salut :)');
 		stockageOption.load();
 		stockageData.load();
 
-		i18n = new I18n();
+		i18n = instanciateAsFunction(I18n, 'get');
 
 		window.addEventListener('hashchange', onHashChange, false);
 		window.addEventListener('keyup', keyShortcut, false);
@@ -392,6 +389,19 @@ logger.log('Salut :)');
 			}
 		}
 	}
+
+	/** Instancie une classe mais en mode fonction (comme jQuery)
+	 * mainMethod correspond à la méthode qui sera utilisé en mode raccourci
+	 * exemple : i18n(...) est identique à i18n.get(...) si mainMethod = 'get' 
+	 */
+	function instanciateAsFunction(ClassObject, mainMethod) {
+		var instance = new ClassObject();
+		var func = instance[mainMethod].bind(instance);
+		for (var method in ClassObject.prototype) {
+			func[method] = instance[method].bind(instance);
+		}
+		return func; 
+	};
 
 	/** Permet d'exécuter une fonction, mais plus tard */
 	function plusTard(callback, temps) {
