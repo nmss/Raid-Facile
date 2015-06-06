@@ -13,6 +13,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 /** Logger **///{region
 	function Logger() {
 		this.logs = [];
+		this.errors = [];
 	}
 	Logger.prototype.log = function(message) {
 		if (info && !info.args.raidFacileDebug) {
@@ -25,6 +26,14 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		this.logs.push(messageParts);
 		console.debug.apply(console, ['[raid facile]'].concat(messageParts));
 	};
+	Logger.prototype.error = function(message) {
+		var messageParts = [];
+		for (var i = 0; i < arguments.length; i++) {
+			messageParts.push(arguments[i]);
+		}
+		this.errors.push(messageParts);
+		console.error.apply(console, ['[raid facile]'].concat(messageParts));
+	}
 	var logger = new Logger();
 //}endregion
 logger.log('Salut :)');
@@ -281,11 +290,17 @@ logger.log('Salut :)');
 
 /** Classe d'internationalisation  **///{region
 	function I18n() {
-		this.langue = langue;
+		this.fr = {};
+		this.en = {};
+		this.ro = {};
+		this.es = {};
 	}
 	I18n.prototype = {
 		get: function(key) {
 			var local = this[langue][key];
+			if (local === undefined && key !== 'missing_translation') {
+				logger.error(i18n('missing_translation') + ' : "' + key + '"');
+			}
 			if (local === undefined && langue !== 'en') {
 				local = this.en[key];
 			}
@@ -382,7 +397,7 @@ logger.log('Salut :)');
 	/** Fait l'action appropiée quand une touche du clavier est appuyée */
 	function keyShortcut(eventObject) {
 		// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
-		if (eventObject.which === 80) { // Touche P
+		if (eventObject.which === stockageOption.get('touche raid suivant')) {
 			if (info.page === 'tableauRaidFacile') {
 				eventObject.preventDefault();
 				eventObject.stopPropagation();
@@ -1061,6 +1076,7 @@ init();
 	text = {
 		//{ Global
 		'raid facile': 'Raid Facile',
+		missing_translation: 'Traduction manquante',
 		//}
 		//{ Menu de gauche
 		'options de': 'Options de',
@@ -1137,6 +1153,8 @@ init();
 
 		raccourcis:'Raccourcis',
 			shortcut_attack_next:'Raccourci pour attaquer la cible suivante',
+			modifier: 'Modifier',
+			ce_nombre_est_keycode: 'Ce nombre correspond au code de la touche choisie',
 
 		//couleur ligne
 		couleur_ligne:'Couleur ligne ',
@@ -1834,6 +1852,7 @@ init();
 		text = {
 			//{ Global
 			'raid facile': 'Easy Raid',
+			missing_translation: 'Missing translation',
 			//}
 			//{ Menu de gauche
 			'options de': 'Options of',
@@ -1905,6 +1924,10 @@ init();
 					//nb_gt:'Number of LC',
 					rien:'Nothing',
 
+			raccourcis: 'Shortcuts',
+				shortcut_attack_next: 'Shortcut to attack the next target',
+				modifier: 'Modify',
+				ce_nombre_est_keycode: 'This number correspond to the keycode of the chosen key',
 
 			//couleur ligne
 			couleur_ligne:'Colour line ',
