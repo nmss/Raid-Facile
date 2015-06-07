@@ -1,4 +1,5 @@
 /beta
 /upload
 /closureCompiler/old
-js/npm-debug.log
+/js/npm-debug.log
+/typings

@@ -1,3 +1,6 @@
+/* global GM_setValue */
+/* global GM_getValue */
+/// <reference path="../typings/jquery/jquery.d.ts"/>
 /* test encodage
 ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
 aâàã eéêè iîì ñ oôòõ uûù €
@@ -5,17 +8,17 @@ aâàã eéêè iîì ñ oôòõ uûù €
 
 /************************* PAGE DE MESSAGE *************************///{
 	// function suprimer un scan depuis le pop-up
-	function supr_scan1(serveur){
+	function supr_scan1(serveur) {
 		var dateCombat = $('div.showmessage[data-message-id] .infohead tr:eq(3) td').text().match(/(\d+)\.(\d+)\.(\d+) (\d+):(\d+):(\d+)/);
 		if (dateCombat.length != 7) {
 			console.error('[raid facile] Erreur n°15045');
 		}
-		var date_scan = (new Date(dateCombat[3], parseInt(dateCombat[2])-1, dateCombat[1], dateCombat[4], dateCombat[5], dateCombat[6])).getTime();
+		var date_scan = new Date(dateCombat[3], parseInt(dateCombat[2]) - 1, dateCombat[1], dateCombat[4], dateCombat[5], dateCombat[6]).getTime();
 
-		var scan_info = GM_getValue('scan'+ serveur, '').split('#');
+		var scan_info = GM_getValue('scan' + serveur, '').split('#');
 		var listeDateRC = '';
 		var suppr = 0;
-		for(var i=0; i<scan_info.length; i++) {
+		for (var i = 0; i < scan_info.length; i++) {
 			listeDateRC = scan_info[i].split(';')[0];
 			if (listeDateRC == date_scan) {
 				scan_info[i] = '';
@@ -25,11 +28,11 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		scan_info = scan_info.join('#');
 		scan_info = scan_info.replace( /\#{2,}/g, "#");
 
-		GM_setValue('scan'+ serveur, scan_info);
-		fadeBoxx(suppr+' '+text.rep_mess_supri, 0, 3000);
+		GM_setValue('scan' + serveur, scan_info);
+		fadeBoxx(suppr + ' ' +text.rep_mess_supri, 0, 3000);
 	}
 
-	function save_scan(serveur, id_rc, popup, afficherResultat){
+	function save_scan(serveur, id_rc, popup, afficherResultat) {
 		if (!id_rc) return;
 
 		var date_combat_total = "";
@@ -37,150 +40,144 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		if (popup) {// on se place dans le scan en pop up
 			var document_spatio = $('div.showmessage[data-message-id="'+id_rc+'"]').get(0);
 			date_combat_total = document_spatio.getElementsByClassName('infohead')[0].innerHTML;
-
 		} else { // on se place dans la partie du scan(partie pour les scans pré-ouverts)
 			var nom_spatio = 'spioDetails_'+ id_rc;
 			var document_spatio = document.getElementById(nom_spatio);
-
 			var document_entete = document.getElementById(id_rc + 'TR');
 			if (!document_entete) // Pour la version 5.0.0
 				document_entete = document.getElementById('TR' + id_rc);
 			date_combat_total = document_entete.getElementsByClassName('date')[0].innerHTML;
 		}
 
-// heure du scans - Modification Deberron
+		// heure du scans
 		var date_combat = date_combat_total.match(/(\d+)\.(\d+)\.(\d+) (\d+):(\d+):(\d+)/i);
-		var jours = date_combat[1];
-		var mois = date_combat[2]-1;
-		var annee = date_combat[3];
-		var heure = date_combat[4];
-		var min = date_combat[5];
-		var sec = date_combat[6];
-		var date_scan = (new Date(annee, mois, jours, heure, min, sec)).getTime();
+		var jours = parseInt(date_combat[1]);
+		var mois = parseInt(date_combat[2]) - 1;
+		var annee = parseInt(date_combat[3]);
+		var heure = parseInt(date_combat[4]);
+		var min = parseInt(date_combat[5]);
+		var sec = parseInt(date_combat[6]);
+		var date_scan = new Date(annee, mois, jours, heure, min, sec).getTime();
 
-	// nom de planette et coordoné et nom joueurs
+		// nom de planette et coordoné et nom joueurs
 
 		var planette_et_joueur_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].innerHTML;
 
 		spans = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementsByTagName('span');
-		nom_joueur = spans[spans.length-1].innerHTML;
-			// si antigame est installé et interfere dans le nom du joueurs
-		if(nom_joueur.indexOf('war-riders.de') != -1){nom_joueur = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementById("player_name").innerHTML;}
+		nom_joueur = spans[spans.length - 1].innerHTML;
+		// si antigame est installé et interfere dans le nom du joueurs
+		if (nom_joueur.indexOf('war-riders.de') !== -1) {
+			nom_joueur = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementById("player_name").innerHTML;
+		}
 
 		var coordonnee = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('area')[0].getElementsByTagName('a')[0].innerHTML;
 		var nom_plannette = '?';
-		if(planette_et_joueur_scan.indexOf('<span>')>= 0)
-		{
+		if (planette_et_joueur_scan.indexOf('<span>') >= 0) {
 			nom_plannette = planette_et_joueur_scan.split(' <span>')[0];
 			nom_plannette = nom_plannette.split(vari.sur)[1];
 		}
-		else{
+		else {
 			nom_plannette = planette_et_joueur_scan.split(' <a')[0];
 			// normalement il y a une balise <figure> entre le "sur" et le nom de la planète
 			// nom_plannette = nom_plannette.split(vari.sur)[1];
 			nom_plannette = nom_plannette.split('</figure>')[1];
 		}
 				//si le nom de planete a un # on le remplace pour pas qu'il interfere dans le split plus tard
-		if(nom_plannette.indexOf('#')>=0){
-			nom_plannette = nom_plannette.replace( /\#/g, "1diez1");
+		if (nom_plannette.indexOf('#') >= 0) {
+			nom_plannette = nom_plannette.replace(/\#/g, "1diez1");
 		}
 
-//ajout Deberron - type de joueur
+		// type de joueur
 		var typeJoueur = "";
 		var pourcent = 50;
-		if(planette_et_joueur_scan.indexOf('status_abbr_active')>= 0)
+		if (planette_et_joueur_scan.indexOf('status_abbr_active') >= 0)
 			typeJoueur = "";
-		else if(planette_et_joueur_scan.indexOf('status_abbr_honorableTarget')>= 0) {
+		else if (planette_et_joueur_scan.indexOf('status_abbr_honorableTarget') >= 0) {
 			typeJoueur = "ph";
 			pourcent = 75;
 		}
-		else if(planette_et_joueur_scan.indexOf('status_abbr_outlaw')>= 0)
+		else if (planette_et_joueur_scan.indexOf('status_abbr_outlaw') >= 0)
 			typeJoueur = "o";
-		else if(planette_et_joueur_scan.indexOf('status_abbr_inactive')>= 0)
+		else if (planette_et_joueur_scan.indexOf('status_abbr_inactive') >= 0)
 			typeJoueur = "i";
-		else if(planette_et_joueur_scan.indexOf('status_abbr_longinactive')>= 0)
+		else if (planette_et_joueur_scan.indexOf('status_abbr_longinactive') >= 0)
 			typeJoueur = "I";
-		else if(planette_et_joueur_scan.indexOf('status_abbr_strong')>= 0)
+		else if (planette_et_joueur_scan.indexOf('status_abbr_strong') >= 0)
 			typeJoueur = "f";
-		else if(planette_et_joueur_scan.indexOf('status_abbr_vacation')>= 0)
+		else if (planette_et_joueur_scan.indexOf('status_abbr_vacation') >= 0)
 			typeJoueur = "v";
 		// else if(planette_et_joueur_scan.indexOf('status_abbr_ally_own')>= 0)
 		// else if(planette_et_joueur_scan.indexOf('status_abbr_ally_war')>= 0)
-//ajout Deberron - type de joueur
+		// type de joueur
 		var typeHonor = "";
-		if(planette_et_joueur_scan.indexOf('rank_bandit1')>= 0) {
+		if (planette_et_joueur_scan.indexOf('rank_bandit1') >= 0) {
 			typeHonor = "b1";
 			pourcent = 100;
 		}
-		else if(planette_et_joueur_scan.indexOf('rank_bandit2')>= 0) {
+		else if (planette_et_joueur_scan.indexOf('rank_bandit2') >= 0) {
 			typeHonor = "b2";
 			pourcent = 100;
 		}
-		else if(planette_et_joueur_scan.indexOf('rank_bandit3')>= 0) {
+		else if (planette_et_joueur_scan.indexOf('rank_bandit3') >= 0) {
 			typeHonor = "b3";
 			pourcent = 100;
 		}
-		else if(planette_et_joueur_scan.indexOf('rank_starlord1')>= 0)
+		else if (planette_et_joueur_scan.indexOf('rank_starlord1') >= 0)
 			typeHonor = "s1";
-		else if(planette_et_joueur_scan.indexOf('rank_starlord2')>= 0)
+		else if (planette_et_joueur_scan.indexOf('rank_starlord2') >= 0)
 			typeHonor = "s2";
-		else if(planette_et_joueur_scan.indexOf('rank_starlord3')>= 0)
+		else if (planette_et_joueur_scan.indexOf('rank_starlord3') >= 0)
 			typeHonor = "s3";
 
-	// on recupere l'id du rc
-		if( info.url.indexOf('index.php?page=messages')>=0)//si on est dans les scan preouvert
-		{
+		// on recupere l'id du rc
+		if (info.url.indexOf('index.php?page=messages') >= 0) {//si on est dans les scan preouvert
 			var idRC = id_rc;
 		}
-		else{// si on est dans la page pop up
+		else {// si on est dans la page pop up
 			var idRC = info.url.split('&msg_id=')[1];
-			if(info.url.indexOf('&mids')==-1)
-			{
+			if (info.url.indexOf('&mids') === -1) {
 				idRC = idRC.split('&cat')[0];
 			}
-			else {idRC = idRC.split('&mids')[0];}
+			else { idRC = idRC.split('&mids')[0]; }
 		}
 
 //modif deberron // on recupere avec le lien pour attaquer si c'est un lune ou une planette
-		var type_planette=document_spatio.getElementsByClassName('defenseattack spy')[0].getElementsByClassName('attack')[0].innerHTML.match(/type=(\d+)/i);
-			type_planette = type_planette ? type_planette[1] : 1;
+		var type_planette = document_spatio.getElementsByClassName('defenseattack spy')[0].getElementsByClassName('attack')[0].innerHTML.match(/type=(\d+)/i);
+		type_planette = type_planette ? type_planette[1] : 1;
 
 		// on verifie si le scan est nouveau
-		if (GM_getValue('scan'+ serveur, '').indexOf(idRC)==-1)
-			var newscan = '0';
-		else
-			var newscan = 'nan';
+			var newscan = GM_getValue('scan' + serveur, '').indexOf(idRC) === -1;
 
-		// on verifie si le scan  peut etre enregistré par rapport a sa date d'expiration(parametre d'option)  et si il est nouveau
-		if((info.startTime - nb_ms_garde_scan ) < parseInt(date_scan) && newscan == '0'){
+		// on verifie si le scan  peut etre enregistré par rapport a sa date d'expiration(parametre d'option) et si il est nouveau
+		if (newscan && (info.startTime - nb_ms_garde_scan) < date_scan) {
 			// on recupere les ressources de la planettes
-			var ressource_m_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[1].innerHTML.replace( /[^0-9-]/g, "");
-			var ressource_c_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[3].innerHTML.replace( /[^0-9-]/g, "");
-			var ressource_d_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[5].innerHTML.replace( /[^0-9-]/g, "");
+			var ressource_m_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[1].innerHTML.replace(/[^0-9-]/g, "");
+			var ressource_c_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[3].innerHTML.replace(/[^0-9-]/g, "");
+			var ressource_d_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByClassName('fragment spy2')[0].getElementsByTagName('td')[5].innerHTML.replace(/[^0-9-]/g, "");
 
 			// on cherche si il y a eu de l'activité et combien de temps
 			var activite_scan = document_spatio.getElementsByClassName('aktiv spy')[0].innerHTML;
-			activite_scan = activite_scan.split('</div></div></span>')[1].replace( /[^0-9-]/g, "");
-			if( activite_scan == ''){activite_scan = 'rien';}
+			activite_scan = activite_scan.split('</div></div></span>')[1].replace(/[^0-9-]/g, "");
+			if (activite_scan == '') { activite_scan = 'rien'; }
 
 			// on creer des array par rapport a ce que l'on veut recupere
 			var vaisseau = new Array(vari.pt, vari.gt, vari.cle, vari.clo, vari.cro, vari.vb, vari.vc, vari.rec, vari.esp, vari.bb, vari.sat, vari.dest, vari.edlm, vari.tra);
 			var defense = new Array(vari.lm, vari.lle, vari.llo, vari.gauss, vari.ion, vari.pla, vari.pb, vari.gb, vari.mic, vari.mip);
-			var recherche = new Array(vari.tech_arm, vari.tech_bouc, vari.tech_pro );
-			var mine = new Array(vari.mine_m, vari.mine_c, vari.mine_d );
+			var recherche = new Array(vari.tech_arm, vari.tech_bouc, vari.tech_pro);
+			var mine = new Array(vari.mine_m, vari.mine_c, vari.mine_d);
 
 			// array de perte d'unité par rapport au vaisseau/defense
-			var vaisseau_perte = new Array("4000", "12000", "4000", "10000", "27000", "60000", "30000", "16000", "1000" ,"75000", "2000", "110000", "9000000", "70000");
-			var vaisseau_perte_m = new Array("2000", "6000", "3000", "6000", "20000", "45000", "10000", "10000", "0" ,"50000", "0", "60000", "5000000", "30000");
-			var vaisseau_perte_c = new Array("2000", "6000", "1000", "4000", "7000",  "15000", "20000", "6000",  "1000" ,"25000", "2000", "50000", "4000000", "40000");
+			var vaisseau_perte = new Array("4000", "12000", "4000", "10000", "27000", "60000", "30000", "16000", "1000", "75000", "2000", "110000", "9000000", "70000");
+			var vaisseau_perte_m = new Array("2000", "6000", "3000", "6000", "20000", "45000", "10000", "10000", "0", "50000", "0", "60000", "5000000", "30000");
+			var vaisseau_perte_c = new Array("2000", "6000", "1000", "4000", "7000", "15000", "20000", "6000", "1000", "25000", "2000", "50000", "4000000", "40000");
 
-			var def_perte = new Array("2000", "2000", "8000", "35000", "8000", "100000", "20000", "100000", "0" ,"0");
-			var def_perte_m = new Array("2000", "1500", "6000", "20000", "2000", "50000", "10000", "50000", "0" ,"0");
-			var def_perte_c = new Array("0", "500", "2000", "15000",  "6000", "50000", "10000", "50000", "0" ,"0");
+			var def_perte = new Array("2000", "2000", "8000", "35000", "8000", "100000", "20000", "100000", "0", "0");
+			var def_perte_m = new Array("2000", "1500", "6000", "20000", "2000", "50000", "10000", "50000", "0", "0");
+			var def_perte_c = new Array("0", "500", "2000", "15000", "6000", "50000", "10000", "50000", "0", "0");
 
 			//valeur de base d'attaque pour vaissea/défense
-			var valeur_attaque_vaisseau = new Array( "5", "5", "50", "150", "400","1000", "50", "1", "1", "1000", "1", "2000", "200000", "700");
-			var valeur_attaque_defense = new Array( "80", "100", "250", "1100", "150", "3000", "1","1","0","0");
+			var valeur_attaque_vaisseau = new Array("5", "5", "50", "150", "400", "1000", "50", "1", "1", "1000", "1", "2000", "200000", "700");
+			var valeur_attaque_defense = new Array("80", "100", "250", "1100", "150", "3000", "1", "1", "0", "0");
 
 			//on initialise tout ce qu'on a besoin.
 			var cdr_possible_def = 0;
@@ -206,21 +203,18 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			var nb_mine = '';
 
 		/******* RECHERCHE *******/ // j'ai la mit la recherche avant alors que c'est apres a cause du besoin de recherche pour calculer la valeur de flotte/def
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[3]){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[3]) {
 				var flotte_inter3 = document_spatio.getElementsByClassName('fleetdefbuildings spy')[3].innerHTML;
-			}else{flotte_inter3 ='';}
+			} else { flotte_inter3 = ''; }
 
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[3] && flotte_inter3.indexOf('area plunder',0) == -1  ){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[3] && flotte_inter3.indexOf('area plunder', 0) == -1) {
 				// on compte le nombre de type de recherche affiché.
 				var nb_type_recherche = document_spatio.getElementsByClassName('fleetdefbuildings spy')[3].getElementsByClassName('key').length;
-				for(var j=0; j<nb_type_recherche ; j++)
-				{
+				for (var j = 0; j < nb_type_recherche; j++) {
 					var type_recherche = document_spatio.getElementsByClassName('fleetdefbuildings spy')[3].getElementsByClassName('key')[j].innerHTML;//23.03.2010 22:27:56
-					for(var k=0; k<recherche.length ; k++)
-					{
+					for (var k = 0; k < recherche.length; k++) {
 						//on recupere le type de recherche et apres on cherche c'est lequels, et on remplit les infos dans la case qui lui correspond dans les array
-						if(type_recherche == recherche[k])
-						{
+						if (type_recherche == recherche[k]) {
 							nb_recherche = document_spatio.getElementsByClassName('fleetdefbuildings spy')[3].getElementsByClassName('value')[j].innerHTML;
 							recherche_scan[k] = parseInt(nb_recherche);
 						}
@@ -228,83 +222,80 @@ aâàã eéêè iîì ñ oôòõ uûù €
 
 				}
 			}//sinon elle existe pas alors on le voit pas donc ?
-			else{
+			else {
 				nb_recherche = '?';
 				recherche_scan = new Array("?", "?", "?");}
 
-			if(recherche_scan[0] == "?"){var recherche_pour_valeur = new Array(0, 0, 0);}
-			else{var recherche_pour_valeur = recherche_scan;}
+			if (recherche_scan[0] == "?") { var recherche_pour_valeur = new Array(0, 0, 0); }
+			else { var recherche_pour_valeur = recherche_scan; }
 
 		/******* VAISSEAU + CDR *******/// on recupere les vaisseaux et le cdr creables.
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[0]){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0]) {
 				var flotte_inter = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].innerHTML;
-			}else{flotte_inter ='';}
+			} else { flotte_inter = ''; }
 
 			// on verifie que l'on voit bien la flotte
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[0] && flotte_inter.indexOf('area plunder' ,0) == -1 ){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0] && flotte_inter.indexOf('area plunder', 0) == -1) {
 
-					// on compte le nombre de type de vaisseau affiché.
-					var nb_type_vaisseau = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('key').length;
-					for(var j=0; j<nb_type_vaisseau ; j++)
-					{
-						//on recupere le type du vaisseau et apres on cherche c'est lequels, et on remplit les infos dans la case qui lui correspond dans les array
-						var type_vaisseau = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('key')[j].innerHTML;
-						for(var k=0; k<vaisseau.length ; k++)
-						{
-							if(type_vaisseau == vaisseau[k])
-							{
-								nb_vaisseau_type = (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('value')[j].innerHTML).replace( /[^0-9-]/g, "");
-								valeur_attaque_flotte = valeur_attaque_flotte + parseInt(nb_vaisseau_type)*parseInt(valeur_attaque_vaisseau[k])*(1 + 0.1*parseInt(recherche_pour_valeur[0]));
+				// on compte le nombre de type de vaisseau affiché.
+				var nb_type_vaisseau = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('key').length;
+				for (var j = 0; j < nb_type_vaisseau; j++) {
+					//on recupere le type du vaisseau et apres on cherche c'est lequels, et on remplit les infos dans la case qui lui correspond dans les array
+					var type_vaisseau = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('key')[j].innerHTML;
+					for (var k = 0; k < vaisseau.length; k++) {
+						if (type_vaisseau == vaisseau[k]) {
+							nb_vaisseau_type = parseInt(document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('value')[j].innerHTML).replace(/[^0-9-]/g, '');
+							valeur_attaque_flotte = valeur_attaque_flotte + parseInt(nb_vaisseau_type) * parseInt(valeur_attaque_vaisseau[k]) * (1 + 0.1 * recherche_pour_valeur[0]);
 
-								cdr_possible = parseInt(cdr_possible) + parseInt(vaisseau_perte[k])*parseInt(nb_vaisseau_type);
-								cdr_possible_m = parseInt(cdr_possible_m) + parseInt(vaisseau_perte_m[k])*parseInt(nb_vaisseau_type);
-								cdr_possible_c = parseInt(cdr_possible_c) + parseInt(vaisseau_perte_c[k])*parseInt(nb_vaisseau_type);
+							cdr_possible = cdr_possible + parseInt(vaisseau_perte[k]) * parseInt(nb_vaisseau_type);
+							cdr_possible_m = cdr_possible_m + parseInt(vaisseau_perte_m[k]) * parseInt(nb_vaisseau_type);
+							cdr_possible_c = cdr_possible_c + parseInt(vaisseau_perte_c[k]) * parseInt(nb_vaisseau_type);
 
-								vaisseau_scan[k] = parseInt(vaisseau_scan[k]) + parseInt(nb_vaisseau_type);
-								nb_vaisseau_s = parseInt(nb_vaisseau_s) + parseInt(nb_vaisseau_type);
-							}
+							vaisseau_scan[k] = parseInt(vaisseau_scan[k]) + parseInt(nb_vaisseau_type);
+							nb_vaisseau_s = nb_vaisseau_s + parseInt(nb_vaisseau_type);
 						}
-
 					}
+
+				}
 			}
-			else {cdr_possible = '?';
+			else {
+				cdr_possible = '?';
 				nb_vaisseau_type = '?';
 				valeur_attaque_flotte = '?';
 				vaisseau_scan = new Array("?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?");
 				nb_vaisseau_s = -1;
 			}
-			if(cdr_possible == '' || cdr_possible == ' '){cdr_possible = 0;}
+			if (cdr_possible == '' || cdr_possible == ' ') { cdr_possible = 0; }
 
 		/******* DEFENSE *******/
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[1]){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[1]) {
 				var flotte_inter1 = document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].innerHTML;
-			}else{flotte_inter1 ='';}
+			} else { flotte_inter1 = ''; }
 
 			// on verifie que l'on voit bien la def et on verifie que ce que je prenne c'est pas le tableau d'antigame
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[1] && flotte_inter1.indexOf('area plunder' ,0) == -1 ){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[1] && flotte_inter1.indexOf('area plunder', 0) == -1) {
 				// on compte le nombre de type de vaisseau affiché.
 				var nb_type_def = document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].getElementsByClassName('key').length;
-				for(var j=0; j<nb_type_def ; j++){
+				for (var j = 0; j < nb_type_def; j++) {
 					//on recupere le type de la defense et apres on cherche c'est lequels, et on remplit les infos dans la case qui lui correspond dans les array
 					var type_def = document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].getElementsByClassName('key')[j].innerHTML;//23.03.2010 22:27:56
-					for(var k=0; k<defense.length ; k++){
-						if(type_def == defense[k])
-						{
-							nb_def_type = (document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].getElementsByClassName('value')[j].innerHTML).replace( /[^0-9-]/g, "");
-							valeur_attaque_def = valeur_attaque_def + parseInt(nb_def_type)*parseInt(valeur_attaque_defense[k])*(1 + 0.1*parseInt(recherche_pour_valeur[0]));// +t pour faire fonctionner la fonction replace
+					for (var k = 0; k < defense.length; k++) {
+						if (type_def == defense[k]) {
+							nb_def_type = (document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].getElementsByClassName('value')[j].innerHTML).replace(/[^0-9-]/g, "");
+							valeur_attaque_def = valeur_attaque_def + parseInt(nb_def_type) * parseInt(valeur_attaque_defense[k]) * (1 + 0.1 * recherche_pour_valeur[0]);// +t pour faire fonctionner la fonction replace
 
 							defense_scan[k] = parseInt(defense_scan[k]) + parseInt(nb_def_type);
-							nb_def_s = parseInt(nb_def_s) + parseInt(nb_def_type);
+							nb_def_s = nb_def_s + parseInt(nb_def_type);
 
-							cdr_possible_def = parseInt(cdr_possible_def) + parseInt(def_perte[k])*parseInt(nb_def_type);
-							cdr_possible_def_m = parseInt(cdr_possible_def_m) + parseInt(def_perte_m[k])*parseInt(nb_def_type);
-							cdr_possible_def_c = parseInt(cdr_possible_def_c) + parseInt(def_perte_c[k])*parseInt(nb_def_type);
+							cdr_possible_def = cdr_possible_def + parseInt(def_perte[k]) * parseInt(nb_def_type);
+							cdr_possible_def_m = cdr_possible_def_m + parseInt(def_perte_m[k]) * parseInt(nb_def_type);
+							cdr_possible_def_c = cdr_possible_def_c + parseInt(def_perte_c[k]) * parseInt(nb_def_type);
 
 						}
 					}
 
 				}
-				var cdr_def = cdr_possible_def +'/'+ cdr_possible_def_m +'/'+ cdr_possible_def_c;
+				var cdr_def = cdr_possible_def + '/' + cdr_possible_def_m + '/' + cdr_possible_def_c;
 			}
 			else {
 				nb_def_type = '?';
@@ -315,31 +306,31 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			}
 
 		/******* Batiment (MINE) *******/
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[2]){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[2]) {
 				var flotte_inter2 = document_spatio.getElementsByClassName('fleetdefbuildings spy')[2].innerHTML;
-			}else{flotte_inter2 ='';}
+			} else {
+				flotte_inter2 = '';
+			}
 
 			// on verifie que l'on voit le batiment et que ce n'est pas antigame
-			if(document_spatio.getElementsByClassName('fleetdefbuildings spy')[2] && flotte_inter2.indexOf('area plunder' ,0) == -1 ){
+			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[2] && flotte_inter2.indexOf('area plunder', 0) == -1) {
 				// on compte le nombre de type de batiment affiché.
 				var nb_type_mine = document_spatio.getElementsByClassName('fleetdefbuildings spy')[2].getElementsByClassName('key').length;
-				for(var jj=0; jj<nb_type_mine ; jj++)
-				{
+				for (var jj = 0; jj < nb_type_mine; jj++) {
 					//on recupere le type de la batiment et apres on cherche c'est lequels, et on remplit les infos dans la case qui lui correspond dans les array
 					var type_mine = document_spatio.getElementsByClassName('fleetdefbuildings spy')[2].getElementsByClassName('key')[jj].innerHTML;//23.03.2010 22:27:56
-					for(var kk=0; kk<mine.length ; kk++)
-					{
-						if(type_mine == mine[kk])
-						{
+					for (var kk = 0; kk < mine.length; kk++) {
+						if (type_mine == mine[kk]) {
 							nb_mine = document_spatio.getElementsByClassName('fleetdefbuildings spy')[2].getElementsByClassName('value')[jj].innerHTML;
 							mine_scan[kk] = parseInt(nb_mine);
 						}
 					}
-
 				}
 			}//si on elle existe pas alors on le voit pas donc ?
-			else{ nb_mine = '?';
-			mine_scan = new Array("?", "?", "?");}
+			else {
+				nb_mine = '?';
+				mine_scan = new Array("?", "?", "?");
+			}
 
 
 		/* ******* INFO FINAL ********* */
@@ -348,49 +339,44 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			var cdr_possible2 = Math.round( ( cdr_possible!='?' ? cdr_possible : 0 ) * pourcent_cdr ) + Math.round( ( cdr_possible_def!='?' ? cdr_possible_def : 0 ) * pourcent_cdr_def );
 			// les trois premiere ligne c'est selon le type d'enregistrement par rapport au ressource /cdr ou les deux. / la derniere ligne pour savoir par rapport a la def et que on voit bien les coordonées
 
-			if(((type_prend_scan == 0 && (cdr_possible2 >= parseInt(valeur_cdr_mini) || (ressource_pillable*pourcent/100) >= parseInt(nb_scan_accpte) ))
-				|| (type_prend_scan == 1 && cdr_possible2 >= parseInt(valeur_cdr_mini) && (ressource_pillable*pourcent/100) >= parseInt(nb_scan_accpte) )
-				|| (type_prend_scan == 2 && (cdr_possible2 + (ressource_pillable*pourcent/100)) >= valeur_tot_mini))
+			if (((type_prend_scan == 0 && (cdr_possible2 >= parseInt(valeur_cdr_mini) || (ressource_pillable * pourcent / 100) >= parseInt(nb_scan_accpte)))
+				|| (type_prend_scan == 1 && cdr_possible2 >= parseInt(valeur_cdr_mini) && (ressource_pillable * pourcent / 100) >= parseInt(nb_scan_accpte))
+				|| (type_prend_scan == 2 && (cdr_possible2 + (ressource_pillable * pourcent / 100)) >= valeur_tot_mini))
 				&& coordonnee != '' && (nb_max_def == 0 || nb_max_def > nb_def_s))
 			{
-				var info_final = date_scan + ';' + coordonnee + ';' + nom_joueur +  ';' + nom_plannette //0-1-2-3
-								+ ';' + ressource_m_scan + ';' + ressource_c_scan + ';' + ressource_d_scan + ';' //4-5-6
-								+ activite_scan + ';' + cdr_possible + ';' + vaisseau_scan.join('/') //7-8-9
-								+ ';' + defense_scan.join('/') + ';' + idRC + ';' + ressource_pillable //10-11-12
-								+ ';' + recherche_scan.join('/') + ';' + type_planette /*13/14*/
-								+ ';' + cdr_possible_m + ';' + cdr_possible_c  + ';' + nb_vaisseau_s  + ';' + nb_def_s //15-16-17-18
-								+ ';' + mine_scan.join('/') + ';x'+ ';'+ cdr_def //19-20-21
-								+ ';' + valeur_attaque_flotte +';'+ valeur_attaque_def //22-23
-								+ ';' + typeJoueur + ';' + typeHonor; //24-25
+				var info_final = date_scan + ';' + coordonnee + ';' + nom_joueur + ';' + nom_plannette //0-1-2-3
+					+ ';' + ressource_m_scan + ';' + ressource_c_scan + ';' + ressource_d_scan + ';' //4-5-6
+					+ activite_scan + ';' + cdr_possible + ';' + vaisseau_scan.join('/') //7-8-9
+					+ ';' + defense_scan.join('/') + ';' + idRC + ';' + ressource_pillable //10-11-12
+					+ ';' + recherche_scan.join('/') + ';' + type_planette /*13/14*/
+					+ ';' + cdr_possible_m + ';' + cdr_possible_c + ';' + nb_vaisseau_s + ';' + nb_def_s //15-16-17-18
+					+ ';' + mine_scan.join('/') + ';x' + ';' + cdr_def //19-20-21
+					+ ';' + valeur_attaque_flotte + ';' + valeur_attaque_def //22-23
+					+ ';' + typeJoueur + ';' + typeHonor; //24-25
 
-				var scan_info = GM_getValue('scan'+ serveur, '').split('#');
+				var scan_info = GM_getValue('scan' + serveur, '').split('#');
 
 				//alert(info_final);
 				// on suprime les scan trop vieux
-				if(nb_ms_garde_scan != 0)
-				{
-					for(var i=0; i<scan_info.length ; i++)
-					{
+				if (nb_ms_garde_scan != 0) {
+					for (var i = 0; i < scan_info.length; i++) {
 						var scan_info25 = scan_info[i].split(';');
-						if(info.startTime - nb_ms_garde_scan > parseInt(scan_info25[0]))
-						{
-							scan_info[i]='';
+						if (info.startTime - nb_ms_garde_scan > parseInt(scan_info25[0])) {
+							scan_info[i] = '';
 						}
 					}
 				}
 
 				// puis on sauvegarde si on remplace les scan de la meme planette et qu'il existe un scan avec les meme coordonées
-				if(GM_getValue('scan'+ serveur, '').indexOf(coordonnee) > -1 && scan_remplace == 1)
-				{
+				if (GM_getValue('scan' + serveur, '').indexOf(coordonnee) > -1 && scan_remplace == 1) {
 					var scan_remplacer_q = 0;// on boucle par rapport au nombre de scan
-					for(var p=0; p<scan_info.length ; p++)
-					{
+					for (var p = 0; p < scan_info.length; p++) {
 						var scan_test = scan_info[p].split(';');
 						// on verifie que le scan existe et on cherche si c'est les meme coordonées, si oui alors on regarde si il est plus récent, et si c'est bien le meme type (lune/planette)
-						if(scan_test[9]){
-							if(scan_info[p].indexOf(coordonnee)!= -1 && scan_test[14] == type_planette) {
+						if (scan_test[9]) {
+							if (scan_info[p].indexOf(coordonnee) != -1 && scan_test[14] == type_planette) {
 								scan_remplacer_q = 1;
-								if(parseInt(scan_test[0]) < parseInt(date_scan)) {
+								if (parseInt(scan_test[0]) < date_scan) {
 									// on vient d'ajouter un scan plus récent pour le même endroit
 									scan_info[p] = info_final;
 								}
@@ -398,56 +384,51 @@ aâàã eéêè iîì ñ oôòõ uûù €
 						}
 					}
 					// on regarde si il a remplacer ou pas le scan par un ancien, si non alors on l'ajoute
-					if(scan_remplacer_q == 0){
-						var scan_info2 = scan_info.join('#')+ '#'+ info_final;
-					} else {
-						var scan_info2 = scan_info.join('#');
-					}
-
-					scan_info2 = scan_info2.replace( /\#{2,}/g, "#");
-
-					if(scan_info2 == '' || scan_info2 == '#')
-					{
-						GM_setValue('scan'+ serveur, '');
-					}
-					else{
-						GM_setValue('scan'+ serveur, scan_info2);
-					}
-
-				}// si on remplace pas alors on ajoute sans reflechir et on suprime les scan ''
-				else{
 					var scan_info2 = scan_info.join('#');
-						scan_info2 = scan_info2.replace( /\#{2,}/g, "#");
-
-					if(scan_info2 == '' || scan_info2 == '#')
-					{
-						GM_setValue('scan'+ serveur, info_final);
+					if (scan_remplacer_q == 0) {
+						scan_info2 += '#' + info_final;
 					}
-					else{
-						GM_setValue('scan'+ serveur, scan_info2 +'#' + info_final);
+
+					scan_info2 = scan_info2.replace(/\#{2,}/g, "#");
+
+					if (scan_info2 == '' || scan_info2 == '#') {
+						GM_setValue('scan' + serveur, '');
+					}
+					else {
+						GM_setValue('scan' + serveur, scan_info2);
+					}
+				}// si on remplace pas alors on ajoute sans reflechir et on suprime les scan ''
+				else {
+					var scan_info2 = scan_info.join('#');
+					scan_info2 = scan_info2.replace(/\#{2,}/g, "#");
+
+					if (scan_info2 == '' || scan_info2 == '#') {
+						GM_setValue('scan' + serveur, info_final);
+					}
+					else {
+						GM_setValue('scan' + serveur, scan_info2 + '#' + info_final);
 					}
 				}
 				if (afficherResultat) {
-					fadeBoxx('1 '+ text.rep_mess_add, 0, 1000);
+					fadeBoxx('1 ' + text.rep_mess_add, 0, 1000);
 				}
 				return true;
 			}
 		}
 		if (afficherResultat) {
-			fadeBoxx('0 '+ text.rep_mess_add, 0, 500);
+			fadeBoxx('0 ' + text.rep_mess_add, 0, 500);
 		}
 		return false;
 	}
 
-	function bouton_supr_scan_depuis_mess(){
-		if(document.getElementById('Bouton_Rf') == null && document.getElementById('mailz'))
-		{
+	function bouton_supr_scan_depuis_mess() {
+		if (document.getElementById('Bouton_Rf') == null && document.getElementById('mailz')) {
 			var style_css = ' <style type="text/css">'
-							+'.Buttons_scan_mess input {'
-							+'	-moz-background-inline-policy:continuous;'
-							+'	border:0 none; cursor:pointer;'
-							+'	height:32px; text-align:center; width:35px;'
-							+'}</style>';
+				+ '.Buttons_scan_mess input {'
+				+ '	-moz-background-inline-policy:continuous;'
+				+ '	border:0 none; cursor:pointer;'
+				+ '	height:32px; text-align:center; width:35px;'
+				+ '}</style>';
 
 			// document.getElementById.getElementsByClassName('infohead')[0].getElementsByTagName('td')[0].innerHTML;
 			var lien_dossier_icone = 'http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/';
@@ -467,29 +448,29 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			var texte_a_affichers = style_css + bouton_supr_mess_et_scan + bouton_supr_scan + bouton_add_scan;
 
 			var sp1 = document.createElement("span"); // on cree une balise span
-				sp1.setAttribute("id", "Bouton_Rf"); // on y ajoute un id
-				sp1.innerHTML = texte_a_affichers;
+			sp1.setAttribute("id", "Bouton_Rf"); // on y ajoute un id
+			sp1.innerHTML = texte_a_affichers;
 			var element_avant_lenotre = document.getElementById('mailz');
 			insertAfter(sp1, element_avant_lenotre);
 
 
 			// merci a sylvercloud pour les icones
-			document.getElementById("scan_mess_a").addEventListener("click", function(event){supr_scan_dep_mess(1, true);if(info.firefox){unsafeWindow.mod = 9;}else{window.mod = 9;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
-			document.getElementById("scan_mess_s").addEventListener("click", function(event){supr_scan_dep_mess(2, true);if(info.firefox){unsafeWindow.mod = 7;}else{window.mod = 7;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
-			document.getElementById("scan_mess_ns").addEventListener("click", function(event){supr_scan_dep_mess(2, false);if(info.firefox){unsafeWindow.mod = 10;}else{window.mod = 10;}document.getElementsByClassName('buttonOK deleteIt')[0].click();}, true);
+			document.getElementById("scan_mess_a").addEventListener("click", function (event) { supr_scan_dep_mess(1, true); if (info.firefox) { unsafeWindow.mod = 9; } else { window.mod = 9; } document.getElementsByClassName('buttonOK deleteIt')[0].click(); }, true);
+			document.getElementById("scan_mess_s").addEventListener("click", function (event) { supr_scan_dep_mess(2, true); if (info.firefox) { unsafeWindow.mod = 7; } else { window.mod = 7; } document.getElementsByClassName('buttonOK deleteIt')[0].click(); }, true);
+			document.getElementById("scan_mess_ns").addEventListener("click", function (event) { supr_scan_dep_mess(2, false); if (info.firefox) { unsafeWindow.mod = 10; } else { window.mod = 10; } document.getElementsByClassName('buttonOK deleteIt')[0].click(); }, true);
 
-			document.getElementById("scan_a").addEventListener("click", function(event){supr_scan_dep_mess(1, true);}, true);
-			document.getElementById("scan_s").addEventListener("click", function(event){supr_scan_dep_mess(2, true);}, true);
-			document.getElementById("scan_ns").addEventListener("click", function(event){supr_scan_dep_mess(2, false);}, true);
+			document.getElementById("scan_a").addEventListener("click", function (event) { supr_scan_dep_mess(1, true); }, true);
+			document.getElementById("scan_s").addEventListener("click", function (event) { supr_scan_dep_mess(2, true); }, true);
+			document.getElementById("scan_ns").addEventListener("click", function (event) { supr_scan_dep_mess(2, false); }, true);
 
-			document.getElementById("scan_add_a").addEventListener("click", function(event){add_scan_dep_mess(1, true);}, true);
-			document.getElementById("scan_add_s").addEventListener("click", function(event){add_scan_dep_mess(2, true);}, true);
-			document.getElementById("scan_add_ns").addEventListener("click", function(event){add_scan_dep_mess(2, false);}, true);
+			document.getElementById("scan_add_a").addEventListener("click", function (event) { add_scan_dep_mess(1, true); }, true);
+			document.getElementById("scan_add_s").addEventListener("click", function (event) { add_scan_dep_mess(2, true); }, true);
+			document.getElementById("scan_add_ns").addEventListener("click", function (event) { add_scan_dep_mess(2, false); }, true);
 		}
 	}
 
-	function add_scan_dep_mess(type_clique, check_q){
-	//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
+	function add_scan_dep_mess(type_clique, check_q) {
+		//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
 		var nb_scan_total_a_enr = document.getElementsByClassName('material spy').length;
 
 		var tout_mess = document.getElementById('messageContent').innerHTML;
@@ -497,36 +478,34 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		var nb_scan_plus_un = tout_mess.length;
 		var nb_scan_enregistre = 0;
 
-		if(type_clique ==2)
-		{
-			for(var nb_scan_s = 1 ; nb_scan_s < nb_scan_plus_un ; nb_scan_s++){
+		if (type_clique == 2) {
+			for (var nb_scan_s = 1; nb_scan_s < nb_scan_plus_un; nb_scan_s++) {
 
 				var id_rc = tout_mess[nb_scan_s].split('\');')[0];
-				if(document.getElementById(id_rc).checked == check_q)
-				{
-					if(save_scan(info.serveur, id_rc, false))
+				if (document.getElementById(id_rc).checked == check_q) {
+					if (save_scan(info.serveur, id_rc, false))
 						nb_scan_enregistre = nb_scan_enregistre + 1;
 				}
 
 			}
 		}
-		else if(type_clique == 1){
-			for(var nb_scan_s = 1 ; nb_scan_s < nb_scan_plus_un ; nb_scan_s++){
+		else if (type_clique == 1) {
+			for (var nb_scan_s = 1; nb_scan_s < nb_scan_plus_un; nb_scan_s++) {
 				var id_rc = tout_mess[nb_scan_s].split('\');')[0];
-				if(save_scan(info.serveur, id_rc, false))
+				if (save_scan(info.serveur, id_rc, false))
 					nb_scan_enregistre = nb_scan_enregistre + 1;
 			}
 		}
-		else{
+		else {
 			fadeBoxx('Error', 0, 3000);
 			nb_scan_enregistre = 0;
 		}
-		fadeBoxx((nb_scan_enregistre) +' '+ text.rep_mess_add, 0, 3000);
+		fadeBoxx((nb_scan_enregistre) + ' ' + text.rep_mess_add, 0, 3000);
 	}
 
-	function supr_scan_dep_mess(type_clique, check_q){
-	//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
-		var info_scan = GM_getValue('scan'+ info.serveur, '');
+	function supr_scan_dep_mess(type_clique, check_q) {
+		//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
+		var info_scan = GM_getValue('scan' + info.serveur, '');
 		var info_scan_i = info_scan.split('#');
 		var nb_scan_total_a_enr = document.getElementsByClassName('material spy').length;
 
@@ -535,33 +514,29 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		var nb_scan_plus_un = tout_mess.length;
 		var id_rc;
 
-		if(type_clique == 2) {
-			for(var nb_scan_s = 1 ; nb_scan_s < nb_scan_plus_un ; nb_scan_s++){
+		if (type_clique == 2) {
+			for (var nb_scan_s = 1; nb_scan_s < nb_scan_plus_un; nb_scan_s++) {
 				id_rc = tout_mess[nb_scan_s].split('\');')[0];
-				if(info_scan.indexOf(id_rc) >=0 && document.getElementById(id_rc).checked == check_q)
-				{
-					for(var p=0; p<info_scan_i.length; p++)
-					{
-						if(info_scan_i[p].indexOf(id_rc, 0) >=0){info_scan_i[p] = '';}
+				if (info_scan.indexOf(id_rc) >= 0 && document.getElementById(id_rc).checked == check_q) {
+					for (var p = 0; p < info_scan_i.length; p++) {
+						if (info_scan_i[p].indexOf(id_rc, 0) >= 0) { info_scan_i[p] = ''; }
 					}
 				}
 			}
 		}
-		else if(type_clique == 1) {
-			for(var nb_scan_s = 1 ; nb_scan_s < nb_scan_plus_un ; nb_scan_s++){
+		else if (type_clique == 1) {
+			for (var nb_scan_s = 1; nb_scan_s < nb_scan_plus_un; nb_scan_s++) {
 				id_rc = tout_mess[nb_scan_s].split('\');')[0];
-				if(info_scan.indexOf(id_rc, 0) >=0)
-				{
-					for(var p=0; p<info_scan_i.length; p++)
-					{
-						if(info_scan_i[p].indexOf(id_rc, 0) >=0){info_scan_i[p] = '';}
+				if (info_scan.indexOf(id_rc, 0) >= 0) {
+					for (var p = 0; p < info_scan_i.length; p++) {
+						if (info_scan_i[p].indexOf(id_rc, 0) >= 0) { info_scan_i[p] = ''; }
 					}
 				}
 			}
 		}
 		info_scan_i = info_scan_i.join('#');
-		info_scan_i = info_scan_i.replace( /\#{2,}/g, "#");
-		GM_setValue('scan'+ info.serveur, info_scan_i);
+		info_scan_i = info_scan_i.replace(/\#{2,}/g, "#");
+		GM_setValue('scan' + info.serveur, info_scan_i);
 		fadeBoxx(text.rep_mess_supri, 0, 3000);
 	}
 
@@ -572,26 +547,26 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			return;
 		}
 		if (info.chrome) {
-			$('.contentPageNavi a', pop_up).click(function(){
+			$('.contentPageNavi a', pop_up).click(function () {
 				setTimeout(waitAjaxSuccessPopup, 333);
 			});
 		}
 		var msg_id = pop_up.attr('data-message-id');
 		if ($('.textWrapper .material.spy', pop_up).length) {
-			if(scan_preenrgistre == 1) {
+			if (scan_preenrgistre == 1) {
 				save_scan(info.serveur, msg_id, true, true);
 			}
 			var tout_supr = '';
 			// tout_supr += '<li class="delete" ><a class="tips2 action" id="2" href=""><span class="icon icon_trash float_left" id="RF_icon_delMEssScan"></span><span class="text"  id="RF_delMEssScan">'+ text.del_scan_script +'</span></a></li>';
-			tout_supr += '<li class="delete" ><a class="tips2 action" href=""><span class="icon icon_trash float_left" id="RF_icon_delScan"></span><span class="text"  id="RF_delScan">'+ text.del_script +'</span></a></li>';
-			tout_supr += '<li class="delete" ><a href=""><span class="icon float_left" style="background-position: 0 -64px; id="RF_icon_addScan"></span><span class="text" id="RF_addScan">'+ text.add_scan_d +'</span></a></li>';
+			tout_supr += '<li class="delete" ><a class="tips2 action" href=""><span class="icon icon_trash float_left" id="RF_icon_delScan"></span><span class="text"  id="RF_delScan">' + text.del_script + '</span></a></li>';
+			tout_supr += '<li class="delete" ><a href=""><span class="icon float_left" style="background-position: 0 -64px; id="RF_icon_addScan"></span><span class="text" id="RF_addScan">' + text.add_scan_d + '</span></a></li>';
 			var newElement = $(tout_supr);
 			// $('#RF_delMEssScan', newElement).closest('a').click(function(e){supr_scan1(info.serveur);});
-			$('#RF_delScan', newElement).closest('a').click(function(e){
+			$('#RF_delScan', newElement).closest('a').click(function (e) {
 				e.preventDefault();
 				supr_scan1(info.serveur);
 			});
-			$('#RF_addScan', newElement).closest('a').click(function(e){
+			$('#RF_addScan', newElement).closest('a').click(function (e) {
 				e.preventDefault();
 				save_scan(info.serveur, msg_id, true, true);
 			});
@@ -616,16 +591,15 @@ if (info.page === 'overview') {
 else if (info.page === 'showmessage') {
 	// inutile depuis la màj des popup ?
 	alert('[raid facile] Erreur n°164881');
-	if(document.getElementsByClassName('note')[0].getElementsByClassName('material spy')[0])
-	{
+	if (document.getElementsByClassName('note')[0].getElementsByClassName('material spy')[0]) {
 		scan_pop_up();
 	}
-	else if(document.getElementById('battlereport')){get_info_combat();}
+	else if (document.getElementById('battlereport')) { get_info_combat(); }
 }
 
 /////////////////// Scan des Rapports d'espionnage ///////////////////
 else if (info.page === 'messages') {
-	function sauve_option2(){
+	function sauve_option2() {
 		if (document.getElementById('messageContent')) {
 			var scans = $('#mailz > tbody > tr[id^="spioDetails"]');
 			if (!scans.length) {
@@ -636,20 +610,20 @@ else if (info.page === 'messages') {
 			// On a au moins un rapport d'espionnage
 			var nb_scan_enregistre = 0;
 			for (var i = 0; i < scans.length; i++) {
-				if(scan_preenrgistre == 1){
-					if(save_scan(info.serveur, scans[i].id.replace('spioDetails_', ''), false)) {
+				if (scan_preenrgistre == 1) {
+					if (save_scan(info.serveur, scans[i].id.replace('spioDetails_', ''), false)) {
 						++nb_scan_enregistre;
 					}
 				}
 			}
 			if (nb_scan_enregistre > 0) {
-				fadeBoxx((nb_scan_enregistre) +' '+ text.rep_mess_add, 0, 3000);
+				fadeBoxx((nb_scan_enregistre) + ' ' + text.rep_mess_add, 0, 3000);
 			}
 		}
 	}
 
 	function safeWrap(f) {
-		return function() {
+		return function () {
 			setTimeout.apply(window, [f, 0].concat([].slice.call(arguments)));
 		};
 	}
@@ -659,40 +633,25 @@ else if (info.page === 'messages') {
 		switch (cat) {/*7 espionner , 5combat , 6joueur , 8expe,2 alli, 4 divers ^^*/
 			case "9":
 			case "7":
-				sauve_option2();
-				if(q_icone_mess == 1){bouton_supr_scan_depuis_mess();}
-				break;
-			// case "5":
-				// sauve_option2();
-				// break;
 			case "10":
-				// alert("Boîte de reception");
 				sauve_option2();
-				if(q_icone_mess == 1){bouton_supr_scan_depuis_mess();}
-				break;
-			case "3":
-				// alert("Corbeille");
-				// sauve_option2();
-				// if(q_icone_mess == 1){bouton_supr_scan_depuis_mess();}
-				break;
-			default:
-				// alert("Carnet d'adresse");
+				if (q_icone_mess == 1) { bouton_supr_scan_depuis_mess(); }
 				break;
 		}
 	}
 
 	// SCAN PREVOUERT
 	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function(e,xhr,settings){
+		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
 			//l'url de la requête ajax contient page=messages
 			if (settings.url.indexOf("page=messages") == -1) return;
 			if (settings.data.indexOf("displayPage") == -1) return;
 			// on affiche l'onglet charge
-			var cat = settings.data.replace(/^.*displayCategory=([\d-]*).*$/,"$1");
+			var cat = settings.data.replace(/^.*displayCategory=([\d-]*).*$/, "$1");
 			switchCat(cat);
 		}));
-	} else if(info.chrome) {
-		var waitAjaxSuccessPreouvert = function() {
+	} else if (info.chrome) {
+		var waitAjaxSuccessPreouvert = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
 				console.log('[raid facile] Attente des messages');
@@ -702,12 +661,12 @@ else if (info.page === 'messages') {
 				// si on est sur le carnet d'adresse on ne fait rien
 				if (!form.length) return;
 				// récupération de la catégorie
-				var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/,"$1");
+				var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/, "$1");
 				switchCat(cat);
 			}
 		};
 		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function(e){
+		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
 			setTimeout(waitAjaxSuccessPreouvert, 333);
 		});
 		waitAjaxSuccessPreouvert();
@@ -717,13 +676,13 @@ else if (info.page === 'messages') {
 
 	// SCAN POPUP
 	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function(e,xhr,settings){
+		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
 			//l'url de la requête ajax contient page=showmessage
 			if (settings.url.indexOf("page=showmessage") == -1) return;
 			scan_pop_up();
 		}));
-	} else if(info.chrome) {
-		var waitAjaxSuccessPopup = function() {
+	} else if (info.chrome) {
+		var waitAjaxSuccessPopup = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
 				console.log('[raid facile] Attente de la popup');
@@ -736,7 +695,7 @@ else if (info.page === 'messages') {
 			}
 		};
 		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function(e){
+		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
 			setTimeout(waitAjaxSuccessPopup, 333);
 		});
 		waitAjaxSuccessPopup();
@@ -756,42 +715,40 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 	/* ********************** On recupere les infos ************************/
 	var url_2 = info.url.split('&raidefacil=scriptOptions')[0];
-	var scanList = GM_getValue('scan'+ info.serveur, '').split('#');
+	var scanList = GM_getValue('scan' + info.serveur, '').split('#');
 	var bbcode_export = ' ';
 
 	if ((info.url.indexOf('&del_scan=', 0)) >= 0) {
 		var numero_scan = info.url.split('del_scan=')[1].split('&')[0];
 		scanList.splice(numero_scan, 1);
-		GM_setValue('scan'+ info.serveur, scanList.join('#'));
+		GM_setValue('scan' + info.serveur, scanList.join('#'));
 	}
 
 
 /************************************** Trie du tableau ******************************************************/
-	function trie_tableau(serveur, classementsecondaire, type_trie){
+	function trie_tableau(serveur, classementsecondaire, type_trie) {
 		var ligne_tableau = ' ';
 
-		var scan_i = GM_getValue('scan'+ serveur, '').split('#');
-		var nb = scan_i.length ;
-		for (var h =0 ; h<nb ; h++) {// on split chaque scan en un tableau
+		var scan_i = GM_getValue('scan' + serveur, '').split('#');
+		var nb = scan_i.length;
+		for (var h = 0; h < nb; h++) {// on split chaque scan en un tableau
 			scan_i[h] = scan_i[h].split(';');
 		}
 
-		if(nb_scan_page != 0) {
+		if (nb_scan_page != 0) {
 			var num_page = info.url.split('&page_r=')[1];
 
-			if(num_page == undefined || num_page == 1)
-			{
+			if (num_page == undefined || num_page == 1) {
 				var nb_scan_deb = 0;
 				var nb_scan_fin = nb_scan_page;
 			}
-			else if(num_page >= 1)
-			{
-				var nb_scan_deb = (parseInt(num_page) - 1)*nb_scan_page;
-				var nb_scan_fin = parseInt(num_page)*nb_scan_page;
+			else if (num_page >= 1) {
+				var nb_scan_deb = (parseInt(num_page) - 1) * nb_scan_page;
+				var nb_scan_fin = parseInt(num_page) * nb_scan_page;
 			}
 		} else {
 			var nb_scan_fin = nb;
-			var nb_scan_deb =0;
+			var nb_scan_deb = 0;
 		}
 
 		//("ccoordonee","cplanete","cdate","cprod_h","cressourcexh","cress","ccdr","ccdr_ress","cnb_v1","cnb_v2","cnb_d1","cnb_d2");
@@ -799,73 +756,69 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 
 		// pour classement par colone
-		if(classementsecondaire != -1 && classementsecondaire != -2 && classementsecondaire != undefined)
+		if (classementsecondaire != -1 && classementsecondaire != -2 && classementsecondaire != undefined)
 			classement = classementsecondaire;
 
-		if(parseInt(classement.replace( /[^0-9-]/g, "")) == 1){//si le classement est par coordonee on fait que les coordonees soit classable
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1 )
-				{
-					if(scan_i[gh][9] != undefined && scan_i[gh][1].split(':')[1]){
+		if (parseInt(classement.replace(/[^0-9-]/g, "")) == 1) {//si le classement est par coordonee on fait que les coordonees soit classable
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
+					if (scan_i[gh][9] != undefined && scan_i[gh][1].split(':')[1]) {
 
 						//on recupere les coordonées
 						var coordosplit = scan_i[gh][1].split(':');
-						var galaxie = coordosplit[0].replace( /[^0-9-]/g, "");
-						var systeme = coordosplit[1].replace( /[^0-9-]/g, "");
-						var planette = coordosplit[2].replace( /[^0-9-]/g, "");
+						var galaxie = coordosplit[0].replace(/[^0-9-]/g, "");
+						var systeme = coordosplit[1].replace(/[^0-9-]/g, "");
+						var planette = coordosplit[2].replace(/[^0-9-]/g, "");
 
 						// on fait ques les systeme  soit en 3 chiffre et les planetes soit en deux
-						if(parseInt(systeme) <100) {
-							if(parseInt(systeme) <10)
-								systeme = '00'+''+systeme;
+						if (parseInt(systeme) < 100) {
+							if (parseInt(systeme) < 10)
+								systeme = '00' + '' + systeme;
 							else
-								systeme = '0'+''+systeme;
+								systeme = '0' + '' + systeme;
 						}
-						if(parseInt(planette) <10)
-						{
-							planette = '0'+''+planette;
+						if (parseInt(planette) < 10) {
+							planette = '0' + '' + planette;
 						}
 						// on met les "nouvellle coordonée". avec '' pour bien que les system /galaxie ne se melange pas
-						scan_i[gh][20] = parseInt(galaxie +''+ systeme +''+ planette);
+						scan_i[gh][20] = parseInt(galaxie + '' + systeme + '' + planette);
 					}
 				}
 			}
 		}
-		else if(classement == '20c'){//classement par cdr + ressources.
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined) {
-					if(scan_i[gh][9] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
-					//ressource
+		else if (classement == '20c') {//classement par cdr + ressources.
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined) {
+					if (scan_i[gh][9] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
+						//ressource
 						var ressource_m = scan_i[gh][4];
 						var ressource_c = scan_i[gh][5];
 						var ressource_d = scan_i[gh][6];
-						var ressource_total = parseInt(ressource_m)*q_taux_m + parseInt(ressource_c)*q_taux_c + parseInt(ressource_d)*q_taux_d;
+						var ressource_total = parseInt(ressource_m) * q_taux_m + parseInt(ressource_c) * q_taux_c + parseInt(ressource_d) * q_taux_d;
 
 						var pourcent = 50;
-						if(scan_i[gh][24] == "ph")
+						if (scan_i[gh][24] == "ph")
 							pourcent = 75;
-						if(scan_i[gh][25] == "b1" || scan_i[gh][25] == "b2" || scan_i[gh][25] == "b3")
+						if (scan_i[gh][25] == "b1" || scan_i[gh][25] == "b2" || scan_i[gh][25] == "b3")
 							pourcent = 100;
 
 						//cdr possible avec flotte
-						var cdr_possible_m = Math.round(parseInt(scan_i[gh][15])*pourcent_cdr);
-						var cdr_possible_c = Math.round(parseInt(scan_i[gh][16])*pourcent_cdr);
+						var cdr_possible_m = Math.round(parseInt(scan_i[gh][15]) * pourcent_cdr);
+						var cdr_possible_c = Math.round(parseInt(scan_i[gh][16]) * pourcent_cdr);
 
 						//cdr defense
-							if(scan_i[gh][21]){var cdr_def = scan_i[gh][21].split('/');}else{var cdr_def = '?';}
-							if(cdr_def[0] != '?' &&  pourcent_cdr_def != 0 && cdr_def != 'undefined'){
-								var cdr_possible_def_m = Math.round(parseInt(cdr_def[1])*pourcent_cdr_def);
-								var cdr_possible_def_c = Math.round(parseInt(cdr_def[2])*pourcent_cdr_def);
-							}
-							else{//du a la transition des rapports qui ne comptait pas encore les cdr de defense
-								var cdr_possible_def_m = 0;
-								var cdr_possible_def_c = 0;
-							}
-						var cdr_possible_def_total = cdr_possible_def_m*q_taux_m + cdr_possible_def_c*q_taux_c;
+						if (scan_i[gh][21]) { var cdr_def = scan_i[gh][21].split('/'); } else { var cdr_def = '?'; }
+						if (cdr_def[0] != '?' && pourcent_cdr_def != 0 && cdr_def != 'undefined') {
+							var cdr_possible_def_m = Math.round(parseInt(cdr_def[1]) * pourcent_cdr_def);
+							var cdr_possible_def_c = Math.round(parseInt(cdr_def[2]) * pourcent_cdr_def);
+						}
+						else {//du a la transition des rapports qui ne comptait pas encore les cdr de defense
+							var cdr_possible_def_m = 0;
+							var cdr_possible_def_c = 0;
+						}
+						var cdr_possible_def_total = cdr_possible_def_m * q_taux_m + cdr_possible_def_c * q_taux_c;
 
-						var cdr_ressource = ressource_total*(pourcent/100) + cdr_possible_m*q_taux_m + cdr_possible_c*q_taux_c + cdr_possible_def_total;
+						var cdr_ressource = ressource_total * (pourcent / 100) + cdr_possible_m * q_taux_m + cdr_possible_c * q_taux_c + cdr_possible_def_total;
 						scan_i[gh][20] = cdr_ressource;
 					}
 					else {
@@ -874,13 +827,10 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 				}
 			}
 		}
-		else if(classement == '20d'){//classement des ressources dans x heures
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined)
-				{
-					if(scan_i[gh][9] != undefined && scan_i[gh] != ';;;;;;;;;;;;;;;;;x;;' && scan_i[gh][1].split(':')[2])
-					{
+		else if (classement == '20d') {//classement des ressources dans x heures
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined) {
+					if (scan_i[gh][9] != undefined && scan_i[gh] != ';;;;;;;;;;;;;;;;;x;;' && scan_i[gh][1].split(':')[2]) {
 						// batiment adversaire + prodh + resrrouce x h
 						//+bat +prod/h
 						var coordonee = scan_i[gh][1];
@@ -890,7 +840,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						var mine_d = mine_array[2];
 
 						//ressource x h
-						if(mine_array != '?/?/?'&& coordonee) {
+						if (mine_array != '?/?/?' && coordonee) {
 							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
 							var prod_m_h = prod_t.metal;
 							var prod_c_h = prod_t.cristal;
@@ -902,14 +852,14 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var ressource_d = scan_i[gh][6];
 							var ressource_total = parseInt(ressource_m) + parseInt(ressource_c) + parseInt(ressource_d);
 
-							var prod_m_xh = parseInt(prod_m_h)*(parseInt(prod_gg)/60);
-							var prod_c_xh = parseInt(prod_c_h)*(parseInt(prod_gg)/60);
-							var prod_d_xh = parseInt(prod_d_h)*(parseInt(prod_gg)/60);
+							var prod_m_xh = parseInt(prod_m_h) * (parseInt(prod_gg) / 60);
+							var prod_c_xh = parseInt(prod_c_h) * (parseInt(prod_gg) / 60);
+							var prod_d_xh = parseInt(prod_d_h) * (parseInt(prod_gg) / 60);
 
 							var ressource_m_xh = parseInt(ressource_m) + prod_m_xh;
 							var ressource_c_xh = parseInt(ressource_c) + prod_c_xh;
 							var ressource_d_xh = parseInt(ressource_d) + prod_d_xh;
-							var ressource_tt_xh = ressource_m_xh*q_taux_m + ressource_c_xh*q_taux_c + ressource_d_xh*q_taux_d;
+							var ressource_tt_xh = ressource_m_xh * q_taux_m + ressource_c_xh * q_taux_c + ressource_d_xh * q_taux_d;
 							scan_i[gh][20] = ressource_tt_xh;
 						}
 						else {
@@ -922,13 +872,10 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 				}
 			}
 		}
-		else if(classement == '20e'){//si c'est le classement par production par heure
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1)
-				{
-					if(scan_i[gh][9] != undefined)
-					{
+		else if (classement == '20e') {//si c'est le classement par production par heure
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
+					if (scan_i[gh][9] != undefined) {
 						// batiment adversaire + prodh + resrrouce x h
 						//+bat +prod/h
 						var mine_array = scan_i[gh][19].split('/');
@@ -937,14 +884,13 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						var mine_d = mine_array[2];
 						var coordonee = scan_i[gh][1];
 
-						if(mine_array != '?/?/?')
-						{
+						if (mine_array != '?/?/?') {
 							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
 
 							var prod_m_h = prod_t.metal;
 							var prod_c_h = prod_t.cristal;
 							var prod_d_h = prod_t.deut;
-							var prod_tot = parseInt(prod_m_h)*q_taux_m + parseInt(prod_c_h)*q_taux_c + parseInt(prod_d_h)*q_taux_d;
+							var prod_tot = parseInt(prod_m_h) * q_taux_m + parseInt(prod_c_h) * q_taux_c + parseInt(prod_d_h) * q_taux_d;
 
 							scan_i[gh][20] = prod_tot;
 						}
@@ -958,25 +904,23 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 				}
 			}
 		}
-		else if(parseInt(classement.replace( /[^0-9-]/g, "")) == 12){// classement par ressources
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1)
-				{
-					if(scan_i[gh][9] != undefined) {
+		else if (parseInt(classement.replace(/[^0-9-]/g, "")) == 12) {// classement par ressources
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined && scan_i[gh].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
+					if (scan_i[gh][9] != undefined) {
 						//ressource
 						var ressource_m = scan_i[gh][4];
 						var ressource_c = scan_i[gh][5];
 						var ressource_d = scan_i[gh][6];
-						var ressource_total = parseInt(ressource_m)*q_taux_m + parseInt(ressource_c)*q_taux_c + parseInt(ressource_d)*q_taux_d;
+						var ressource_total = parseInt(ressource_m) * q_taux_m + parseInt(ressource_c) * q_taux_c + parseInt(ressource_d) * q_taux_d;
 
 						var pourcent = 50;
-						if(scan_i[gh][24] == "ph")
+						if (scan_i[gh][24] == "ph")
 							pourcent = 75;
-						if(scan_i[gh][25] == "b1" || scan_i[gh][25] == "b2" || scan_i[gh][25] == "b3")
+						if (scan_i[gh][25] == "b1" || scan_i[gh][25] == "b2" || scan_i[gh][25] == "b3")
 							pourcent = 100;
 
-						scan_i[gh][20] = ressource_total*(pourcent/100);
+						scan_i[gh][20] = ressource_total * (pourcent / 100);
 					}
 					else {
 						scan_i[gh][20] = '-1';
@@ -987,47 +931,46 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		}
 
 		if (classement == 2 || classement == 3) {			// si c'est un classement par rapport au nom de joueur ou de planète
-			var sort_Info = function(a, b) {
-				return strcmp(a[parseInt(classement.replace( /[^0-9-]/g, ""))], b[parseInt(classement.replace( /[^0-9-]/g, ""))]);
+			var sort_Info = function (a, b) {
+				return strcmp(a[parseInt(classement.replace(/[^0-9-]/g, ""))], b[parseInt(classement.replace(/[^0-9-]/g, ""))]);
 			};
-		} else if(classement == 12 || classement == 1) { 	// si c'est par ressources ou par coordonnées
-			var sort_Info = function(a, b) {
+		} else if (classement == 12 || classement == 1) { 	// si c'est par ressources ou par coordonnées
+			var sort_Info = function (a, b) {
 				return b[20] - a[20];
 			};
 		} else {
-			var sort_Info = function(a, b) {
-				return b[parseInt(classement.replace( /[^0-9-]/g, ""))] - a[parseInt(classement.replace( /[^0-9-]/g, ""))];
+			var sort_Info = function (a, b) {
+				return b[parseInt(classement.replace(/[^0-9-]/g, ""))] - a[parseInt(classement.replace(/[^0-9-]/g, ""))];
 			};
 		}
 
-		if(parseInt(classement.replace( /[^0-9-]/g, "")) > -1)
+		if (parseInt(classement.replace(/[^0-9-]/g, "")) > -1)
 			scan_i.sort(sort_Info);
 
 		// si on a fait a coché la case reverse ou que l'on trie grace au colone
-		if(reverse == '0' || type_trie == 'decroissant')
+		if (reverse == '0' || type_trie == 'decroissant')
 			scan_i.reverse();
 
- 		// On remet à x la valeur qui nous a servir pour le tri
-		if(parseInt(classement.replace( /[^0-9-]/g, "")) == '20' || classement == 12 || classement == 1){
-			for (var gh = 0 ; gh<nb ; gh++)
-			{
-				if(scan_i[gh] != undefined)
+		// On remet à x la valeur qui nous a servir pour le tri
+		if (parseInt(classement.replace(/[^0-9-]/g, "")) == '20' || classement == 12 || classement == 1) {
+			for (var gh = 0; gh < nb; gh++) {
+				if (scan_i[gh] != undefined)
 					scan_i[gh][20] = 'x';
 			}
 		}
 
-		for (var h =0 ; h<nb ; h++){
+		for (var h = 0; h < nb; h++) {
 			scan_i[h] = scan_i[h].join(';');
 		}
-		GM_setValue('scan'+ serveur, scan_i.join('#'));
+		GM_setValue('scan' + serveur, scan_i.join('#'));
 	} // fin fonction trie_tableau
 
 /*************************************************** ON AFFICHE LE TABLEAU ****************************************************************/
 
-	function afficher_ligne_interieur_tab(serveur){
-		var scan_info = GM_getValue('scan'+ serveur, '').split('#');
+	function afficher_ligne_interieur_tab(serveur) {
+		var scan_info = GM_getValue('scan' + serveur, '').split('#');
 		var ligne_tableau = ' ';
-		var nb = scan_info.length ;
+		var nb = scan_info.length;
 
 		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, info.url, nb);
 		var nb_scan_fin = nb_scan_deb_fin[0];
@@ -1043,28 +986,27 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		var attaque_24h = GM_getValue('attaque_24h', '');
 		var attaque_24h_split = attaque_24h.split('#');
 		var attaque_24h_split2 = attaque_24h_split;
-		for(var x=0; x<attaque_24h_split.length; x++){
+		for (var x = 0; x < attaque_24h_split.length; x++) {
 			attaque_24h_split2[x] = attaque_24h_split[x].split('/');
 		}
 
 		// on regarde la planette selectionner(liste de droite des planettes)  pour connaitre la galaxie
-		if(document.getElementsByName('ogame-planet-coordinates')[0]){
+		if (document.getElementsByName('ogame-planet-coordinates')[0]) {
 			var coordonnee_slelec = document.getElementsByName('ogame-planet-coordinates')[0].content;
 		}
-		else{
-			if(pos_depart != 'x:xxx:x'){var coordonnee_slelec = pos_depart;}
-			else{var coordonnee_slelec = '0';}
+		else {
+			if (pos_depart != 'x:xxx:x') { var coordonnee_slelec = pos_depart; }
+			else { var coordonnee_slelec = '0'; }
 		}
 
 
 		// on les utilises et les place
 		cptLigne = 0;
-		for(var i= nb_scan_deb; i<nb_scan_fin; i++){
-			if(scan_info[i] != undefined && scan_info[i] != ';;;;;;;;;;;;;;;;;x;;')
-			{
+		for (var i = nb_scan_deb; i < nb_scan_fin; i++) {
+			if (scan_info[i] != undefined && scan_info[i] != ';;;;;;;;;;;;;;;;;x;;') {
 				var scan_info_i = scan_info[i].split(';');
 				//on verifie si c'est ok pour l'afficher
-				if(scan_info_i[9] != undefined && scan_info_i[1].split(':')[1] && (q_flo_vis == 1 || scan_info_i[9] != '?/?/?/?/?/?/?/?/?/?/?/?/?/') && (q_def_vis == 1 || scan_info_i[10] != '?/?/?/?/?/?/?/?/?/?') ){
+				if (scan_info_i[9] != undefined && scan_info_i[1].split(':')[1] && (q_flo_vis == 1 || scan_info_i[9] != '?/?/?/?/?/?/?/?/?/?/?/?/?/') && (q_def_vis == 1 || scan_info_i[10] != '?/?/?/?/?/?/?/?/?/?')) {
 
 
 					//on veut savoir si on n'affiche que les scan de la galaxie, si oui on vérifie la galaxie
@@ -1088,158 +1030,153 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 								|| (filtre_actif_inactif == 2 && (scan_info_i[24]== 'i' || scan_info_i[24]== 'I'))
 							)
 								// on regarde le joueur qu'on affiche
-								if(	(filtre_joueur == '')
-									|| (filtre_joueur != '' && filtre_joueur.toLowerCase() == scan_info_i[2].toLowerCase() )
-								)
+								if ((filtre_joueur == '') || (filtre_joueur != '' && filtre_joueur.toLowerCase() == scan_info_i[2].toLowerCase()))
 									filtre = true;
 
-						if (filtre)
-						{
-						// date
+						if (filtre) {
+							// date
 							var date_scan = scan_info_i[0];
 							var datecc = new Date();
 							datecc.setTime(date_scan);
-							var date_final = datecc.getDate()+'/'+ (parseInt(datecc.getMonth()) + 1) +'/'+datecc.getFullYear()+ ' '
-											+datecc.getHours()+ ':'+ datecc.getMinutes()+ ':'+datecc.getSeconds()  ;
+							var date_final = datecc.getDate() + '/' + (datecc.getMonth() + 1) + '/' + datecc.getFullYear() + ' ' +
+								datecc.getHours() + ':' + datecc.getMinutes() + ':' + datecc.getSeconds();
 
 
 							// si la date est demander en chronos
-							if(q_date_type_rep == 0){
+							if (q_date_type_rep == 0) {
 								var datecc2 = parseInt(info.startTime) - parseInt(date_scan);
 
-// Modification Deberron (Je peux avoir une diff de date entre l'heure de mon pc et celle du serveur)
+								// Je peux avoir une diff de date entre l'heure de mon pc et celle du serveur
 								if (document.getElementsByName('ogame-timestamp')[0])
-									datecc2 = parseInt(document.getElementsByName('ogame-timestamp')[0].content)*1000 - parseInt(date_scan);
+									datecc2 = parseInt(document.getElementsByName('ogame-timestamp')[0].content) * 1000 - parseInt(date_scan);
 
-								var seconde = Math.floor(datecc2/1000); // pour avoir le nb de seconde qui s'est ecouler depuis le scan.
-								var minutes = Math.floor(seconde/60);
-								var heures = Math.floor(minutes/60);
-								var jours = Math.floor(heures/24);
-									seconde = Math.floor(seconde%60);
-									minutes = Math.floor(minutes%60);
-									heures = Math.floor(heures%24);
+								var seconde = Math.floor(datecc2 / 1000); // pour avoir le nb de seconde qui s'est ecouler depuis le scan.
+								var minutes = Math.floor(seconde / 60);
+								var heures = Math.floor(minutes / 60);
+								var jours = Math.floor(heures / 24);
+								seconde = Math.floor(seconde % 60);
+								minutes = Math.floor(minutes % 60);
+								heures = Math.floor(heures % 24);
 
-
-								if(datecc2 != 0){
+								if (datecc2 != 0) {
 									var date2 = '';
-									 if(jours>0)
-										{date2 += jours + 'j ';}
-									 if(jours>0 || heures>0)
-										 {date2 += ((heures<10)?'0':'') + heures + 'h ';}
-									 if(jours>0 || heures>0 || minutes>0)
-										 {date2 += ((minutes<10)?'0':'') + minutes + 'm ';}
-									 date2 += ((seconde<10)?'0':'') + seconde + 's';
+									if (jours > 0)
+									{ date2 += jours + 'j '; }
+									if (jours > 0 || heures > 0)
+									{ date2 += ((heures < 10) ? '0' : '') + heures + 'h '; }
+									if (jours > 0 || heures > 0 || minutes > 0)
+									{ date2 += ((minutes < 10) ? '0' : '') + minutes + 'm '; }
+									date2 += ((seconde < 10) ? '0' : '') + seconde + 's';
 								}
-								else{ var date2 = '--:--:--';}
+								else { var date2 = '--:--:--'; }
 
 							}
-							else{
-// Modification Deberron
-								var date2 = + ((datecc.getDate()<10)?'0':'')
-											+ datecc.getDate()+'/'
-											+ ((datecc.getMonth()<10)?'0':'')
-											+ (parseInt(datecc.getMonth())+1)+'/'
-											+ (parseInt(datecc.getFullYear())-2000)+' '
-											+ ((datecc.getHours()<10)?'0':'')
-											+ datecc.getHours()+':'
-											+ ((datecc.getMinutes()<10)?'0':'')
-											+ datecc.getMinutes()+':'
-											+ ((datecc.getSeconds()<10)?'0':'')
-											+ datecc.getSeconds();
+							else {
+								var date2 = ((datecc.getDate() < 10) ? '0' : '') +
+									datecc.getDate() + '/' +
+									((datecc.getMonth() < 10) ? '0' : '') +
+									(datecc.getMonth() + 1) + '/' +
+									(datecc.getFullYear() - 2000) + ' ' +
+									((datecc.getHours() < 10) ? '0' : '') +
+									datecc.getHours() + ':' +
+									((datecc.getMinutes() < 10) ? '0' : '') +
+									datecc.getMinutes() + ':' +
+									((datecc.getSeconds() < 10) ? '0' : '') +
+									datecc.getSeconds();
 							}
 
 
-						// type de la planette
+							// type de la planette
 							var type_planette = scan_info_i[14];
-							var l_q ='';
-							if(type_planette != 1){l_q = ' L';}
+							var l_q = '';
+							if (type_planette != 1) { l_q = ' L'; }
 
-						//nom joueur et planette
+							//nom joueur et planette
 							var nom_joueur = scan_info_i[2];
 							var nom_planete_complet = scan_info_i[3];
-							if(nom_planete_complet.indexOf('1diez1')>=0){
-								nom_planete_complet = nom_planete_complet.replace( /1diez1/g, "#");
+							if (nom_planete_complet.indexOf('1diez1') >= 0) {
+								nom_planete_complet = nom_planete_complet.replace(/1diez1/g, "#");
 							}
 							var nom_planete = raccourcir(nom_planete_complet);
 
-						//coordonee + url
+							//coordonee + url
 							var coordonee = scan_info_i[1];
-									var coordonee_split = coordonee.split(':');
-								var galaxie = (coordonee_split[0]).replace( /[^0-9-]/g, "");
-								var systeme = (coordonee_split[1]).replace( /[^0-9-]/g, "");
-								var planette = (coordonee_split[2]).replace( /[^0-9-]/g, "");
-								var url_galaxie = document.getElementById("menuTable").getElementsByClassName('menubutton ')[8].href;
+							var coordonee_split = coordonee.split(':');
+							var galaxie = (coordonee_split[0]).replace(/[^0-9-]/g, "");
+							var systeme = (coordonee_split[1]).replace(/[^0-9-]/g, "");
+							var planette = (coordonee_split[2]).replace(/[^0-9-]/g, "");
+							var url_galaxie = document.getElementById("menuTable").getElementsByClassName('menubutton ')[8].href;
 
 							var url_fleet1 = document.getElementById("menuTable").getElementsByClassName('menubutton ')[7].href;
-							if(espionnage_lien == 1)
-								{var espionnage = url_fleet1 +'&galaxy='+ galaxie + '&system='+ systeme + '&position='+ planette + '&type='+ type_planette +'&mission=6';}
-							else if(espionnage_lien == 0)
-								{var espionnage = url_galaxie +'&galaxy='+ galaxie + '&system='+ systeme + '&position='+ planette + '&planetType=1&doScan=1';}
+							if (espionnage_lien == 1) {
+								var espionnage = url_fleet1 + '&galaxy=' + galaxie + '&system=' + systeme + '&position=' + planette + '&type=' + type_planette + '&mission=6';
+							}
+							else if (espionnage_lien == 0) {
+								var espionnage = url_galaxie + '&galaxy=' + galaxie + '&system=' + systeme + '&position=' + planette + '&planetType=1&doScan=1';
+							}
 
-							var coordonee_fin = '<a href="'+url_galaxie +'&galaxy='+ galaxie + '&system='+ systeme + '&position='+ planette +'"';
-							if(nom_j_q_q != 1 && nom_p_q_q != 1)
-								coordonee_fin += ' title=" Planette: '+ nom_planete_complet.replace(/"/g, '&quot;') + ' | Joueur: ' + nom_joueur + '">';
-							else if(nom_j_q_q != 1)
-								coordonee_fin += ' title=" Joueur: ' + nom_joueur +'">';
-							else if(nom_p_q_q != 1)
-								coordonee_fin += ' title=" Planette: '+ nom_planete_complet.replace(/"/g, '&quot;') +'">';
+							var coordonee_fin = '<a href="' + url_galaxie + '&galaxy=' + galaxie + '&system=' + systeme + '&position=' + planette + '"';
+							if (nom_j_q_q != 1 && nom_p_q_q != 1)
+								coordonee_fin += ' title=" Planette: ' + nom_planete_complet.replace(/"/g, '&quot;') + ' | Joueur: ' + nom_joueur + '">';
+							else if (nom_j_q_q != 1)
+								coordonee_fin += ' title=" Joueur: ' + nom_joueur + '">';
+							else if (nom_p_q_q != 1)
+								coordonee_fin += ' title=" Planette: ' + nom_planete_complet.replace(/"/g, '&quot;') + '">';
 							else
 								coordonee_fin += '>';
 							coordonee_fin += coordonee + l_q + '</a>';
 
-						//ajout Deberron - type de joueur
-							var pourcent = 50; //Ajout Deberron
+
+							var pourcent = 50;
 							var type_joueur = scan_info_i[24] ? scan_info_i[24] : '&nbsp';
-							if(type_joueur == "ph") {
-								type_joueur = '<span class="status_abbr_honorableTarget">'+type_joueur+'</span>';
+							if (type_joueur == "ph") {
+								type_joueur = '<span class="status_abbr_honorableTarget">' + type_joueur + '</span>';
 								pourcent = 75;
 							}
-							else if(type_joueur == "o")
-								type_joueur = '<span class="status_abbr_outlaw">'+type_joueur+'</span>';
-							else if(type_joueur == "i")
-								type_joueur = '<span class="status_abbr_inactive">'+type_joueur+'</span>';
-							else if(type_joueur == "I")
-								type_joueur = '<span class="status_abbr_longinactive">'+type_joueur+'</span>';
-							else if(type_joueur == "f")
-								type_joueur = '<span class="status_abbr_strong">'+type_joueur+'</span>';
-							else if(type_joueur == "v")
-								type_joueur = '<span class="status_abbr_vacation">'+type_joueur+'</span>';
+							else if (type_joueur == "o")
+								type_joueur = '<span class="status_abbr_outlaw">' + type_joueur + '</span>';
+							else if (type_joueur == "i")
+								type_joueur = '<span class="status_abbr_inactive">' + type_joueur + '</span>';
+							else if (type_joueur == "I")
+								type_joueur = '<span class="status_abbr_longinactive">' + type_joueur + '</span>';
+							else if (type_joueur == "f")
+								type_joueur = '<span class="status_abbr_strong">' + type_joueur + '</span>';
+							else if (type_joueur == "v")
+								type_joueur = '<span class="status_abbr_vacation">' + type_joueur + '</span>';
 
-
-						//ajout Deberron - Honeur du joueur
 							var type_honor = scan_info_i[25] ? scan_info_i[25] : '&nbsp';
-							if(type_honor == "b1") {
+							if (type_honor == "b1") {
 								type_honor = '<span class="honorRank rank_bandit1"></span>';
 								pourcent = 100;
 							}
-							else if(type_honor == "b2") {
+							else if (type_honor == "b2") {
 								type_honor = '<span class="honorRank rank_bandit2"></span>';
 								pourcent = 100;
 							}
-							else if(type_honor == "b3") {
+							else if (type_honor == "b3") {
 								type_honor = '<span class="honorRank rank_bandit3"></span>';
 								pourcent = 100;
 							}
-							else if(type_honor == "s1")
+							else if (type_honor == "s1")
 								type_honor = '<span class="honorRank rank_starlord1"></span>';
-							else if(type_honor == "s2")
+							else if (type_honor == "s2")
 								type_honor = '<span class="honorRank rank_starlord2"></span>';
-							else if(type_honor == "s3")
+							else if (type_honor == "s3")
 								type_honor = '<span class="honorRank rank_starlord3"></span>';
 
-						//activite
+							//activite
 							var activite = scan_info_i[7];
-							if(activite == 'rien'){
+							if (activite == 'rien') {
 								var activite_fin = ' ';
 							} else {
-								if(parseInt(activite) <= 15){
-									var activite_fin = '<img style="width: 12px; height: 12px;" src="http://gf1.geo.gfsrv.net/cdn12/b4c8503dd1f37dc9924909d28f3b26.gif" alt="'+ activite +' min " title="'+ activite +' min"/>';
+								if (parseInt(activite) <= 15) {
+									var activite_fin = '<img style="width: 12px; height: 12px;" src="http://gf1.geo.gfsrv.net/cdn12/b4c8503dd1f37dc9924909d28f3b26.gif" alt="' + activite + ' min " title="' + activite + ' min"/>';
 								} else {
-									var activite_fin = '<span style="background-color: #000000;border: 1px solid #FFA800;border-radius: 3px 3px 3px 3px;color: #FFA800;">'+activite+'</span>';
+									var activite_fin = '<span style="background-color: #000000;border: 1px solid #FFA800;border-radius: 3px 3px 3px 3px;color: #FFA800;">' + activite + '</span>';
 								}
 							}
 
-						//ressource
+							//ressource
 							var ressource_m = scan_info_i[4];
 							var ressource_c = scan_info_i[5];
 							var ressource_d = scan_info_i[6];
@@ -1247,71 +1184,68 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var nb_gt = shipCount(parseInt(ressource_m), parseInt(ressource_c), parseInt(ressource_d), 25000, pourcent);
 							var ressource_total = parseInt(ressource_m) + parseInt(ressource_c) + parseInt(ressource_d);
 
-							if(question_rassemble_col == 0)
-							{
-								var ressource = '<acronym title="' + pourcent + '% de ressources pillables <br> '+ addPoints(nb_pt) + text.nb_pt +'/'+ addPoints(nb_gt) + text.nb_gt + ' <br> ' + text.metal +' : ' + addPoints(Math.round(parseInt(ressource_m)*(pourcent/100))) + ' | '+ text.cristal +' : ' + addPoints(Math.round(parseInt(ressource_c)*(pourcent/100))) + ' | '+ text.deut +' : ' + addPoints(Math.round(parseInt(ressource_d)*(pourcent/100))) + '">' +  addPoints(Math.round(parseInt(ressource_total)*(pourcent/100))) + '</acronym>';
+							if (question_rassemble_col == 0) {
+								var ressource = '<acronym title="' + pourcent + '% de ressources pillables <br> ' + addPoints(nb_pt) + text.nb_pt + '/' + addPoints(nb_gt) + text.nb_gt + ' <br> ' + text.metal + ' : ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ' : ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ' : ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100))) + '">' + addPoints(Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
 							}
 
-						// vitesse minimum.
-							var accronyme_temp_vol = vaisseau_vitesse_mini(tech_impul_a ,tech_hyper_a ,tech_combus_a, vaisseau_lent, coordonee, vitesse_uni);
+							// vitesse minimum.
+							var accronyme_temp_vol = vaisseau_vitesse_mini(tech_impul_a, tech_hyper_a, tech_combus_a, vaisseau_lent, coordonee, vitesse_uni);
 
-						//cdr possible
-							var cdr_possible = Math.round(parseInt(scan_info_i[8])*pourcent_cdr);
-							var cdr_possible_m = Math.round(parseInt(scan_info_i[15])*pourcent_cdr);
-							var cdr_possible_c = Math.round(parseInt(scan_info_i[16])*pourcent_cdr);
+							//cdr possible
+							var cdr_possible = Math.round(parseInt(scan_info_i[8]) * pourcent_cdr);
+							var cdr_possible_m = Math.round(parseInt(scan_info_i[15]) * pourcent_cdr);
+							var cdr_possible_c = Math.round(parseInt(scan_info_i[16]) * pourcent_cdr);
 
 							// on verifie que cdr possible existe et soit un chiffre
-							if(cdr_possible == '?' || isNaN(cdr_possible)){ var cdr_aff = 0;cdr_possible = '?'; }
-							else{var cdr_aff = cdr_possible;}
+							if (cdr_possible == '?' || isNaN(cdr_possible)) { var cdr_aff = 0; cdr_possible = '?'; }
+							else { var cdr_aff = cdr_possible; }
 
 							// cdr de défense
-								// on verifie que le cdr def est bien creer dans le scan info
-								if(scan_info_i[21]){var cdr_def = scan_info_i[21].split('/');}
-								else{var cdr_def = '?';}
-							if(cdr_def[0] != '?' &&  pourcent_cdr_def != 0 && cdr_def != 'undefined'){
-								var cdr_possible_def = Math.round(parseInt(cdr_def[0])*pourcent_cdr_def);
-								var cdr_possible_def_m = Math.round(parseInt(cdr_def[1])*pourcent_cdr_def);
-								var cdr_possible_def_c = Math.round(parseInt(cdr_def[2])*pourcent_cdr_def);
+							// on verifie que le cdr def est bien creer dans le scan info
+							if (scan_info_i[21]) { var cdr_def = scan_info_i[21].split('/'); }
+							else { var cdr_def = '?'; }
+							if (cdr_def[0] != '?' && pourcent_cdr_def != 0 && cdr_def != 'undefined') {
+								var cdr_possible_def = Math.round(parseInt(cdr_def[0]) * pourcent_cdr_def);
+								var cdr_possible_def_m = Math.round(parseInt(cdr_def[1]) * pourcent_cdr_def);
+								var cdr_possible_def_c = Math.round(parseInt(cdr_def[2]) * pourcent_cdr_def);
 							}
-							else{
+							else {
 								var cdr_possible_def = 0;
 								var cdr_possible_def_m = 0;
 								var cdr_possible_def_c = 0;
 							}
 
-							if(cdr_possible != '?'){cdr_possible = cdr_possible + cdr_possible_def;}
-							else{cdr_possible = cdr_possible;}
+							if (cdr_possible != '?') { cdr_possible = cdr_possible + cdr_possible_def; }
+							else { cdr_possible = cdr_possible; }
 
 							cdr_aff = cdr_aff + cdr_possible_def;
 							cdr_possible_m = cdr_possible_m + cdr_possible_def_m;
 							cdr_possible_c = cdr_possible_c + cdr_possible_def_c;
 
-							if(isNaN(cdr_aff)){cdr_aff = 0;}
-							else{cdr_aff = cdr_aff;}
+							if (isNaN(cdr_aff)) { cdr_aff = 0; }
+							else { cdr_aff = cdr_aff; }
 
-							if(question_rassemble_col == 0)
-							{
-								if(cdr_q_type_affiche == 0){
-									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff/20000)) + text.nb_rc + '<br>'+ text.met_rc +' : ' + addPoints(cdr_possible_m) + ' | '+ text.cri_rc +' : ' + addPoints(cdr_possible_c) + ' ">'+  addPoints(cdr_possible) + '</acronym>';
+							if (question_rassemble_col == 0) {
+								if (cdr_q_type_affiche == 0) {
+									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + '<br>' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + ' ">' + addPoints(cdr_possible) + '</acronym>';
 								}
-								else{
-									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff/20000)) + text.nb_rc + '<br>'+ text.met_rc +' : ' + addPoints(cdr_possible_m) + ' | '+ text.cri_rc +' : ' + addPoints(cdr_possible_c) + ' ">'+  addPoints(Math.ceil(cdr_aff/20000)) + '</acronym>';
+								else {
+									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + '<br>' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + ' ">' + addPoints(Math.ceil(cdr_aff / 20000)) + '</acronym>';
 								}
 							}
 
-						// colonne cdr +  resource
-							if(question_rassemble_col == 1)
-							{
-								var col_cdr = '<acronym title="' + pourcent + '% | '+ addPoints(nb_pt) + text.nb_pt +'/'+ addPoints(nb_gt) + text.nb_gt + ' | '+ text.metal +' : ' + addPoints(Math.round(parseInt(ressource_m)*(pourcent/100))) + ' | '+ text.cristal +' : ' + addPoints(Math.round(parseInt(ressource_c)*(pourcent/100))) + ' | '+ text.deut +' : ' + addPoints(Math.round(parseInt(ressource_d)*(pourcent/100))) + '\n' + addPoints(Math.ceil(cdr_aff/20000)) + text.nb_rc + ' | '+ text.met_rc +' : ' + addPoints(parseInt(cdr_possible_m)) + ' | '+ text.cri_rc +' : ' + addPoints(parseInt(cdr_possible_c)) + '">' +  addPoints(parseInt(cdr_aff) + Math.round(parseInt(ressource_total)*(pourcent/100))) + '</acronym>';
+							// colonne cdr +  resource
+							if (question_rassemble_col == 1) {
+								var col_cdr = '<acronym title="' + pourcent + '% | ' + addPoints(nb_pt) + text.nb_pt + '/' + addPoints(nb_gt) + text.nb_gt + ' | ' + text.metal + ' : ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ' : ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ' : ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100))) + '\n' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + ' | ' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + '">' + addPoints(cdr_aff + Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
 							}
 
-						//recherhe adersersaire
+							//recherhe adersersaire
 							var recherche_ad = scan_info_i[13].split('/');
 							var tech_arme_d = recherche_ad[0];
 							var tech_bouclier_d = recherche_ad[1];
 							var tech_protect_d = recherche_ad[2];
 
-						//recupere vaisseau et defense
+							//recupere vaisseau et defense
 							var vaisseau_type = new Array(vari.pt, vari.gt, vari.cle, vari.clo, vari.cro, vari.vb, vari.vc, vari.rec, vari.esp, vari.bb, vari.sat, vari.dest, vari.edlm, vari.tra);
 							var defense_type = new Array(i18n.get('lm'), i18n.get('lle'), i18n.get('llo'), i18n.get('gauss'), i18n.get('ion'), i18n.get('pla'), i18n.get('pb'), i18n.get('gb'), i18n.get('mic'), i18n.get('mip'));
 
@@ -1332,51 +1266,47 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							// def et vaisseau variable
 							var acronyme_vaisseau = ' ';
 							var nb_totalvaisseau = 0;
-							var acronyme_def = i18n.get('th_nd')+'<div class="splitLine"></div>';
+							var acronyme_def = i18n.get('th_nd') + '<div class="splitLine"></div>';
 							var nb_totaldef = 0;
 
 							var vaisseau22 = scan_info_i[9];
-							if(vaisseau22 != '?/?/?/?/?/?/?/?/?/?/?/?/?/?')
-							{
+							if (vaisseau22 != '?/?/?/?/?/?/?/?/?/?/?/?/?/?') {
 								var vaisseau = vaisseau22.split('/');
-									for(var k=0; k<vaisseau.length ; k++)
-										{
-										if( parseInt(vaisseau[k]) != 0)
-											{
-												acronyme_vaisseau = acronyme_vaisseau + ' | '+ vaisseau_type[k] + ' : ' + addPoints(parseInt(vaisseau[k]));
-												nb_totalvaisseau = parseInt(nb_totalvaisseau) + parseInt(vaisseau[k]);
+								for (var k = 0; k < vaisseau.length; k++) {
+									if (parseInt(vaisseau[k]) != 0) {
+										acronyme_vaisseau = acronyme_vaisseau + ' | ' + vaisseau_type[k] + ' : ' + addPoints(parseInt(vaisseau[k]));
+										nb_totalvaisseau = nb_totalvaisseau + parseInt(vaisseau[k]);
 
-												url_speedsim = url_speedsim + '&amp;' + vaisseau_speed[k] + '=' + parseInt(vaisseau[k]);
-												url_dragosim = url_dragosim + '&amp;' + vaisseau_drag[k] + '=' + parseInt(vaisseau[k]);
-												url_ogamewinner = url_ogamewinner + '&amp;' + vaisseau_win[k] + '=' + parseInt(vaisseau[k]);
-											}
-										}
-								nb_totalvaisseau = addPoints(parseInt(nb_totalvaisseau));
+										url_speedsim = url_speedsim + '&amp;' + vaisseau_speed[k] + '=' + parseInt(vaisseau[k]);
+										url_dragosim = url_dragosim + '&amp;' + vaisseau_drag[k] + '=' + parseInt(vaisseau[k]);
+										url_ogamewinner = url_ogamewinner + '&amp;' + vaisseau_win[k] + '=' + parseInt(vaisseau[k]);
+									}
+								}
+								nb_totalvaisseau = addPoints(nb_totalvaisseau);
 							}
-							else{var vaisseau = vaisseau22.split('/');
+							else {
+								var vaisseau = vaisseau22.split('/');
 								acronyme_vaisseau = '?';
-								nb_totalvaisseau = '?';}
+								nb_totalvaisseau = '?';
+							}
 
 							var defense2 = scan_info_i[10];
-							if(defense2 != '?/?/?/?/?/?/?/?/?/?')
-							{
+							if (defense2 != '?/?/?/?/?/?/?/?/?/?') {
 								var defense = defense2.split('/');
-									for(var k=0; k<defense.length ; k++)
-									{
-										if(parseInt(defense[k]) != 0)
-										{
-											acronyme_def = acronyme_def + '<br>' + defense_type[k] + ' : ' + addPoints(parseInt(defense[k]));
+								for (var k = 0; k < defense.length; k++) {
+									if (parseInt(defense[k]) != 0) {
+										acronyme_def = acronyme_def + '<br>' + defense_type[k] + ' : ' + addPoints(parseInt(defense[k]));
 
-											url_speedsim = url_speedsim + '&amp;' + def_speed[k] + '=' + parseInt(defense[k]);
-											url_dragosim = url_dragosim + '&amp;' + def_drag[k] + '=' + parseInt(defense[k]);
-											url_ogamewinner = url_ogamewinner + '&amp;' + def_win[k] + '=' + parseInt(defense[k]);
+										url_speedsim = url_speedsim + '&amp;' + def_speed[k] + '=' + parseInt(defense[k]);
+										url_dragosim = url_dragosim + '&amp;' + def_drag[k] + '=' + parseInt(defense[k]);
+										url_ogamewinner = url_ogamewinner + '&amp;' + def_win[k] + '=' + parseInt(defense[k]);
 
-											if(k != 8 && k != 9){// si k n'est pas des missiles (interplanetaire ou de def)
-												nb_totaldef = parseInt(nb_totaldef) + parseInt(defense[k]);
-											}
+										if (k != 8 && k != 9) {// si k n'est pas des missiles (interplanetaire ou de def)
+											nb_totaldef = nb_totaldef + parseInt(defense[k]);
 										}
 									}
-								nb_totaldef = addPoints(parseInt(nb_totaldef));
+								}
+								nb_totaldef = addPoints(nb_totaldef);
 							} else {
 								var defense = defense2.split('/');
 								acronyme_def = '?';
@@ -1384,47 +1314,47 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							}
 
 							var acronyme_vaisseau2 = '';
-							if(vaisseau_question == 1)
-								acronyme_vaisseau2 = '<acronym title=" '+ acronyme_vaisseau +'">'+ nb_totalvaisseau   + '</acronym>';
-							else if(vaisseau_question == 2  && (scan_info_i[22] == '?' || !scan_info_i[2]))
-								acronyme_vaisseau2 = '<acronym title=" '+ acronyme_vaisseau +','+ text.c_nbv +' '+ nb_totalvaisseau +' ">?</acronym>';
-							else if(vaisseau_question == 2)
-								acronyme_vaisseau2 = '<acronym title=" '+ acronyme_vaisseau +','+ text.c_nbv +' '+ nb_totalvaisseau +' ">'+  addPoints(parseInt(scan_info_i[22]))  + '</acronym>';
+							if (vaisseau_question == 1)
+								acronyme_vaisseau2 = '<acronym title=" ' + acronyme_vaisseau + '">' + nb_totalvaisseau + '</acronym>';
+							else if (vaisseau_question == 2 && (scan_info_i[22] == '?' || !scan_info_i[2]))
+								acronyme_vaisseau2 = '<acronym title=" ' + acronyme_vaisseau + ',' + text.c_nbv + ' ' + nb_totalvaisseau + ' ">?</acronym>';
+							else if (vaisseau_question == 2)
+								acronyme_vaisseau2 = '<acronym title=" ' + acronyme_vaisseau + ',' + text.c_nbv + ' ' + nb_totalvaisseau + ' ">' + addPoints(parseInt(scan_info_i[22])) + '</acronym>';
 
 							var acronyme_def2 = '';
 							// -------------------------------------------------------------------------------------------------
-							if(defense_question == 1)
-								acronyme_def2 = '<div class="tooltipTitle">'+ acronyme_def +'</div><acronym>'+ nb_totaldef   + '</acronym>';
-							else if(defense_question == 2 && (scan_info_i[23] == '?' || !scan_info_i[23]))
-								acronyme_def2 = '<div class="tooltipTitle">'+ acronyme_def +','+ text.c_nbd +' '+ nb_totaldef+'</div><acronym>?</acronym>';
-							else if(defense_question == 2)
-								acronyme_def2 = '<div class="tooltipTitle>" '+ acronyme_def +','+ text.c_nbd +' '+ nb_totaldef +'</div><acronym>'+ addPoints(parseInt(scan_info_i[23])) + '</acronym>';
+							if (defense_question == 1)
+								acronyme_def2 = '<div class="tooltipTitle">' + acronyme_def + '</div><acronym>' + nb_totaldef + '</acronym>';
+							else if (defense_question == 2 && (scan_info_i[23] == '?' || !scan_info_i[23]))
+								acronyme_def2 = '<div class="tooltipTitle">' + acronyme_def + ',' + text.c_nbd + ' ' + nb_totaldef + '</div><acronym>?</acronym>';
+							else if (defense_question == 2)
+								acronyme_def2 = '<div class="tooltipTitle>" ' + acronyme_def + ',' + text.c_nbd + ' ' + nb_totaldef + '</div><acronym>' + addPoints(parseInt(scan_info_i[23])) + '</acronym>';
 							// -------------------------------------------------------------------------------------------------
 
 
-						//url d'attaque		//am202 = pt / am203 = gt
+							//url d'attaque		//am202 = pt / am203 = gt
 							var url_fleet1 = document.getElementById("menuTable").getElementsByClassName('menubutton ')[7].href;
-							var url_attaquer = url_fleet1 + '&galaxy='+ galaxie +'&system='+ systeme +'&position='+ planette +'&type='+ type_planette +'&mission=1';
+							var url_attaquer = url_fleet1 + '&galaxy=' + galaxie + '&system=' + systeme + '&position=' + planette + '&type=' + type_planette + '&mission=1';
 							if (lien_raide_nb_pt_gt == 1) {
 								var nb_pt2;
 								if (nb_ou_pourcent == 1) {
 									nb_pt2 = nb_pt + nb_pourcent_ajout_lien;
 								} else {
-									nb_pt2 = Math.ceil(nb_pt + (nb_pt/100)*nb_pourcent_ajout_lien);
+									nb_pt2 = Math.ceil(nb_pt + (nb_pt / 100) * nb_pourcent_ajout_lien);
 								}
-								url_attaquer += '&am202='+ nb_pt2;
+								url_attaquer += '&am202=' + nb_pt2;
 							} else if (lien_raide_nb_pt_gt == 0) {
 								var nb_gt2;
 								if (nb_ou_pourcent == 1) {
 									nb_gt2 = nb_gt + nb_pourcent_ajout_lien;
 								} else {
-									nb_gt2 = Math.ceil(nb_gt + (nb_gt/100)*nb_pourcent_ajout_lien);
+									nb_gt2 = Math.ceil(nb_gt + (nb_gt / 100) * nb_pourcent_ajout_lien);
 								}
-								url_attaquer += '&am203='+ nb_gt2;
+								url_attaquer += '&am203=' + nb_gt2;
 							}
 
-						// url de simulation
-							if(q_techzero == 1 && recherche_ad[0] == "?"){
+							// url de simulation
+							if (q_techzero == 1 && recherche_ad[0] == "?") {
 								var tech_arme_a_sim = 0;
 								var tech_protect_a_sim = 0;
 								var tech_bouclier_a_sim = 0;
@@ -1432,7 +1362,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 								var tech_bouclier_d_sim = 0;
 								var tech_protect_d_sim = 0;
 							}
-							else{
+							else {
 								var tech_arme_a_sim = tech_arme_a;
 								var tech_protect_a_sim = tech_protect_a;
 								var tech_bouclier_a_sim = tech_bouclier_a;
@@ -1441,21 +1371,21 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 								var tech_protect_d_sim = tech_protect_d;
 							}
 
-							if(simulateur == 1){
-								var url_simul = 'http://websim.speedsim.net/index.php?version=1&lang='+vari.lang_speedsin+'&tech_a0_0='+ tech_arme_a_sim +'&tech_a0_1='+ tech_bouclier_a_sim +'&tech_a0_2='+ tech_protect_a_sim +'&engine0_0='+ tech_combus_a +'&engine0_1='+ tech_impul_a +'&engine0_2='+ tech_hyper_a +'&start_pos='+ coordonnee_slelec
-									+ '&tech_d0_0='+ tech_arme_d_sim +'&tech_d0_1='+ tech_bouclier_d_sim +'&tech_d0_2='+ tech_protect_d_sim
-									+ '&enemy_name=' + nom_planete_complet.replace(/"/g, '&quot;') + '&perc-df=' + (pourcent_cdr*100) +'&enemy_pos='+ coordonee +'&enemy_metal='+ parseInt(ressource_m) +'&enemy_crystal='+ parseInt(ressource_c) +'&enemy_deut='+ parseInt(ressource_d) + url_speedsim
-									+ '&uni_speed=' + vitesse_uni + '&perc-df=' + pourcent_cdr*100 + '&plunder_perc=' + pourcent + '&del_techs=1&rf=1';
+							if (simulateur == 1) {
+								var url_simul = 'http://websim.speedsim.net/index.php?version=1&lang=' + vari.lang_speedsin + '&tech_a0_0=' + tech_arme_a_sim + '&tech_a0_1=' + tech_bouclier_a_sim + '&tech_a0_2=' + tech_protect_a_sim + '&engine0_0=' + tech_combus_a + '&engine0_1=' + tech_impul_a + '&engine0_2=' + tech_hyper_a + '&start_pos=' + coordonnee_slelec
+									+ '&tech_d0_0=' + tech_arme_d_sim + '&tech_d0_1=' + tech_bouclier_d_sim + '&tech_d0_2=' + tech_protect_d_sim
+									+ '&enemy_name=' + nom_planete_complet.replace(/"/g, '&quot;') + '&perc-df=' + (pourcent_cdr * 100) + '&enemy_pos=' + coordonee + '&enemy_metal=' + parseInt(ressource_m) + '&enemy_crystal=' + parseInt(ressource_c) + '&enemy_deut=' + parseInt(ressource_d) + url_speedsim
+									+ '&uni_speed=' + vitesse_uni + '&perc-df=' + pourcent_cdr * 100 + '&plunder_perc=' + pourcent + '&del_techs=1&rf=1';
 							}
-							else if(simulateur == 0){
-								var url_simul = 'http://drago-sim.com/index.php?style=new&template=New&lang='+vari.lang_dragosin+'&'+ 'techs[0][0][w_t]='+ tech_arme_a_sim +'&techs[0][0][s_t]='+ tech_bouclier_a_sim +'&techs[0][0][r_p]='+ tech_protect_a_sim +'&engine0_0='+ tech_combus_a +'&engine0_1='+ tech_impul_a +'&engine0_2='+ tech_hyper_a +'&start_pos='+ coordonnee_slelec
-									+ '&techs[1][0][w_t]='+ tech_arme_d_sim +'&techs[1][0][s_t]='+ tech_bouclier_d_sim +'&techs[1][0][r_p]='+ tech_protect_d_sim
-									+ '&v_planet=' + nom_planete_complet.replace(/"/g, '&quot;') + '&debris_ratio=' + pourcent_cdr +'&v_coords='+ coordonee +'&v_met='+ parseInt(ressource_m) +'&v_kris='+ parseInt(ressource_c) +'&v_deut='+ parseInt(ressource_d) + url_dragosim;
+							else if (simulateur == 0) {
+								var url_simul = 'http://drago-sim.com/index.php?style=new&template=New&lang=' + vari.lang_dragosin + '&' + 'techs[0][0][w_t]=' + tech_arme_a_sim + '&techs[0][0][s_t]=' + tech_bouclier_a_sim + '&techs[0][0][r_p]=' + tech_protect_a_sim + '&engine0_0=' + tech_combus_a + '&engine0_1=' + tech_impul_a + '&engine0_2=' + tech_hyper_a + '&start_pos=' + coordonnee_slelec
+									+ '&techs[1][0][w_t]=' + tech_arme_d_sim + '&techs[1][0][s_t]=' + tech_bouclier_d_sim + '&techs[1][0][r_p]=' + tech_protect_d_sim
+									+ '&v_planet=' + nom_planete_complet.replace(/"/g, '&quot;') + '&debris_ratio=' + pourcent_cdr + '&v_coords=' + coordonee + '&v_met=' + parseInt(ressource_m) + '&v_kris=' + parseInt(ressource_c) + '&v_deut=' + parseInt(ressource_d) + url_dragosim;
 							}
-							else if(simulateur == 2){
-								var url_simul = 'http://www.gamewinner.fr/cgi-bin/csim/index.cgi?lang=fr?'+'&aattack='+ tech_arme_a_sim +'&ashield='+ tech_bouclier_a_sim +'&aarmory='+ tech_protect_a_sim
-									+ '&dattack='+ tech_arme_d_sim +'&dshield='+ tech_bouclier_d_sim +'&darmory='+ tech_protect_d_sim
-									+ '&enemy_name=' + nom_planete_complet.replace(/"/g, '&quot;') +'&enemy_pos='+ coordonee +'&dmetal='+ parseInt(ressource_m) +'&dcrystal='+ parseInt(ressource_c) +'&ddeut='+ parseInt(ressource_d) + url_ogamewinner;
+							else if (simulateur == 2) {
+								var url_simul = 'http://www.gamewinner.fr/cgi-bin/csim/index.cgi?lang=fr?' + '&aattack=' + tech_arme_a_sim + '&ashield=' + tech_bouclier_a_sim + '&aarmory=' + tech_protect_a_sim
+									+ '&dattack=' + tech_arme_d_sim + '&dshield=' + tech_bouclier_d_sim + '&darmory=' + tech_protect_d_sim
+									+ '&enemy_name=' + nom_planete_complet.replace(/"/g, '&quot;') + '&enemy_pos=' + coordonee + '&dmetal=' + parseInt(ressource_m) + '&dcrystal=' + parseInt(ressource_c) + '&ddeut=' + parseInt(ressource_d) + url_ogamewinner;
 							}
 
 						// batiment adversaire + prodh + resrrouce x h
@@ -1466,22 +1396,20 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var mine_d = mine_array[2];
 
 							// si on a besoin de la production pour afficher une colone
-							if(prod_h_q == 1 || prod_gg != 0 || q_vid_colo == 1)
-							{
-								if(mine_array != '?,?,?')
-								{
+							if (prod_h_q == 1 || prod_gg != 0 || q_vid_colo == 1) {
+								if (mine_array != '?,?,?') {
 									var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
 									var prod_m_h = prod_t.metal;
 									var prod_c_h = prod_t.cristal;
 									var prod_d_h = prod_t.deut;
 									var prod_tot = parseInt(prod_m_h) + parseInt(prod_c_h) + parseInt(prod_d_h);
 
-									var acro_prod_h = '<acronym title=" '+ text.metal +' : ' + addPoints(parseInt(prod_m_h)) + ' | '+ text.cristal +' : ' + addPoints(parseInt(prod_c_h)) + ' | '+ text.deut +' : ' + addPoints(parseInt(prod_d_h)) + ' ">'+  addPoints(parseInt(prod_tot)) + '</acronym>';
+									var acro_prod_h = '<acronym title=" ' + text.metal + ' : ' + addPoints(parseInt(prod_m_h)) + ' | ' + text.cristal + ' : ' + addPoints(parseInt(prod_c_h)) + ' | ' + text.deut + ' : ' + addPoints(parseInt(prod_d_h)) + ' ">' + addPoints(prod_tot) + '</acronym>';
 
-								//ressource x h
-									var prod_m_xh = Math.round(parseInt(prod_m_h)*(parseInt(prod_gg)/60));
-									var prod_c_xh = Math.round(parseInt(prod_c_h)*(parseInt(prod_gg)/60));
-									var prod_d_xh = Math.round(parseInt(prod_d_h)*(parseInt(prod_gg)/60));
+									//ressource x h
+									var prod_m_xh = Math.round(parseInt(prod_m_h) * (parseInt(prod_gg) / 60));
+									var prod_c_xh = Math.round(parseInt(prod_c_h) * (parseInt(prod_gg) / 60));
+									var prod_d_xh = Math.round(parseInt(prod_d_h) * (parseInt(prod_gg) / 60));
 									var prod_tt_xh = prod_m_xh + prod_c_xh + prod_d_xh;
 
 									var ressource_m_xh = parseInt(ressource_m) + prod_m_xh;
@@ -1489,101 +1417,95 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 									var ressource_d_xh = parseInt(ressource_d) + prod_d_xh;
 									var ressource_tt_xh = ressource_m_xh + ressource_c_xh + ressource_d_xh;
 
-									var acro_ress_xh = '<acronym title=" '+ text.metal +' : ' + addPoints(ressource_m_xh) + '(+'+  addPoints(prod_m_xh) +') | '+ text.cristal +' : ' + addPoints(ressource_c_xh) + '(+'+  addPoints(prod_c_xh) +') | '+ text.deut +' : ' + addPoints(ressource_d_xh) + '(+'+  addPoints(prod_d_xh) +') | +'+  addPoints(prod_tt_xh) +' ">'+  addPoints(ressource_tt_xh) + '</acronym>';
+									var acro_ress_xh = '<acronym title=" ' + text.metal + ' : ' + addPoints(ressource_m_xh) + '(+' + addPoints(prod_m_xh) + ') | ' + text.cristal + ' : ' + addPoints(ressource_c_xh) + '(+' + addPoints(prod_c_xh) + ') | ' + text.deut + ' : ' + addPoints(ressource_d_xh) + '(+' + addPoints(prod_d_xh) + ') | +' + addPoints(prod_tt_xh) + ' ">' + addPoints(ressource_tt_xh) + '</acronym>';
 								}
-								else {var acro_prod_h = '<acronym title="'+ text.batiment_non_visible +'"> ? </acronym>';
-								var acro_ress_xh = '<acronym title="'+ text.batiment_non_visible +'"> ? </acronym>';}
+								else {
+									var acro_prod_h = '<acronym title="' + text.batiment_non_visible + '"> ? </acronym>';
+									var acro_ress_xh = '<acronym title="' + text.batiment_non_visible + '"> ? </acronym>';
+								}
 							}
 
 							//case simuler en mode exporter vers un autre simulateur.
-							if(simulateur == 3){
-								var saut ='\n';
-								var tabulation ='&nbsp;&nbsp;&nbsp;&nbsp;';
-								var export_scan_simul = 'Ressources sur Mirage ' + coordonee +' (joueur \''+ nom_joueur +'\') le ' + datecc.getMonth() +'-'+datecc.getDate()+ ' '+datecc.getHours()+ 'h '+ datecc.getMinutes()+ 'min ' +datecc.getSeconds()+ 's'
-								+ saut
-								+ saut + 'Métal:'+ tabulation + addPoints(parseInt(ressource_m))+ tabulation +'Cristal:'+ tabulation+ addPoints(parseInt(ressource_c))
-								+ saut + 'Deutérium:'+ tabulation+ addPoints(parseInt(ressource_d)) +tabulation +' Energie:'+tabulation+'5.000'
-								+ saut
-								+ saut + 'Activité'
-								+ saut + 'Activité'
-								+ saut + 'Activité signifie que le joueur scanné était actif sur la planète au moment du scan ou qu`un autre joueur a eu un contact de flotte avec cette planète à ce moment là.'
-								+ saut + 'Le scanner des sondes n`a pas détecté d`anomalies atmosphériques sur cette planète. Une activité sur cette planète dans la dernière heure peut quasiment être exclue.'
-								+ saut + 'Flottes';
+							if (simulateur == 3) {
+								var saut = '\n';
+								var tabulation = '&nbsp;&nbsp;&nbsp;&nbsp;';
+								var export_scan_simul = 'Ressources sur Mirage ' + coordonee + ' (joueur \'' + nom_joueur + '\') le ' + datecc.getMonth() + '-' + datecc.getDate() + ' ' + datecc.getHours() + 'h ' + datecc.getMinutes() + 'min ' + datecc.getSeconds() + 's'
+									+ saut
+									+ saut + 'Métal:' + tabulation + addPoints(parseInt(ressource_m)) + tabulation + 'Cristal:' + tabulation + addPoints(parseInt(ressource_c))
+									+ saut + 'Deutérium:' + tabulation + addPoints(parseInt(ressource_d)) + tabulation + ' Energie:' + tabulation + '5.000'
+									+ saut
+									+ saut + 'Activité'
+									+ saut + 'Activité'
+									+ saut + 'Activité signifie que le joueur scanné était actif sur la planète au moment du scan ou qu`un autre joueur a eu un contact de flotte avec cette planète à ce moment là.'
+									+ saut + 'Le scanner des sondes n`a pas détecté d`anomalies atmosphériques sur cette planète. Une activité sur cette planète dans la dernière heure peut quasiment être exclue.'
+									+ saut + 'Flottes';
 								var vaisseau_nom = new Array(vari.pt, vari.gt, vari.cle, vari.clo, vari.cro, vari.vb, vari.vc, vari.rec, vari.esp, vari.bb, vari.sat, vari.dest, vari.edlm, vari.tra);
-								var q_saut_v =0;
-								if(vaisseau22 != '?/?/?/?/?/?/?/?/?/?')
-								{
+								var q_saut_v = 0;
+								if (vaisseau22 != '?/?/?/?/?/?/?/?/?/?') {
 									var vaisseau = vaisseau22.split('/');
-										for(var k=0; k<vaisseau.length ; k++)
-										{
-											if(parseInt(vaisseau[k]) != 0)
-											{
-												if(q_saut_v <3){export_scan_simul = export_scan_simul + ' | '+ vaisseau_nom[k] +tabulation +' : ' + addPoints(parseInt(vaisseau[k]));q_saut_v++;}
-												else{export_scan_simul = export_scan_simul + saut + ' | '+ vaisseau_nom[k] +tabulation +' : ' + addPoints(parseInt(vaisseau[k]));q_saut_v= 0;}
-											}
+									for (var k = 0; k < vaisseau.length; k++) {
+										if (parseInt(vaisseau[k]) != 0) {
+											if (q_saut_v < 3) { export_scan_simul = export_scan_simul + ' | ' + vaisseau_nom[k] + tabulation + ' : ' + addPoints(parseInt(vaisseau[k])); q_saut_v++; }
+											else { export_scan_simul = export_scan_simul + saut + ' | ' + vaisseau_nom[k] + tabulation + ' : ' + addPoints(parseInt(vaisseau[k])); q_saut_v = 0; }
 										}
+									}
 								}
 
 								export_scan_simul = export_scan_simul + saut + 'Défense';
 								var defense_nom = new Array(vari.lm, vari.lle, vari.llo, vari.gauss, vari.ion, vari.pla, vari.pb, vari.gb, vari.mic, vari.mip);
-								var q_saut =0;
-								if(defense2 != '?/?/?/?/?/?/?/?/?/?')
-								{
+								var q_saut = 0;
+								if (defense2 != '?/?/?/?/?/?/?/?/?/?') {
 									var defense = defense2.split('/');
-										for(var k=0; k<defense.length ; k++)
-										{
-											if(parseInt(defense[k]) != 0)
-											{
-												if(q_saut <3){export_scan_simul = export_scan_simul + ' | '+ defense_nom[k] +tabulation +' : ' + addPoints(parseInt(defense[k]));q_saut++;}
-												else{export_scan_simul = export_scan_simul + saut + ' | '+ defense_nom[k] +tabulation +' : ' + addPoints(parseInt(defense[k]));q_saut= 0;}
-											}
+									for (var k = 0; k < defense.length; k++) {
+										if (parseInt(defense[k]) != 0) {
+											if (q_saut < 3) { export_scan_simul = export_scan_simul + ' | ' + defense_nom[k] + tabulation + ' : ' + addPoints(parseInt(defense[k])); q_saut++; }
+											else { export_scan_simul = export_scan_simul + saut + ' | ' + defense_nom[k] + tabulation + ' : ' + addPoints(parseInt(defense[k])); q_saut = 0; }
 										}
+									}
 								}
 
-								export_scan_simul = export_scan_simul + saut +'Bâtiment'
-								+ saut + vari.mine_m +tabulation + mine_m +tabulation  +vari.mine_c +tabulation + mine_c
-								+ saut + vari.mine_d +tabulation + mine_d +tabulation
-								+ saut +'Recherche'
-								+ saut + vari.tech_arm +tabulation	+ tech_arme_d + tabulation +vari.tech_bouc +tabulation + tech_bouclier_a + tabulation
-								+ saut + vari.tech_pro +tabulation + tech_protect_d
+								export_scan_simul = export_scan_simul + saut + 'Bâtiment'
+								+ saut + vari.mine_m + tabulation + mine_m + tabulation + vari.mine_c + tabulation + mine_c
+								+ saut + vari.mine_d + tabulation + mine_d + tabulation
+								+ saut + 'Recherche'
+								+ saut + vari.tech_arm + tabulation + tech_arme_d + tabulation + vari.tech_bouc + tabulation + tech_bouclier_a + tabulation
+								+ saut + vari.tech_pro + tabulation + tech_protect_d
 								+ saut + 'Probabilité de contre-espionnage : 0 %';
 							}
 
 							//compteur d'attaque
-							if(q_compteur_attaque == 1){//si il est activé
-								var coordonee2_ss_crochet = galaxie + ':' + systeme +':' +planette;
-								if(attaque_24h.indexOf(coordonee2_ss_crochet) > -1)//si il est pas compté.
-								{
+							if (q_compteur_attaque == 1) {//si il est activé
+								var coordonee2_ss_crochet = galaxie + ':' + systeme + ':' + planette;
+								if (attaque_24h.indexOf(coordonee2_ss_crochet) > -1) {//si il est pas compté.
+								
 									var compteur = 0;
-									for(var s=0; s<attaque_24h_split.length;s++)
-									{
-										if(attaque_24h_split2[s][1] == coordonee2_ss_crochet)
-										{
+									for (var s = 0; s < attaque_24h_split.length; s++) {
+										if (attaque_24h_split2[s][1] == coordonee2_ss_crochet) {
 											compteur++;
 										}
 									}
 									var attaque_deja_fait = compteur;
 								}
-								else{
+								else {
 									var attaque_deja_fait = 0;
 								}
 							}
 
 							//ligne du tableau <tr> de toute les infos du scan
 							cptLigne++;
-							ligne_tableau += '\n<tr class="'+ coordonee + '" id="tr_'+i+'">';
+							ligne_tableau += '\n<tr class="' + coordonee + '" id="tr_' + i + '">';
 							num_scan = nb_scan_deb + cptLigne;
-							ligne_tableau += '<td class="right">' + num_scan +  '.</td>';
-							ligne_tableau += '<td><input type="checkbox" name="delcase" value="'+ i +'" id="check_'+ i +'"/></td>';
-							ligne_tableau +=  '<td class="marqueur"></td>';
+							ligne_tableau += '<td class="right">' + num_scan + '.</td>';
+							ligne_tableau += '<td><input type="checkbox" name="delcase" value="' + i + '" id="check_' + i + '"/></td>';
+							ligne_tableau += '<td class="marqueur"></td>';
 
-							if(nom_j_q_q == 1)
-								ligne_tableau += '<td class="left">' + nom_joueur +  '</td>';
-							if(coor_q_q == 1)
-								ligne_tableau += '<td class="coordonee">' + coordonee_fin +  '</td>';
-							ligne_tableau += '<td>' + type_honor +  '</td>';
-							ligne_tableau += '<td>' + type_joueur +  '</td>';
-							ligne_tableau += '<td>' + activite_fin +  '</td>';
+							if (nom_j_q_q == 1)
+								ligne_tableau += '<td class="left">' + nom_joueur + '</td>';
+							if (coor_q_q == 1)
+								ligne_tableau += '<td class="coordonee">' + coordonee_fin + '</td>';
+							ligne_tableau += '<td>' + type_honor + '</td>';
+							ligne_tableau += '<td>' + type_joueur + '</td>';
+							ligne_tableau += '<td>' + activite_fin + '</td>';
 
 /* 							var indexof_inactif = inactif_normal.indexOf(nom_joueur);
 							if(q_inactif == 0 && indexof_inactif != -1)
@@ -1596,43 +1518,43 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 								ligne_tableau += '<td>' + '<input type="checkbox" checked="checked" name="inactif" value="'+ nom_joueur +'"  class="inactif" id="inactif_'+ i +'"/>' +  '</td>';
 							else if(q_inactif == 1 && indexof_inactif == -1)
 								ligne_tableau += '<td>' + '<input type="checkbox" name="inactif" value="'+ nom_joueur +'"  class="inactif" id="inactif_'+ i +'"/>' +  '</td>'; */
-							if(nom_p_q_q == 1)
-								ligne_tableau += '<td title="'+nom_planete_complet.replace(/"/g, '&quot;')+'">' + nom_planete +  '</td>';
+							if (nom_p_q_q == 1)
+								ligne_tableau += '<td title="' + nom_planete_complet.replace(/"/g, '&quot;') + '">' + nom_planete + '</td>';
 
-							if(date_affiche == 1)
+							if (date_affiche == 1)
 								ligne_tableau += '<td class="right">' + date2 + '</td>';
-							if(tps_vol_q == 1)
+							if (tps_vol_q == 1)
 								ligne_tableau += '<td>' + accronyme_temp_vol + '</td>';
-							if(prod_h_q == 1)
+							if (prod_h_q == 1)
 								ligne_tableau += '<td>' + acro_prod_h + '</td>';
-							if(prod_gg != 0)
+							if (prod_gg != 0)
 								ligne_tableau += '<td>' + acro_ress_xh + '</td>';
-							if(q_vid_colo == 1)
+							if (q_vid_colo == 1)
 								ligne_tableau += '<td>' + calcul_dernier_vidage(ressource_m, ressource_c, ressource_d, prod_m_h, prod_c_h, prod_d_h, date_scan, mine_m) + '</td>';
 
-							if(question_rassemble_col == 0){
-								if(pt_gt != 0)
-									ligne_tableau += '<td>' + addPoints(nb_pt) +'/'+ addPoints(nb_gt) +  '</td>';
-								ligne_tableau += '<td class="right">' + ressource +  '</td>';
-								ligne_tableau += '<td class="right">' + cdr_aco +'</td>';
+							if (question_rassemble_col == 0) {
+								if (pt_gt != 0)
+									ligne_tableau += '<td>' + addPoints(nb_pt) + '/' + addPoints(nb_gt) + '</td>';
+								ligne_tableau += '<td class="right">' + ressource + '</td>';
+								ligne_tableau += '<td class="right">' + cdr_aco + '</td>';
 							}
 							else {
-								ligne_tableau += '<td class="right">' + col_cdr +  '</td>';
-								if(pt_gt != 0)
-									ligne_tableau += '<td>' + addPoints(nb_pt) +'/'+ addPoints(nb_gt) +  '</td>';
+								ligne_tableau += '<td class="right">' + col_cdr + '</td>';
+								if (pt_gt != 0)
+									ligne_tableau += '<td>' + addPoints(nb_pt) + '/' + addPoints(nb_gt) + '</td>';
 							}
-							if(vaisseau_question != 0)
-								ligne_tableau += '<td class="right">' + acronyme_vaisseau2 +  '</td>';
-							if(defense_question != 0)
-								ligne_tableau += '<td class="right htmlTooltip">' + acronyme_def2 +  '</td>';
-							if(tech_q == 1)
+							if (vaisseau_question != 0)
+								ligne_tableau += '<td class="right">' + acronyme_vaisseau2 + '</td>';
+							if (defense_question != 0)
+								ligne_tableau += '<td class="right htmlTooltip">' + acronyme_def2 + '</td>';
+							if (tech_q == 1)
 								ligne_tableau += '<td class="right">' + tech_arme_d + '/' + tech_bouclier_d + '/' + tech_protect_d + '</td>';
 
-							if(q_compteur_attaque == 1)
-								ligne_tableau += '<td class="nombreAttaque">'+ attaque_deja_fait +'</td>';
+							if (q_compteur_attaque == 1)
+								ligne_tableau += '<td class="nombreAttaque">' + attaque_deja_fait + '</td>';
 
-							ligne_tableau += '<td> <a href="'+ espionnage +'" title="'+ text.espionner +'"> <img src="http://gf2.geo.gfsrv.net/45/f8eacc254f16d0bafb85e1b1972d80.gif" height="16" width="16"></a></td>';
-							ligne_tableau += '<td> <a class="del1_scan" id="del1_scan'+i+'" title="'+ text.eff_rapp +'" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>';
+							ligne_tableau += '<td> <a href="' + espionnage + '" title="' + text.espionner + '"> <img src="http://gf2.geo.gfsrv.net/45/f8eacc254f16d0bafb85e1b1972d80.gif" height="16" width="16"></a></td>';
+							ligne_tableau += '<td> <a class="del1_scan" id="del1_scan' + i + '" title="' + text.eff_rapp + '" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>';
 							var target;
 							if (stockageOption.get('attaquer nouvel onglet') === 1) {
 								target = '';
@@ -1641,74 +1563,73 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							} else {
 								target = ' target="attaque"';
 							}
-							ligne_tableau += '<td class="boutonAttaquer"> <a href="'+ url_attaquer +'" title="'+ text.att +'"'+target+'><img src="http://gf1.geo.gfsrv.net/9a/cd360bccfc35b10966323c56ca8aac.gif" height="16" width="16"></a></td>';
-							if(q_mess == 1 ){
+							ligne_tableau += '<td class="boutonAttaquer"> <a href="' + url_attaquer + '" title="' + text.att + '"' + target + '><img src="http://gf1.geo.gfsrv.net/9a/cd360bccfc35b10966323c56ca8aac.gif" height="16" width="16"></a></td>';
+							if (q_mess == 1) {
 								var url_href = 'index.php?page=showmessage&session=' + info.session + '&ajax=1&msg_id=' + scan_info_i[11] + '&cat=7';
-								ligne_tableau += '<td><a class="overlay" href="'+ url_href +'" id="'+ scan_info_i[11] +'"><img src="http://snaquekiller.free.fr/ogame/messages.jpg" height="16" width="16"/></a></td>';
+								ligne_tableau += '<td><a class="overlay" href="' + url_href + '" id="' + scan_info_i[11] + '"><img src="http://snaquekiller.free.fr/ogame/messages.jpg" height="16" width="16"/></a></td>';
 							}
-							if(simulateur != 3 && q_lien_simu_meme_onglet == 1)
-								ligne_tableau += '<td> <a href="'+ url_simul +'" title="'+ text.simul +'" target="_blank"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
-							else if(simulateur != 3 && q_lien_simu_meme_onglet != 1)
-								ligne_tableau += '<td> <a href="'+ url_simul +'" title="'+ text.simul +'" target="RaideFacileSimul"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
+							if (simulateur != 3 && q_lien_simu_meme_onglet == 1)
+								ligne_tableau += '<td> <a href="' + url_simul + '" title="' + text.simul + '" target="_blank"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
+							else if (simulateur != 3 && q_lien_simu_meme_onglet != 1)
+								ligne_tableau += '<td> <a href="' + url_simul + '" title="' + text.simul + '" target="RaideFacileSimul"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
 							else
-								ligne_tableau += '<td> <a href="#" title="'+ text.simul +'" id="simul_'+ i +'" class="lien_simul_'+i+'"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
-							if(simulateur == 3){
-								ligne_tableau += '<tr style="display:none;" id="textarea_'+ i +'" class="textarea_simul_'+i+'">'+ '<TD COLSPAN=20> <textarea style="width:100%;background-color:transparent;color:#999999;text-align:center;">'+ export_scan_simul +'</textarea></td></tr>';
+								ligne_tableau += '<td> <a href="#" title="' + text.simul + '" id="simul_' + i + '" class="lien_simul_' + i + '"><img src="http://snaquekiller.free.fr/ogame/simuler.jpg" height="16" width="16"></a></td></tr>';
+							if (simulateur == 3) {
+								ligne_tableau += '<tr style="display:none;" id="textarea_' + i + '" class="textarea_simul_' + i + '">' + '<TD COLSPAN=20> <textarea style="width:100%;background-color:transparent;color:#999999;text-align:center;">' + export_scan_simul + '</textarea></td></tr>';
 							}
 
 							/**************** BBCODE EXPORT **************/
 							// bbcode_export = bbcode_export + coordonee +'==>';
-							bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[1] + bbcode_balisem[8] + nom_joueur +  ''+ bbcode_balisef[8];
-							if(coor_q_q == 1){bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[2] + bbcode_balisem[8] +' ==> ' + coordonee +''+ bbcode_balisef[8];}
+							bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[1] + bbcode_balisem[8] + nom_joueur + '' + bbcode_balisef[8];
+							if (coor_q_q == 1) { bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[2] + bbcode_balisem[8] + ' ==> ' + coordonee + '' + bbcode_balisef[8]; }
 							// bbcode_export = bbcode_export +'==>' + activite_fin +  '';
-							if(nom_p_q_q == 1){bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[3] + bbcode_balisem[8] +' ==> ' + nom_planete_complet +  ''+ bbcode_balisef[8];}
-							bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[4] + bbcode_balisem[8] +' ==> ' + addPoints(parseInt(ressource_m)) +'metal ,'+ addPoints(parseInt(ressource_c)) +'cristal ,'+ addPoints(parseInt(ressource_d)) +'deut ('+ nb_pt +'/'+nb_gt +')' +  ''+ bbcode_balisef[8];
-							bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[5] + bbcode_balisem[8] + ' ==> ' + addPoints(parseInt(cdr_possible_m)) +' metal ,'+ addPoints(parseInt(cdr_possible_c)) +' cristal ,'+ addPoints(Math.round(parseInt(cdr_possible)/25000))+' rc '+ bbcode_balisef[8];
-							if(acronyme_vaisseau != ' '){ bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[6] + bbcode_balisem[8] + ' ==> ' + acronyme_vaisseau +  ''+ bbcode_balisef[8];}
-							if(acronyme_vaisseau != ' '){ bbcode_export = bbcode_export +  bbcode_baliseo[8] + couleur2[7] + bbcode_balisem[8] + ' ==> ' + acronyme_def +  '\n'+ bbcode_balisef[8];}
-							else{bbcode_export = bbcode_export + '\n\n';}
+							if (nom_p_q_q == 1) { bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[3] + bbcode_balisem[8] + ' ==> ' + nom_planete_complet + '' + bbcode_balisef[8]; }
+							bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[4] + bbcode_balisem[8] + ' ==> ' + addPoints(parseInt(ressource_m)) + 'metal ,' + addPoints(parseInt(ressource_c)) + 'cristal ,' + addPoints(parseInt(ressource_d)) + 'deut (' + nb_pt + '/' + nb_gt + ')' + '' + bbcode_balisef[8];
+							bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[5] + bbcode_balisem[8] + ' ==> ' + addPoints(cdr_possible_m) + ' metal ,' + addPoints(cdr_possible_c) + ' cristal ,' + addPoints(Math.round(cdr_possible / 25000)) + ' rc ' + bbcode_balisef[8];
+							if (acronyme_vaisseau != ' ') { bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[6] + bbcode_balisem[8] + ' ==> ' + acronyme_vaisseau + '' + bbcode_balisef[8]; }
+							if (acronyme_vaisseau != ' ') { bbcode_export = bbcode_export + bbcode_baliseo[8] + couleur2[7] + bbcode_balisem[8] + ' ==> ' + acronyme_def + '\n' + bbcode_balisef[8]; }
+							else { bbcode_export = bbcode_export + '\n\n'; }
 						} else
 							nb_scan_fin++; // on rajoute un scan a afficher
 					} else
 						nb_scan_fin++;
-				} else if (scan_info[i] && scan_info[i].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1) {
+				} else if (scan_info[i] && scan_info[i].indexOf(';;;;;;;;;;;;;;;;;x;;') === -1) {
 					scan_info[i] = '';
 					nb_scan_fin++;
 				}
 				else
 					nb_scan_fin++;
-			} else if (scan_info[i] && scan_info[i].indexOf(';;;;;;;;;;;;;;;;;x;;') == -1)
+			} else if (scan_info[i] && scan_info[i].indexOf(';;;;;;;;;;;;;;;;;x;;') === -1)
 				scan_info[i] = '';
 		}
 		document.getElementById('corps_tableau2').innerHTML = ligne_tableau;
 
 		/**************** BBCODE EXPORT **************/{
-			var	bbcode_haut = ' ';
-			if(q_centre == 1){bbcode_haut = bbcode_haut + bbcode_baliseo[10] +bbcode_balisem[10];}
-			if(q_cite == 1){bbcode_haut = bbcode_haut + bbcode_baliseo[4] ;}
-			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[1] + bbcode_balisem[8] + text.th_nj +  '' + bbcode_balisef[8];
-				if(coor_q_q == 1){bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[2] + bbcode_balisem[8] +' ==> ' + text.th_coo + '' + bbcode_balisef[8] ;}
-				// bbcode_haut = bbcode_haut +'==>' + activite_fin +  '';
-				if(nom_p_q_q == 1){bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[3] + bbcode_balisem[8] +' ==> ' + text.th_np +  ''+ bbcode_balisef[8] ;}
-				bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[4] + bbcode_balisem[8] +' ==> '+ text.th_ress +' metal , cristal ,deut (pt/gt)' +  ''+ bbcode_balisef[8] ;
-				bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[5] + bbcode_balisem[8] + ' ==> '+ text.cdr_pos+' metal , cristal ,'+ text.nb_rc + bbcode_balisef[8] ;
-				bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[6] + bbcode_balisem[8] + ' ==> pt/gt/cle/clo/cro/vb/vc/rec/esp/bb/sat/dest/edlm/tra'+ bbcode_balisef[8];
-				bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[7] + bbcode_balisem[8] + ' ==> lm/lle/llo/gauss/ion/plas/pb/gb/mic/mip \n\n'+ bbcode_balisef[8];
+			var bbcode_haut = ' ';
+			if (q_centre == 1) { bbcode_haut = bbcode_haut + bbcode_baliseo[10] + bbcode_balisem[10]; }
+			if (q_cite == 1) { bbcode_haut = bbcode_haut + bbcode_baliseo[4]; }
+			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[1] + bbcode_balisem[8] + text.th_nj + '' + bbcode_balisef[8];
+			if (coor_q_q == 1) { bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[2] + bbcode_balisem[8] + ' ==> ' + text.th_coo + '' + bbcode_balisef[8]; }
+			// bbcode_haut = bbcode_haut +'==>' + activite_fin +  '';
+			if (nom_p_q_q == 1) { bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[3] + bbcode_balisem[8] + ' ==> ' + text.th_np + '' + bbcode_balisef[8]; }
+			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[4] + bbcode_balisem[8] + ' ==> ' + text.th_ress + ' metal , cristal ,deut (pt/gt)' + '' + bbcode_balisef[8];
+			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[5] + bbcode_balisem[8] + ' ==> ' + text.cdr_pos + ' metal , cristal ,' + text.nb_rc + bbcode_balisef[8];
+			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[6] + bbcode_balisem[8] + ' ==> pt/gt/cle/clo/cro/vb/vc/rec/esp/bb/sat/dest/edlm/tra' + bbcode_balisef[8];
+			bbcode_haut = bbcode_haut + bbcode_baliseo[8] + couleur2[7] + bbcode_balisem[8] + ' ==> lm/lle/llo/gauss/ion/plas/pb/gb/mic/mip \n\n' + bbcode_balisef[8];
 
-				bbcode_export = bbcode_export +'\n\n\n' +bbcode_baliseo[1] + bbcode_baliseo[5] + 'http://board.ogame.fr/index.php?=Thread&postID=10726546#post10726546'+ bbcode_balisem[5] +'par Raide-Facile'+bbcode_balisef[5]+ bbcode_balisef[1];
-				if(q_centre == 1){bbcode_export = bbcode_export + bbcode_balisef[10];}
-				if(q_cite == 1){bbcode_export = bbcode_export + bbcode_balisef[4] ;}
+			bbcode_export = bbcode_export + '\n\n\n' + bbcode_baliseo[1] + bbcode_baliseo[5] + 'http://board.ogame.fr/index.php?=Thread&postID=10726546#post10726546' + bbcode_balisem[5] + 'par Raide-Facile' + bbcode_balisef[5] + bbcode_balisef[1];
+			if (q_centre == 1) { bbcode_export = bbcode_export + bbcode_balisef[10]; }
+			if (q_cite == 1) { bbcode_export = bbcode_export + bbcode_balisef[4]; }
 
-		document.getElementById('text_bbcode').innerHTML = bbcode_haut + bbcode_export;
+			document.getElementById('text_bbcode').innerHTML = bbcode_haut + bbcode_export;
 		}
 	}
 
 	/*************** anti reload automatique de la page. ***************/{
 		var script = document.createElement("script");
-		script.setAttribute("type","text/javascript");
-		script.setAttribute("language","javascript");
-		script.text = 'function reload_page() {' +
-		'}';
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("language", "javascript");
+		script.text = 'function reload_page() {' + '}';
 		document.body.appendChild(script);
 	}
 
@@ -1904,25 +1825,27 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 		/************** TABLEAU INGAME ***************/
 
-		if(nb_scan_page != 0){// on affiche les numeros pages
+		if (nb_scan_page != 0) {// on affiche les numeros pages
 			var page_bas = '<span id="page" >Page : ';
 			var num_page = info.url.split('&page_r=')[1];
-			var scan_info = GM_getValue('scan'+ info.serveur, '').split('#');
+			var scan_info = GM_getValue('scan' + info.serveur, '').split('#');
 			var nb = scan_info.length;
-			var nb_page_poss = Math.ceil(nb/nb_scan_page);
+			var nb_page_poss = Math.ceil(nb / nb_scan_page);
 
-			if(num_page == undefined || num_page == 1 || num_page== ''){num_page =1;}
-			for(var i=1; i<(nb_page_poss+1) ; i++)
-			{
-				if(i != num_page){
-				page_bas = page_bas + ' <a href="'+ url_2 +'&amp;raidefacil=scriptOptions&amp;page_r='+ i +'" >'+ i +'</a>';}
-				else{page_bas = page_bas + ' '+ i;}
+			if (num_page == undefined || num_page == 1 || num_page == '') { num_page = 1; }
+			for (var i = 1; i < (nb_page_poss + 1); i++) {
+				if (i != num_page) {
+					page_bas = page_bas + ' <a href="' + url_2 + '&amp;raidefacil=scriptOptions&amp;page_r=' + i + '" >' + i + '</a>';
+				}
+				else {
+					page_bas = page_bas + ' ' + i;
+				}
 
-				if(i != nb_page_poss){page_bas = page_bas +',';}
+				if (i != nb_page_poss) { page_bas = page_bas + ','; }
 			}
-			page_bas = page_bas +'</span>';
+			page_bas = page_bas + '</span>';
 		}
-		else{var page_bas = '<span id="page" ></span>';}
+		else { var page_bas = '<span id="page" ></span>'; }
 
 		var filtres = '<div id="filtres"><select name="choix_affichage2" id="choix_affichage2" class="w100">'
 							+ '<option value="0" id="tout" >'+ text.toutt +'</option>'
@@ -2121,15 +2044,15 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 			// on creer les events pour les suppressions de scans via l'icone corbeille .
 			var nb_scan_supr = document.getElementsByClassName('del1_scan').length;
-			for (var t=0; t<nb_scan_supr; t++) {
+			for (var t = 0; t < nb_scan_supr; t++) {
 				if (document.getElementsByClassName('del1_scan')[t]) {
-					document.getElementsByClassName('del1_scan')[t].addEventListener("click", function(event) {
+					document.getElementsByClassName('del1_scan')[t].addEventListener("click", function (event) {
 						// on recupere le numero de scans dans le split d'enregistrement ( enregistrer dans l'id)
 						var numero_scan = this.id.split('del1_scan')[1]; // todo : mettre le numéro dans le HTML
 
-						var scanList = GM_getValue('scan'+ serveur, '').split('#');
+						var scanList = GM_getValue('scan' + serveur, '').split('#');
 						scanList.splice(numero_scan, 1);
-						GM_setValue('scan'+ serveur, scanList.join('#'));
+						GM_setValue('scan' + serveur, scanList.join('#'));
 
 						remlir_tableau(serveur, -1, 0);
 					}, true);
@@ -2140,24 +2063,24 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			$.get('/game/index.php?page=eventList&ajax=1', showAttaque, 'html');
 
 			// on affiche les numeros de pages si un nombre de scans par page est demandé
-			if(nb_scan_page != 0){
-					var page_bas = 'Page : ';
-					var num_page = info.url.split('&page_r=')[1];
-					var scan_info = GM_getValue('scan'+ serveur, '').split('#');
-					var nb = scan_info.length;
-					var nb_page_poss = Math.ceil(nb/nb_scan_page);
+			if (nb_scan_page != 0) {
+				var page_bas = 'Page : ';
+				var num_page = info.url.split('&page_r=')[1];
+				var scan_info = GM_getValue('scan' + serveur, '').split('#');
+				var nb = scan_info.length;
+				var nb_page_poss = Math.ceil(nb / nb_scan_page);
 
-					if(num_page == undefined || num_page == 1 || num_page== ''){num_page =1;}
-					for(var i=1; i<(nb_page_poss+1) ; i++)
-					{
-						if(i != num_page){
-						page_bas = page_bas + ' <a href="'+ url_2 +'&amp;raidefacil=scriptOptions&amp;page_r='+ i +'" >'+ i +'</a>';}
-						else{page_bas = page_bas + ' '+ i;}
-
-						if(i != nb_page_poss){page_bas = page_bas +',';}
+				if (num_page == undefined || num_page == 1 || num_page == '') { num_page = 1; }
+				for (var i = 1; i < (nb_page_poss + 1); i++) {
+					if (i != num_page) {
+						page_bas = page_bas + ' <a href="' + url_2 + '&amp;raidefacil=scriptOptions&amp;page_r=' + i + '" >' + i + '</a>';
 					}
+					else { page_bas = page_bas + ' ' + i; }
+
+					if (i != nb_page_poss) { page_bas = page_bas + ','; }
 				}
-			else{var page_bas = '';}
+			}
+			else { var page_bas = ''; }
 			document.getElementById('page').innerHTML = page_bas;
 		}
 		remlir_tableau(info.serveur, -2, 0);
@@ -2170,19 +2093,20 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		/** Truc pour classer en cliquant sur le titre des colones **///{
 		var id_th_classement = new Array("ccoordonee","cjoueur","cplanete","cdate","cprod_h","cressourcexh","cress","ccdr","ccdr_ress","cnb_v1","cnb_v2","cnb_d1","cnb_d2");
 		var numero_th_classement = new Array("1","2","3","0","20e","20d","12","8","20c","17","22","18","23");
-		for(var q=0; q<id_th_classement.length; q++){
-			if(document.getElementById(id_th_classement[q]) != 'null' && document.getElementById(id_th_classement[q]))
-			{
-				document.getElementById(id_th_classement[q]).addEventListener("click", function(event){
+		for (var q = 0; q < id_th_classement.length; q++) {
+			if (document.getElementById(id_th_classement[q]) != 'null' && document.getElementById(id_th_classement[q])) {
+				document.getElementById(id_th_classement[q]).addEventListener("click", function (event) {
 					var id_colone_titre = this.id;
-					for(var e=0; e<(id_th_classement.length); e++){
-						if(id_th_classement[e] == id_colone_titre)
-						{
-							if(this.className != "decroissant")// soit pas de classe soit croissant
-							{	remlir_tableau(info.serveur, numero_th_classement[e], 'croissant');
-								this.className = 'decroissant';}
-							else{remlir_tableau(info.serveur, numero_th_classement[e], 'decroissant');
-								this.className = "croissant";}
+					for (var e = 0; e < (id_th_classement.length); e++) {
+						if (id_th_classement[e] == id_colone_titre) {
+							if (this.className != "decroissant") {// soit pas de classe soit croissant
+								remlir_tableau(info.serveur, numero_th_classement[e], 'croissant');
+								this.className = 'decroissant';
+							}
+							else {
+								remlir_tableau(info.serveur, numero_th_classement[e], 'decroissant');
+								this.className = "croissant";
+							}
 						}
 					}
 				}, true);
@@ -2191,20 +2115,22 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		//}
 
 		// changement du select pour lune /planete/tout
-			document.getElementById("change_value_affiche").addEventListener("click", function(event){
-				afficher_seulement = document.getElementById('choix_affichage2').value;
-				filtre_actif_inactif = document.getElementById('filtre_actif_inactif').value;
-				filtre_joueur = document.getElementById('filtre_joueur').value;
-				remlir_tableau(info.serveur, -1, 0);
-			}, true);
+		document.getElementById("change_value_affiche").addEventListener("click", function (event) {
+			afficher_seulement = document.getElementById('choix_affichage2').value;
+			filtre_actif_inactif = document.getElementById('filtre_actif_inactif').value;
+			filtre_joueur = document.getElementById('filtre_joueur').value;
+			remlir_tableau(info.serveur, -1, 0);
+		}, true);
 
 //////////////// on coche les options et rajoute les addevents et rajoute les boutons ///////////////
 	// OPTION PRESELECTIONNER
-	function preselectiionne(variable1, check0 , check1){
-		if(variable1 == 0)
-			{document.getElementById(check0).checked = "checked";}
-		else if(variable1 == 1)
-			{document.getElementById(check1).checked = "checked";}
+	function preselectiionne(variable1, check0, check1) {
+		if (variable1 == 0) {
+			document.getElementById(check0).checked = "checked";
+		}
+		else if (variable1 == 1) {
+			document.getElementById(check1).checked = "checked";
+		}
 	}
 /** preselectionn de toute les options selon des variables **/{
 		//mon compte
@@ -2304,16 +2230,16 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	}
 
 	//changement des chiffres dans les options
-	document.getElementById("val_res_min").addEventListener("change", function(event){var val_res_minn = document.getElementById("val_res_min").value; document.getElementsByClassName("y")[0].innerHTML = val_res_minn; document.getElementsByClassName("y")[1].innerHTML = val_res_minn;}, true);
-	document.getElementById("valeur_cdr_mini").addEventListener("change", function(event){var valeur_cdr_minis = document.getElementById("valeur_cdr_mini").value; document.getElementsByClassName("x")[0].innerHTML = valeur_cdr_minis; document.getElementsByClassName("x")[1].innerHTML = valeur_cdr_minis;}, true);
-	document.getElementById("valeur_tot_mini").addEventListener("change", function(event){var valeur_tot_minis = document.getElementById("valeur_tot_mini").value; document.getElementsByClassName("z")[0].innerHTML = valeur_tot_minis;}, true);
+	document.getElementById("val_res_min").addEventListener("change", function (event) { var val_res_minn = document.getElementById("val_res_min").value; document.getElementsByClassName("y")[0].innerHTML = val_res_minn; document.getElementsByClassName("y")[1].innerHTML = val_res_minn; }, true);
+	document.getElementById("valeur_cdr_mini").addEventListener("change", function (event) { var valeur_cdr_minis = document.getElementById("valeur_cdr_mini").value; document.getElementsByClassName("x")[0].innerHTML = valeur_cdr_minis; document.getElementsByClassName("x")[1].innerHTML = valeur_cdr_minis; }, true);
+	document.getElementById("valeur_tot_mini").addEventListener("change", function (event) { var valeur_tot_minis = document.getElementById("valeur_tot_mini").value; document.getElementsByClassName("z")[0].innerHTML = valeur_tot_minis; }, true);
 
 	/******** Partie qui rajoute les events d'ouverture/fermeture de blocs avec des clics **********///{
 	/* permet d'afficher/masquer un panneau d'options en cliquant sur un lien
 	 * le panneau d'options affiché/masqué est celui désigné par l'attribut "data-cible" du lien
 	 * les autres panneaux d'options déjà affiché seront masqué si un autre s'affiche
 	 */
-	var changeDisplayedOption = function(eventObject) {
+	var changeDisplayedOption = function (eventObject) {
 		var titre = $(eventObject.target);
 		var contenu = $('#' + titre.data('cible'));
 
@@ -2336,7 +2262,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	/* permet d'afficher/masquer un élément en cliquant sur un lien
 	 * l'élément affiché/masqué est celui désigné par l'attribut "data-cible" du lien
 	 */
-	var afficherMasquerPanneau = function(eventObject) {
+	var afficherMasquerPanneau = function (eventObject) {
 		var titre = $(eventObject.target);
 		var contenu = $('#' + titre.data('cible'));
 
@@ -2349,18 +2275,18 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	};
 
 	// fonction qui met le listener pour afficher/masquer le textarea de simulation
-	function display_change(idclique, idouvre_f){
-		document.getElementById(idclique).addEventListener("click", function(event) {
+	function display_change(idclique, idouvre_f) {
+		document.getElementById(idclique).addEventListener("click", function (event) {
 			var cellule = $('#' + idouvre_f);
 			cellule.toggle();
 		}, true);
 	}
 
 	// Afficher la fenêtre de choix de touche
- 	$('#shortcut_attack_next_modify').click(function() {
+	$('#shortcut_attack_next_modify').click(function () {
 		findKey({
 			defaultValue: stockageOption.get('touche raid suivant'),
-			callback: function(which) {
+			callback: function (which) {
 				if (which) {
 					stockageOption.set('touche raid suivant', which).save();
 					$('#shortcut_attack_next').val(which);
@@ -2385,17 +2311,17 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	}, afficherMasquerPanneau);
 
 	//ouvrir fermer export scan simulateur
-	if(simulateur == 3){
-		for(p=0 ; p<=i ; p++) {
-			if(document.getElementById('simul_'+ p)) {
-				display_change('simul_'+p , 'textarea_'+p);
+	if (simulateur == 3) {
+		for (p = 0; p <= i; p++) {
+			if (document.getElementById('simul_' + p)) {
+				display_change('simul_' + p, 'textarea_' + p);
 			}
 		}
 	}
 	//}
 
 	// sauvegarder option si clique
-		document.getElementById("sauvegarder_option").addEventListener("click", function(event){
+		document.getElementById("sauvegarder_option").addEventListener("click", function (event) {
 			save_option(info.serveur);
 			save_optionbbcode(info.serveur);
 			// On recharge la page pour que les changements prennent effet
@@ -2403,99 +2329,97 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		}, true);
 
 	//export
-		document.getElementById("export_script").addEventListener("click", function(event){
+		document.getElementById("export_script").addEventListener("click", function (event) {
 			export_scan(info.serveur, true);
 		}, true);
-		document.getElementById("export_script_ns").addEventListener("click", function(event){
+		document.getElementById("export_script_ns").addEventListener("click", function (event) {
 			export_scan(info.serveur, false);
 		}, true);
 
 	//import
-		document.getElementById("import_scan").addEventListener("click", function(event){
+		document.getElementById("import_scan").addEventListener("click", function (event) {
 			import_scan(info.serveur, import_q_rep);
 		}, true);
 
 	/**** partie pour le css du tableau avec les options + déplacer le menu planette ***************/{
-			// modification du css de la page et du tableau.
-			tableau_raide_facile_value = parseInt(tableau_raide_facile_value);
-			/*if (tableau_raide_facile_value !== 0) {
-				if (document.getElementById("banner_skyscraper")){
-					var value = parseInt(document.getElementById("banner_skyscraper").offsetLeft) + tableau_raide_facile_value;
-					document.getElementById("banner_skyscraper").style.left = value + 'px';
-				};
-			}*/
-			/*if(document.getElementById("div_raide_facile")) {
-				var value = parseInt(document.getElementById("contentWrapper").offsetWidth) + tableau_raide_facile_value;
-				document.getElementById("div_raide_facile").style.minWidth = value +'px';
-			}*/
+		// modification du css de la page et du tableau.
+		tableau_raide_facile_value = parseInt(tableau_raide_facile_value);
+		/*if (tableau_raide_facile_value !== 0) {
+			if (document.getElementById("banner_skyscraper")){
+				var value = parseInt(document.getElementById("banner_skyscraper").offsetLeft) + tableau_raide_facile_value;
+				document.getElementById("banner_skyscraper").style.left = value + 'px';
+			};
+		}*/
+		/*if(document.getElementById("div_raide_facile")) {
+			var value = parseInt(document.getElementById("contentWrapper").offsetWidth) + tableau_raide_facile_value;
+			document.getElementById("div_raide_facile").style.minWidth = value +'px';
+		}*/
 
-			var style_css = '#raide_facile_titre {background-color:#0D1014; border:1px solid black; padding:5px 5px 10px 5px; font-weight:bold; text-align:center;}' +
-							'\n #raid_facile_news {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
-							'\n #option_script {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px; font-size:11px; color:#848484;}' +
-							'\n #div_tableau_raide_facile {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
-							'\n #text_html_bbcode {display:none; background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
-							'\n #text_html_bbcode.open {display:block;}' +
-							'\n #div_import_exp {display:none; background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
-							'\n #div_import_exp.open {display:block;}' +
-							'\n #filtres {width:100%; padding:5px 5px 5px 5px; font-size:11px; color:#848484; text-align: center;}' +
+		var style_css = '#raide_facile_titre {background-color:#0D1014; border:1px solid black; padding:5px 5px 10px 5px; font-weight:bold; text-align:center;}' +
+						'\n #raid_facile_news {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
+						'\n #option_script {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px; font-size:11px; color:#848484;}' +
+						'\n #div_tableau_raide_facile {background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
+						'\n #text_html_bbcode {display:none; background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
+						'\n #text_html_bbcode.open {display:block;}' +
+						'\n #div_import_exp {display:none; background-color:#0D1014; border:1px solid black; margin-top:10px; padding:5px 5px 10px 5px;}' +
+						'\n #div_import_exp.open {display:block;}' +
+						'\n #filtres {width:100%; padding:5px 5px 5px 5px; font-size:11px; color:#848484; text-align: center;}' +
 
-							'\n acronym {cursor: pointer;}' +
-							'\n a {cursor: pointer;text-decoration:none;}' +
-							'\n #haut_table2 {background-color: #0D1014;}' +
-							'\n #corps_tableau2 {background-color: #13181D;}' +
-							'\n #corps_tableau2 tr:nth-child(2n) {background-color:#1A2128;}' +
-							'\n #corps_tableau2 tr.attaque {color:'+col_att+';}' +
-							'\n #corps_tableau2 tr.attaqueRet {color:'+col_att_r+';}' +
-							'\n #corps_tableau2 tr.attaque2 {color:'+stockageOption.get('couleur attaque2')+';}' +
-							'\n #corps_tableau2 tr.attaqueRet2 {color:'+stockageOption.get('couleur attaque2 retour')+';}' +
-							'\n #corps_tableau2 tr.attaqueGr {color:'+col_att_g+';}' +
-							'\n #corps_tableau2 tr.attaqueGrRet {color:'+col_att_g_r+';}' +
-							'\n #corps_tableau2 tr.espio {color:'+stockageOption.get('couleur espionnage')+';}' +
-							'\n #corps_tableau2 tr.detruire {color:'+col_dest+';}' +
-							'\n #corps_tableau2 tr.detruireRet {color:'+col_dest_r+';}' +
-							'\n #bas_tableau2 {background-color: #0D1014;}' +
-							'\n #collapse {border-collapse:separate ;}' +
+						'\n acronym {cursor: pointer;}' +
+						'\n a {cursor: pointer;text-decoration:none;}' +
+						'\n #haut_table2 {background-color: #0D1014;}' +
+						'\n #corps_tableau2 {background-color: #13181D;}' +
+						'\n #corps_tableau2 tr:nth-child(2n) {background-color:#1A2128;}' +
+						'\n #corps_tableau2 tr.attaque {color:'+col_att+';}' +
+						'\n #corps_tableau2 tr.attaqueRet {color:'+col_att_r+';}' +
+						'\n #corps_tableau2 tr.attaque2 {color:'+stockageOption.get('couleur attaque2')+';}' +
+						'\n #corps_tableau2 tr.attaqueRet2 {color:'+stockageOption.get('couleur attaque2 retour')+';}' +
+						'\n #corps_tableau2 tr.attaqueGr {color:'+col_att_g+';}' +
+						'\n #corps_tableau2 tr.attaqueGrRet {color:'+col_att_g_r+';}' +
+						'\n #corps_tableau2 tr.espio {color:'+stockageOption.get('couleur espionnage')+';}' +
+						'\n #corps_tableau2 tr.detruire {color:'+col_dest+';}' +
+						'\n #corps_tableau2 tr.detruireRet {color:'+col_dest_r+';}' +
+						'\n #bas_tableau2 {background-color: #0D1014;}' +
+						'\n #collapse {border-collapse:separate ;}' +
 
-							'\n #div_raide_facile {float:left; z-index:2;min-width:'+(670+tableau_raide_facile_value)+'px}' +
-							'\n .sectionTitreOptions{text-indent:35px; text-align:left;cursor:pointer;border:1px solid black;font-weight: bold;color:#6F9FC8; background-color: #0D1014;background-attachment: scroll; background-clip: border-box; background-color: #13181D; background-image: url("/cdn/img/layout/fleetOpenAll.gif"); background-origin: padding-box; background-position: 0 0; background-repeat: no-repeat; background-size: auto auto; height: 22px; line-height: 22px; margin-right:auto; margin-left:auto; width:99%; margin-bottom:5px}'+
-							'\n .sectionTitreOptions:hover{background-color: #23282D;}'+
-							'\n .sectionTitreOptions.open{background-image: url("/cdn/img/layout/fleetCloseAll.gif");}'+
-							'\n .sectionOptions{display:none; margin-right:auto; margin-left:auto; width:95%; padding:5px; margin-top:5px; margin-bottom:5px; text-align:left; border:1px solid black; background-color:#13181D;}'+
-							'\n .sectionOptions.open{display:block;}'+
-							'\n .titre_interne{font-weight:bold;color:#5A9FC8;}'+
-							'\n .tableau_interne{padding-top:0px;border-bottom:0px;}'+
+						'\n #div_raide_facile {float:left; z-index:2;min-width:'+(670+tableau_raide_facile_value)+'px}' +
+						'\n .sectionTitreOptions{text-indent:35px; text-align:left;cursor:pointer;border:1px solid black;font-weight: bold;color:#6F9FC8; background-color: #0D1014;background-attachment: scroll; background-clip: border-box; background-color: #13181D; background-image: url("/cdn/img/layout/fleetOpenAll.gif"); background-origin: padding-box; background-position: 0 0; background-repeat: no-repeat; background-size: auto auto; height: 22px; line-height: 22px; margin-right:auto; margin-left:auto; width:99%; margin-bottom:5px}'+
+						'\n .sectionTitreOptions:hover{background-color: #23282D;}'+
+						'\n .sectionTitreOptions.open{background-image: url("/cdn/img/layout/fleetCloseAll.gif");}'+
+						'\n .sectionOptions{display:none; margin-right:auto; margin-left:auto; width:95%; padding:5px; margin-top:5px; margin-bottom:5px; text-align:left; border:1px solid black; background-color:#13181D;}'+
+						'\n .sectionOptions.open{display:block;}'+
+						'\n .titre_interne{font-weight:bold;color:#5A9FC8;}'+
+						'\n .tableau_interne{padding-top:0px;border-bottom:0px;}'+
 
-							'\n #div_raide_facile input[type="submit"] {border: 1px solid #6F899D; color: white; background-color: rgb(92, 118, 139);}'+
+						'\n #div_raide_facile input[type="submit"] {border: 1px solid #6F899D; color: white; background-color: rgb(92, 118, 139);}'+
 
-							'\n #raid_facile_news{color:#FFFFFF;  text-align:left; font-size:11px; }'+
-							'\n #raid_facile_news a {color:#6F9FC8;}'+
-							'\n #raid_facile_news h4{margin-top:5px;text-indent:10px;font-size:11px;font-weight:bold;color:#6F9FC8;}'+
+						'\n #raid_facile_news{color:#FFFFFF;  text-align:left; font-size:11px; }'+
+						'\n #raid_facile_news a {color:#6F9FC8;}'+
+						'\n #raid_facile_news h4{margin-top:5px;text-indent:10px;font-size:11px;font-weight:bold;color:#6F9FC8;}'+
 
-							'\n #tableau_raide_facile{margin-top:5px; margin-bottom:5px; background-color:#0D1014; text-align:center;border-top: 1px solid black; border-bottom: 1px solid black; font-size:10px;line-height:20px;white-space:nowrap;width:100%;}'+
-							// ' .boutons_haut{text-align:right;}'+
-							'\n #tableau_raide_facile td {padding-right:2px;padding-left:2px;}'+
-							'\n #tableau_raide_facile td.right {text-align:right;padding-right:2px;padding-left:2px;}'+
-							'\n #tableau_raide_facile th.RF_icon {width: 18px;}'+
-							'\n #tableau_raide_facile th {color: #6F9FC8;}'+
-							'\n #tableau_raide_facile a {color: #6F9FC8;}'+
-							'\n #tableau_raide_facile a {color: #6F9FC8;}'+
-							// Options
-							'#div_raide_facile .tableau_interne tr:hover { color:white; }'+
-							// Tableau des scans
-							'#div_raide_facile .htmlTooltip > .tooltipTitle { display:none; }';
+						'\n #tableau_raide_facile{margin-top:5px; margin-bottom:5px; background-color:#0D1014; text-align:center;border-top: 1px solid black; border-bottom: 1px solid black; font-size:10px;line-height:20px;white-space:nowrap;width:100%;}'+
+						// ' .boutons_haut{text-align:right;}'+
+						'\n #tableau_raide_facile td {padding-right:2px;padding-left:2px;}'+
+						'\n #tableau_raide_facile td.right {text-align:right;padding-right:2px;padding-left:2px;}'+
+						'\n #tableau_raide_facile th.RF_icon {width: 18px;}'+
+						'\n #tableau_raide_facile th {color: #6F9FC8;}'+
+						'\n #tableau_raide_facile a {color: #6F9FC8;}'+
+						'\n #tableau_raide_facile a {color: #6F9FC8;}'+
+						// Options
+						'#div_raide_facile .tableau_interne tr:hover { color:white; }'+
+						// Tableau des scans
+						'#div_raide_facile .htmlTooltip > .tooltipTitle { display:none; }';
 
-			var heads = document.getElementsByTagName("head");
-			if (heads.length > 0) {
-				var node = document.createElement("style");
-				node.type = "text/css";
-				node.appendChild(document.createTextNode(style_css));
-				heads[0].appendChild(node);
-			}
-
-			// détection automatique de la bonne taille pour décaler le menu des planètes
-			plusTard(ajusterTailleBox);
+		var heads = document.getElementsByTagName("head");
+		if (heads.length > 0) {
+			var node = document.createElement("style");
+			node.type = "text/css";
+			node.appendChild(document.createTextNode(style_css));
+			heads[0].appendChild(node);
 		}
 
+		// détection automatique de la bonne taille pour décaler le menu des planètes
+		plusTard(ajusterTailleBox);
 	}
 
-
+}

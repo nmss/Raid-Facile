@@ -1,3 +1,7 @@
+/* global GM_xmlhttpRequest */
+/* global GM_info */
+/* global unsafeWindow */
+/* global chrome */
 /* Pour éditer ce fichier je conseille Sublime Text, Notepad++ ou Brackets
 	lien: http://www.sublimetext.com/
 	lien: http://notepad-plus-plus.org/fr
@@ -33,7 +37,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		}
 		this.errors.push(messageParts);
 		console.error.apply(console, ['[raid facile]'].concat(messageParts));
-	}
+	};
 	var logger = new Logger();
 //}endregion
 logger.log('Salut :)');
@@ -46,11 +50,11 @@ logger.log('Salut :)');
 	// Variable contenant tout un tas d'informations utiles, pour ne pas laisser les variables dans le scope global.
 	var info;
 	/** Initialise et rempli la variable info */
-	var remplirInfo = function() {
+	var remplirInfo = function () {
 		var parseOgameMeta = function () {
 			var content, name;
 			var metaVars = $('meta[name^=ogame-]', document.head);
-
+	
 			info.ogameMeta = {};
 			for (var i = 0; i < metaVars.length; ++i) {
 				name = metaVars[i].getAttribute('name');
@@ -62,13 +66,13 @@ logger.log('Salut :)');
 			siteUrl: 'http://lastworld.etenity.free.fr/ogame/raid_facile/',
 			firefox: navigator.userAgent.indexOf("Firefox") > -1 || navigator.userAgent.indexOf("Iceweasel") > -1,
 			chrome: navigator.userAgent.indexOf("Chrome") > -1,
-			opera: navigator.userAgent.indexOf('Opera')>-1,
+			opera: navigator.userAgent.indexOf('Opera') > -1,
 			url: location.href,
 			serveur: location.hostname,
 			univers: location.hostname.replace('ogame.', ''),
 			date: new Date(),
 			startTime: (new Date()).getTime(),
-			session: $('meta[name=ogame-session]').attr('content') || location.href.replace(/^.*&session=([0-9a-f]*).*$/i,"$1"),
+			session: $('meta[name=ogame-session]').attr('content') || location.href.replace(/^.*&session=([0-9a-f]*).*$/i, "$1"),
 			pseudo: $('meta[name=ogame-player-name]').attr('content'),
 			playerId: $('meta[name=ogame-player-id]').attr('content')
 			// version
@@ -91,7 +95,7 @@ logger.log('Salut :)');
 		}
 	};
 	/** Parsing des paramètres situé après le "?" dans l'url, stoque les résultat dans info */
-	var parseUrl = function() {
+	var parseUrl = function () {
 		info.args = {};
 		info.hash = {};
 		var argString = location.search.substring(1).split('&');
@@ -127,7 +131,7 @@ logger.log('Salut :)');
 /** Fonctions de compatibilité **///{region
 	// Si ces fonctions n'existent pas, elle sont créées
 	if (typeof GM_getValue === 'undefined') {
-		var GM_getValue = function(key, defaultValue) {
+		var GM_getValue = function (key, defaultValue) {
 			var retValue = localStorage.getItem(key);
 			if (!retValue) {
 				retValue = defaultValue;
@@ -136,27 +140,27 @@ logger.log('Salut :)');
 		};
 	}
 	if (typeof GM_setValue === 'undefined') {
-		var GM_setValue = function(key, value) {
+		var GM_setValue = function (key, value) {
 			localStorage.setItem(key, value);
 		};
 	}
 	if (typeof GM_deleteValue === 'undefined') {
-		var GM_deleteValue = function(key) {
+		var GM_deleteValue = function (key) {
 			localStorage.removeItem(key);
 		};
 	}
 	if (typeof GM_addStyle === 'undefined') {
-		var addStyle = function(css, url) {
+		var addStyle = function (css, url) {
 			if (url) {
-				$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
+				$('<link rel="stylesheet" type="text/css" media="screen" href="' + url + '">').appendTo(document.head);
 			} else {
 				$('<style type="text/css">' + css + '</style>').appendTo(document.head);
 			}
 		};
 	} else {
-		var addStyle = function(css, url) {
+		var addStyle = function (css, url) {
 			if (url) {
-				$('<link rel="stylesheet" type="text/css" media="screen" href="'+url+'">').appendTo(document.head);
+				$('<link rel="stylesheet" type="text/css" media="screen" href="' + url + '">').appendTo(document.head);
 			} else {
 				GM_addStyle(css);
 			}
@@ -188,7 +192,7 @@ logger.log('Salut :)');
 	}
 	Stockage.prototype = {
 		/** Renvoie la valeur d'une donnée en mémoire */
-		get: function(nom) {
+		get: function (nom) {
 			var key = this.mapping[nom][0];
 			if (this.data.hasOwnProperty(key)) {
 				return this.data[key];
@@ -197,22 +201,22 @@ logger.log('Salut :)');
 			}
 		},
 		/** Change la valeur en mémoire d'une donnée */
-		set: function(nom, valeur) {
+		set: function (nom, valeur) {
 			this.data[this.mapping[nom][0]] = valeur;
 			return this;
 		},
 		/** Charge en mémoire les données du stockage */
-		load: function() {
+		load: function () {
 			this.data = JSON.parse(GM_getValue(this.storageKeyName, '{}'));
 			return this;
 		},
 		/** Sauvegarde dans le stockage les données en mémoire */
-		save: function() {
+		save: function () {
 			GM_setValue(this.storageKeyName, JSON.stringify(this.data));
 			return this;
 		},
 		/** Vérification qu'il n'y a pas eu d'erreur de mapping (que chaque valeur n'est utilisée qu'une fois) */
-		checkMappingCount: function() {
+		checkMappingCount: function () {
 			var mappingCount = 0;
 			var mappingCountCheck = 0;
 			var mappingKeys = {};
@@ -235,7 +239,7 @@ logger.log('Salut :)');
 //}endregion
 
 /** Classe de communication avec la page **///{region
-	var Intercom = function() {
+	var Intercom = function () {
 		this.loaded = false;
 		this.listen();
 		this.listeAttente = [];
@@ -245,7 +249,7 @@ logger.log('Salut :)');
 			action (string) le nom de l'action
 			data (object)(facultatif) les données à transmettre
 		*/
-		send: function(action, data) {
+		send: function (action, data) {
 			// Si l'autre intercom n'est pas encore chargé on met les messages en attente
 			if (this.loaded === false) {
 				this.listeAttente.push([action, data]);
@@ -260,24 +264,24 @@ logger.log('Salut :)');
 			window.postMessage(données, '*');
 		},
 		/** Permet de recevoir les messages de l'autre intercom */
-		listen: function() {
+		listen: function () {
 			window.addEventListener('message', this.received.bind(this), false);
 		},
 		/** Défini les action à effectuer en cas de message reçu */
-		received: function(event) {
+		received: function (event) {
 			// On s'assure que le message est bien pour nous
 			if (event.data.namespace !== 'Raid facile' || event.data.fromPage === false) {
 				return;
 			}
-			switch(event.data.action) {
-			case 'loaded':
-				// l'autre intercom est chargé, on peut donc traiter les messages en attente
-				this.loaded = true;
-				this.traiterListeAttente();
-				break;
+			switch (event.data.action) {
+				case 'loaded':
+					// l'autre intercom est chargé, on peut donc traiter les messages en attente
+					this.loaded = true;
+					this.traiterListeAttente();
+					break;
 			}
 		},
-		traiterListeAttente: function() {
+		traiterListeAttente: function () {
 			// On envoie tous les messages de la liste d'attente puis on vide la liste
 			for (var i = 0; i < this.listeAttente.length; ++i) {
 				this.send.apply(this, this.listeAttente[i]);
@@ -296,7 +300,7 @@ logger.log('Salut :)');
 		this.es = {};
 	}
 	I18n.prototype = {
-		get: function(key) {
+		get: function (key) {
 			var local = this[langue][key];
 			if (local === undefined && key !== 'missing_translation') {
 				logger.error(i18n('missing_translation') + ' : "' + key + '"');
@@ -309,10 +313,10 @@ logger.log('Salut :)');
 			}
 			return local;
 		},
-		exporter: function(langue) {
+		exporter: function (langue) {
 			return this[langue];
 		},
-		importer: function(langue, data) {
+		importer: function (langue, data) {
 			this[langue] = data;
 		}
 	};
@@ -330,7 +334,7 @@ logger.log('Salut :)');
 		var changementTaille = (tailleMenuGauche + tailleMenuPlanetes + tailleRaidFacile) - tailleBox;
 		if (changementTaille > 0) {
 			$('#box').width(tailleBox + changementTaille);
-			$('#contentWrapper').width( $('#contentWrapper').width() + changementTaille);
+			$('#contentWrapper').width($('#contentWrapper').width() + changementTaille);
 
 			var bannerSkyscraperLeft = parseInt($('#banner_skyscraper').css('left').slice(0, -2)) + changementTaille;
 			$('#banner_skyscraper').css('left', bannerSkyscraperLeft);
@@ -371,7 +375,7 @@ logger.log('Salut :)');
 		}
 		rebuildHash();
 		logger.log('Page', info.page);
-		logger.log('Navigateur', JSON.stringify({ chrome:info.chrome, firefox:info.firefox, opera:info.opera, tampermonkey:info.tampermonkey }));
+		logger.log('Navigateur', JSON.stringify({ chrome: info.chrome, firefox: info.firefox, opera: info.opera, tampermonkey: info.tampermonkey }));
 
 		intercom = new Intercom();
 
@@ -419,7 +423,7 @@ logger.log('Salut :)');
 		for (var method in ClassObject.prototype) {
 			func[method] = instance[method].bind(instance);
 		}
-		return func; 
+		return func;
 	};
 
 	/** Permet d'exécuter une fonction, mais plus tard */
@@ -502,10 +506,10 @@ logger.log('Salut :)');
 		var url = new Url(document.querySelector(selector).getAttribute('href')).hashes(info.hash);
 		var li = $('<li id="raide-facile"></li>');
 		if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile') {
-			li.append('<span class="menu_icon"><a href="'+url.hashes({ raidFacile: 'options' })+'" title="'+i18n.get('options de')+' '+i18n.get('raid facile')+'"><div class="menuImage traderOverview"></div></a></span>');
+			li.append('<span class="menu_icon"><a href="' + url.hashes({ raidFacile: 'options' }) + '" title="' + i18n.get('options de') + ' ' + i18n.get('raid facile') + '"><div class="menuImage traderOverview"></div></a></span>');
 			$('.menu_icon a', li).click(afficherMasquerOptions);
 		}
-		li.append('<a href="'+url.hashes({ raidFacile: 'tableau' })+'" class="menubutton" id="lien_raide"><span class="textlabel">'+ i18n.get('raid facile') + '</span></a>');
+		li.append('<a href="' + url.hashes({ raidFacile: 'tableau' }) + '" class="menubutton" id="lien_raide"><span class="textlabel">' + i18n.get('raid facile') + '</span></a>');
 		if (!GM_getValue("aJours_d", true)) {
 			$('.textlabel', li).css('color', 'orange');
 		}
@@ -529,7 +533,7 @@ logger.log('Salut :)');
 
 	/** Colore les lignes en fonction des missions en cours */
 	function showAttaque(data) {
-		var traiteFlotte = function(elem) {
+		var traiteFlotte = function (elem) {
 			var destination = $.trim($('.destCoords a', elem).text());
 			var missionType = elem.data('mission-type');
 			var retour = elem.data('return-flight') ? 1 : 0;
@@ -604,11 +608,11 @@ logger.log('Salut :)');
 			}
 			var titre = 'Mission actuellement en cours<div class="splitLine"></div>';
 			for (var typeMission in cible) {
-				titre += '<p>' + localization.missions[typeMission] + ' : ' + cible[typeMission][0] + ' +' + (cible[typeMission][1]-cible[typeMission][0]) + ' retour' + '</p>';
+				titre += '<p>' + localization.missions[typeMission] + ' : ' + cible[typeMission][0] + ' +' + (cible[typeMission][1] - cible[typeMission][0]) + ' retour' + '</p>';
 			}
 			$('.nombreAttaque', lignes).attr('title', titre);
 		}
-		intercom.send('tooltip', {selector:'#corps_tableau2 .nombreAttaque[title]'});
+		intercom.send('tooltip', { selector: '#corps_tableau2 .nombreAttaque[title]' });
 	}
 
 	/** Permet de récupérer un objet contenant toutes les options */
@@ -619,18 +623,18 @@ logger.log('Salut :)');
 			keyName: stockageOption.storageKeyName
 		};
 		optionExport.optionOld = {
-			option1: GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1'),
-			option2: GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0'),
-			option3: GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F'),
-			option4: GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1'),
-			option5: GM_getValue('option5'+ info.serveur, navigator.language),
+			option1: GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1'),
+			option2: GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0'),
+			option3: GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F'),
+			option4: GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1'),
+			option5: GM_getValue('option5' + info.serveur, navigator.language),
 			vitesse_uni: parseInt(GM_getValue('vitesse_uni', '1'))
 		};
 		prompt("Voice l'export des options", JSON.stringify(optionExport));
 	}
 
 	/** Renvoie un objet contenant toutes les données utiles pour les statistiques */
-	var getStatData = function() {
+	var getStatData = function () {
 		var data = {
 			id: info.ogameMeta['ogame-player-id'],
 			univers: info.ogameMeta['ogame-universe']
@@ -658,7 +662,7 @@ logger.log('Salut :)');
 			// modal: true,
 			// resizable: false,
 			buttons: {
-				"Installer": function() {
+				"Installer": function () {
 					// preference.get()['lastUpdateCheck'] = info.now;
 					// preference.save();
 					location.href = info.siteUrl;
@@ -667,18 +671,18 @@ logger.log('Salut :)');
 					// }).parent().css({
 						// width:'auto', height:'auto'
 					// });
-					GM_setValue("date_mise_ajours", ''+ info.startTime +'');
+					GM_setValue("date_mise_ajours", '' + info.startTime + '');
 					popup.dialog('destroy');
 				},
-				"Changelog": function() {
+				"Changelog": function () {
 					location.href = info.siteUrl + '?changelog';
 					// popup.html('<iframe src="'+info.siteUrl+'?changelog" style="width:100%; height:98%"></iframe>');
 				},
-				"Plus tard": function() {
+				"Plus tard": function () {
 					// preference.get()['lastUpdateCheck'] = info.now;
 					// preference.save();
 					popup.dialog('destroy');
-					GM_setValue("date_mise_ajours", ''+ ( info.startTime + 1000*60*60*24*7 ) +'');
+					GM_setValue("date_mise_ajours", '' + (info.startTime + 1000 * 60 * 60 * 24 * 7) + '');
 				}
 			}
 		});
@@ -693,7 +697,7 @@ logger.log('Salut :)');
 	/** Vérifie s'il y a une mise à jour */
 	function checkUpdate() {
 		var lastUpdateDate = GM_getValue("date_mise_ajours", "0");
-		if((info.startTime - parseInt(lastUpdateDate)) > 1000*60*60*6) { // vérification toutes les 6h
+		if ((info.startTime - parseInt(lastUpdateDate)) > 1000 * 60 * 60 * 6) { // vérification toutes les 6h
 			var params = getStatData();
 			params.check = true;
 			var url = new Url(info.siteUrl).params(params).toString();
@@ -703,7 +707,7 @@ logger.log('Salut :)');
 				GM_xmlhttpRequest({
 					method: 'GET',
 					url: url,
-					onload: function(response) {
+					onload: function (response) {
 						mise_a_jour(response.responseText);
 					}
 				});
@@ -713,7 +717,7 @@ logger.log('Salut :)');
 
 	/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
 	var numberConverter = {
-		toInt: function(number, useShortNotation) {
+		toInt: function (number, useShortNotation) {
 			var str = number.toString();
 			if (useShortNotation) {
 				str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
@@ -721,10 +725,10 @@ logger.log('Salut :)');
 			str = str.replace(/ /g, '');
 			return parseInt(str, 10);
 		},
-		shortenNumber: function(number, factor) {
+		shortenNumber: function (number, factor) {
 			return Math.round(number / factor);
 		},
-		toPrettyString: function(number) {
+		toPrettyString: function (number) {
 			var k = 1000;
 			var m = 1000000;
 			var g = 1000000000;
@@ -746,7 +750,7 @@ logger.log('Salut :)');
 		this.parse(url);
 	}
 	Url.prototype = {
-		parse: function(url) {
+		parse: function (url) {
 			this._params = {};
 			this._hashes = {};
 
@@ -781,19 +785,19 @@ logger.log('Salut :)');
 				}
 			}
 		},
-		params: function(params) {
+		params: function (params) {
 			for (var key in params) {
 				this._params[encodeURIComponent(key)] = encodeURIComponent(params[key]);
 			}
 			return this;
 		},
-		hashes: function(hashes) {
+		hashes: function (hashes) {
 			for (var key in hashes) {
 				this._hashes[encodeURIComponent(key)] = encodeURIComponent(hashes[key]);
 			}
 			return this;
 		},
-		toString: function() {
+		toString: function () {
 			var url = this.url;
 
 			var params = [];
@@ -827,34 +831,34 @@ logger.log('Salut :)');
 	/** Demande à l'utilisateur d'appuyer sur une touche du clavier et détecte laquelle */
 	function findKey(options) {
 		var which = options.defaultValue;
-		function findKeyCallback (eventData) {
+		function findKeyCallback(eventData) {
 			eventData.preventDefault();
 			eventData.stopPropagation();
 			which = eventData.which;
 			$('#which', popup).text(which);
 		}
 		var buttons = {};
-		buttons[i18n.get('ok')] = function() {
+		buttons[i18n.get('ok')] = function () {
 			if (which) {
 				popup.dialog('close');
 				options.callback(which);
 			}
 		};
-		buttons[i18n.get('cancel')] = function() {
+		buttons[i18n.get('cancel')] = function () {
 			popup.dialog('close');
 			options.callback();
 		};
 		var popupHtml = [
-			'<div title="'+ i18n.get('raid facile') +'">',
-			'<p>'+ i18n.get('quelle_touche') +'</p><br>',
-			'<p>Le code de la touche choisie est : <span id="which">'+ which +'</span></p>',
+			'<div title="' + i18n.get('raid facile') + '">',
+			'<p>' + i18n.get('quelle_touche') + '</p><br>',
+			'<p>Le code de la touche choisie est : <span id="which">' + which + '</span></p>',
 			'</div>'
 		].join('');
 		var popup = $(popupHtml).dialog({
 			width: 500,
 			modal: true,
 			buttons: buttons,
-			close: function() {
+			close: function () {
 				$(document).off('keyup', findKeyCallback);
 				popup.dialog('destroy');
 			}
@@ -877,12 +881,12 @@ init();
 	x/x/x/x/x/.... signifie
 	arme/bouclier/protect/combus/impul/hyper/coordonee/date/option/ressource/classement/sauvegard auto/temps garde scan/exversion/coul_att/coul_att_g/coul_dest/lien/remplace/lien esp/rec/itesse/tps_vol/nom_j/nom_p/coord_q/prod_h/ress_h
 	*/
-	var option1 = GM_getValue('option1'+ info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
-	var option2 = GM_getValue('option2'+ info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
-	var option3 = GM_getValue('option3'+ info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
-	var option4 = GM_getValue('option4'+ info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
-	var option5 = GM_getValue('option5'+ info.serveur, navigator.language);
-
+	var option1 = GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
+	var option2 = GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
+	var option3 = GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
+	var option4 = GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
+	var option5 = GM_getValue('option5' + info.serveur, navigator.language);
+	
 	var option1_split = option1.split('/');
 	var option2_split = option2.split('/');
 	var option3_split = option3.split('/');
@@ -896,16 +900,16 @@ init();
 		var tech_arme_a = option1_split[0];
 		var tech_bouclier_a = option1_split[1];
 		var tech_protect_a = option1_split[2];
-
+	
 		var tech_combus_a = option1_split[3];
 		var tech_impul_a = option1_split[4];
 		var tech_hyper_a = option1_split[5];
-
+	
 		// Autre :
 		var pos_depart = option1_split[6];
 		var vaisseau_lent = option1_split[7];
-		var pourcent_cdr =  parseFloat(option1_split[8]);
-		var pourcent_cdr_def =  parseFloat(option1_split[9]);
+		var pourcent_cdr = parseFloat(option1_split[8]);
+		var pourcent_cdr_def = parseFloat(option1_split[9]);
 		var vitesse_uni = parseInt(GM_getValue('vitesse_uni', '1'));
 	}
 
@@ -916,14 +920,14 @@ init();
 		var valeur_cdr_mini = option2_split[1];// valeur de cdr a partir de laquel il prend le scan
 		var valeur_tot_mini = option2_split[2];// valeur de total a partir de laquel il prend le scan
 		var type_prend_scan = option2_split[3];// choix entre les 3options du haut a partir de laquel il prend le scan
-
+	
 		//Classement :
 		var classement = option2_split[4];//0 date ; 1 coordonee ; 2 joueur ; 3 nom ^planette ; 4 ressource  metal; 5 cristal ; 6 deut ; 7 activite  ; 8 cdr possible ; 9 vaisseau; 10 defense ; 11 idrc ; 12 ressource total,13 reherche , 14 type de planette (lune ou planette)
 		var reverse = option2_split[9];
 		if (option2_split[11] !== undefined) { var q_taux_m = option2_split[11]; } else { var q_taux_m = 1; }
 		if (option2_split[12] !== undefined) { var q_taux_c = option2_split[12]; } else { var q_taux_c = 1; }
 		if (option2_split[13] !== undefined) { var q_taux_d = option2_split[13]; } else { var q_taux_d = 1; }
-
+	
 		//Options de sauvegarde de scan :
 		var scan_preenrgistre = option2_split[5];// si le scan est enregistre lorsqu'on le regarde ou seulement quand on clique sur enregistre.
 		var scan_remplace = option2_split[6];
@@ -935,7 +939,7 @@ init();
 		var jours_opt = Math.floor(parseInt(nb_minutesgardescan2) / 60 / 24);
 		var nb_ms_garde_scan = nb_minutesgardescan * 60 * 1000;
 		if (option2_split[10] !== undefined) { var nb_max_def = option2_split[10]; } else { var nb_max_def = 0; }
-
+	
 		//Autre :
 		var import_q_rep = option2_split[8];
 		if (option2_split[14] !== undefined) { var lien_raide_nb_pt_gt = option2_split[14]; } else { var lien_raide_nb_pt_gt = 2; }
@@ -958,24 +962,24 @@ init();
 		//Changement dans les colonnes :
 		var q_date_type_rep = option4_split[8];
 		var cdr_q_type_affiche = option4_split[2];
-
+	
 		//Changement dans boutons de droites :
 		var simulateur = option4_split[11];
 		var q_mess = option4_split[12];
 		var espionnage_lien = option4_split[1];
 		if (option4_split[25] !== undefined) { var q_lien_simu_meme_onglet = option4_split[25]; } else { var q_lien_simu_meme_onglet = 1; }
-
+	
 		//Affichage de Colonne :
 		if (option4_split[21] !== undefined) { var q_compteur_attaque = option4_split[21]; } else { var q_compteur_attaque = 0; }
 		if (option4_split[17] !== undefined) { var q_vid_colo = option4_split[17]; } else { var q_vid_colo = 0; }
 		var question_rassemble_col = option4_split[14];
 		var prod_h_q = option4_split[9];
 		var prod_gg = option4_split[10];
-		var prod_min_g = Math.floor(parseInt(prod_gg)%60);
+		var prod_min_g = Math.floor(parseInt(prod_gg) % 60);
 		var nb_minutesgardescan3 = parseInt(prod_gg) - prod_min_g;
-		var prod_h_g = Math.floor(Math.floor(parseInt(nb_minutesgardescan3)/60)%24);
-		nb_minutesgardescan3 = parseInt(nb_minutesgardescan3) - prod_h_g*60;
-		var prod_j_g = Math.floor(parseInt(nb_minutesgardescan3)/60/24);
+		var prod_h_g = Math.floor(Math.floor(parseInt(nb_minutesgardescan3) / 60) % 24);
+		nb_minutesgardescan3 = parseInt(nb_minutesgardescan3) - prod_h_g * 60;
+		var prod_j_g = Math.floor(parseInt(nb_minutesgardescan3) / 60 / 24);
 		var date_affiche = option4_split[7];//0 date non affiche, 1 date affiche
 		var tps_vol_q = option4_split[3];
 		var nom_j_q_q = option4_split[4];
@@ -1022,13 +1026,13 @@ init();
 	var bbcode_balisem = [];
 	var bbcode_balisef = [];
 
-	couleur2[1]= option_bbcode_split[0];
-	couleur2[2]= option_bbcode_split[1];
-	couleur2[3]= option_bbcode_split[2];
-	couleur2[4]= option_bbcode_split[3];
-	couleur2[5]= option_bbcode_split[4];
-	couleur2[6]= option_bbcode_split[5];
-	couleur2[7]= option_bbcode_split[6];
+	couleur2[1] = option_bbcode_split[0];
+	couleur2[2] = option_bbcode_split[1];
+	couleur2[3] = option_bbcode_split[2];
+	couleur2[4] = option_bbcode_split[3];
+	couleur2[5] = option_bbcode_split[4];
+	couleur2[6] = option_bbcode_split[5];
+	couleur2[7] = option_bbcode_split[6];
 
 	bbcode_baliseo[0] = '[b]';
 	bbcode_balisef[0] = '[/b]';
@@ -2146,18 +2150,18 @@ init();
 			}
 		};
 		vari = {
-			sur:'sur ',
-			de:' de ',
-			pt: 'Petit transporteur',gt: 'Grand transporteur',cle: 'Chasseur léger',clo: 'Chasseur lourd',cro: 'Croiseur',vb: 'Vaisseau de bataille',vc: 'Vaisseau de colonisation',rec: 'Recycleur',esp: 'Sonde d`espionnage',bb: 'Bombardier',sat: 'Satellite solaire',dest: 'Destructeur',edlm: 'Étoile de la mort',tra: 'Traqueur',
-			lm: 'Lanceur de missiles',lle: 'Artillerie laser légère',llo: 'Artillerie laser lourde',gauss: 'Canon de Gauss',ion: 'Artillerie à ions',pla: 'Lanceur de plasma',pb: 'Petit bouclier',gb: 'Grand bouclier',mic: 'Missile d`interception',mip: 'Missile Interplanétaire',
-			tech_arm:'Technologie Armes', tech_bouc:'Technologie Bouclier', tech_pro:'Technologie Protection des vaisseaux spatiaux',
-			tech_com:'Technologie Combustion', tech_imp:'Technologie Impulsion', tech_hyp:'Technologie Hyper-Espace',
-			mine_m:'Mine de métal',
-			mine_c:'Mine de cristal',
-			mine_d:'Synthétiseur de deutérium',
+			sur: 'sur ',
+			de: ' de ',
+			pt: 'Petit transporteur', gt: 'Grand transporteur', cle: 'Chasseur léger', clo: 'Chasseur lourd', cro: 'Croiseur', vb: 'Vaisseau de bataille', vc: 'Vaisseau de colonisation', rec: 'Recycleur', esp: 'Sonde d`espionnage', bb: 'Bombardier', sat: 'Satellite solaire', dest: 'Destructeur', edlm: 'Étoile de la mort', tra: 'Traqueur',
+			lm: 'Lanceur de missiles', lle: 'Artillerie laser légère', llo: 'Artillerie laser lourde', gauss: 'Canon de Gauss', ion: 'Artillerie à ions', pla: 'Lanceur de plasma', pb: 'Petit bouclier', gb: 'Grand bouclier', mic: 'Missile d`interception', mip: 'Missile Interplanétaire',
+			tech_arm: 'Technologie Armes', tech_bouc: 'Technologie Bouclier', tech_pro: 'Technologie Protection des vaisseaux spatiaux',
+			tech_com: 'Technologie Combustion', tech_imp: 'Technologie Impulsion', tech_hyp: 'Technologie Hyper-Espace',
+			mine_m: 'Mine de métal',
+			mine_c: 'Mine de cristal',
+			mine_d: 'Synthétiseur de deutérium',
 
-			lang_speedsin:'fr',
-			lang_dragosin:'french'
+			lang_speedsin: 'fr',
+			lang_dragosin: 'french'
 		};
 	}
 	else if (location.href.indexOf('pl.ogame', 0) >= 0) {
@@ -2176,19 +2180,19 @@ init();
 			}
 		};
 		vari = {
-			sur:'na ',
-			de:' z ',
-			tech_arm: 'Technologia bojowa',tech_bouc: 'Technologia ochronna',tech_pro: 'Opancerzenie',
-			tech_hyp: 'Naped nadprzestrzenny',tech_com: 'Naped spalinowy',tech_imp: 'Naped impulsowy',
-			pt: 'Maly transporter',gt: 'Duzy transporter',cle: 'Lekki mysliwiec',clo: 'Ciezki mysliwiec',cro: 'Krazownik',vb: 'Okret wojenny',vc: 'Statek kolonizacyjny',rec: 'Recykler',esp: 'Sonda szpiegowska',bb: 'Bombowiec',sat: 'Satelita sloneczny ',dest: 'Niszczyciel',edlm: 'Gwiazda Smierci',tra: 'Pancernik',
-			lm: 'Wyrzutnia rakiet',lle: 'Lekkie dzialo laserowe ',llo: 'Ciezkie dzialo laserowe',gauss: 'Dzialo Gaussa',ion: 'Dzialo jonowe',pla: 'Wyrzutnia plazmy',pb: 'Mala powloka ochronna',gb: 'Duza powloka ochronna',mic: 'Przeciwrakieta',mip: 'Rakieta miedzyplanetarna',
+			sur: 'na ',
+			de: ' z ',
+			tech_arm: 'Technologia bojowa', tech_bouc: 'Technologia ochronna', tech_pro: 'Opancerzenie',
+			tech_hyp: 'Naped nadprzestrzenny', tech_com: 'Naped spalinowy', tech_imp: 'Naped impulsowy',
+			pt: 'Maly transporter', gt: 'Duzy transporter', cle: 'Lekki mysliwiec', clo: 'Ciezki mysliwiec', cro: 'Krazownik', vb: 'Okret wojenny', vc: 'Statek kolonizacyjny', rec: 'Recykler', esp: 'Sonda szpiegowska', bb: 'Bombowiec', sat: 'Satelita sloneczny ', dest: 'Niszczyciel', edlm: 'Gwiazda Smierci', tra: 'Pancernik',
+			lm: 'Wyrzutnia rakiet', lle: 'Lekkie dzialo laserowe ', llo: 'Ciezkie dzialo laserowe', gauss: 'Dzialo Gaussa', ion: 'Dzialo jonowe', pla: 'Wyrzutnia plazmy', pb: 'Mala powloka ochronna', gb: 'Duza powloka ochronna', mic: 'Przeciwrakieta', mip: 'Rakieta miedzyplanetarna',
 
-			mine_m:'Kopalnia metalu',
-			mine_c:'Kopalnia krysztalu',
-			mine_d:'Ekstraktor deuteru',
+			mine_m: 'Kopalnia metalu',
+			mine_c: 'Kopalnia krysztalu',
+			mine_d: 'Ekstraktor deuteru',
 
-			lang_speedsin:'en',
-			lang_dragosin:'english'
+			lang_speedsin: 'en',
+			lang_dragosin: 'english'
 		};
 	}
 	else if (location.href.indexOf('es.ogame', 0) >= 0 || location.href.indexOf('.ogame.com.ar', 0) >= 0) {
@@ -2207,19 +2211,19 @@ init();
 			}
 		};
 		vari = {
-			sur:'en ',
-			de:' desde ',
-			tech_arm: 'Tecnología Militar',tech_bouc: 'Tecnología de Defensa',tech_pro: 'Tecnología de Blindaje',
-			tech_hyp: 'Propulsor Hiperespacial',tech_com: 'Motor de Combustible',tech_imp: 'Motor de Impulso',
-			pt: 'Nave Pequeña de Carga',gt: 'Nave Grande de Carga',cle: 'Cazador Ligero',clo: 'Cazador Pesado',cro: 'Crucero',vb: 'Nave de Batalla',vc: 'Nave de Colonia',rec: 'Reciclador',esp: 'Sonda de Espionaje',bb: 'Bombardero',sat: 'Satélite Solar',dest: 'Destructor',edlm: 'Estrella de la Muerte',tra: 'Acorazado',
-			lm: 'Lanzamisiles',lle: 'Láser Pequeño',llo: 'Láser Grande',gauss: 'Cañón de Gauss',ion: 'Cañón Iónico',pla: 'Cañón de Plasma',pb: 'Cúpula Pequeña de Protección',gb: 'Cúpula Grande Protección',mic: 'Misiles Antibalísticos',mip: 'Misiles Interplanetarios',
+			sur: 'en ',
+			de: ' desde ',
+			tech_arm: 'Tecnología Militar', tech_bouc: 'Tecnología de Defensa', tech_pro: 'Tecnología de Blindaje',
+			tech_hyp: 'Propulsor Hiperespacial', tech_com: 'Motor de Combustible', tech_imp: 'Motor de Impulso',
+			pt: 'Nave Pequeña de Carga', gt: 'Nave Grande de Carga', cle: 'Cazador Ligero', clo: 'Cazador Pesado', cro: 'Crucero', vb: 'Nave de Batalla', vc: 'Nave de Colonia', rec: 'Reciclador', esp: 'Sonda de Espionaje', bb: 'Bombardero', sat: 'Satélite Solar', dest: 'Destructor', edlm: 'Estrella de la Muerte', tra: 'Acorazado',
+			lm: 'Lanzamisiles', lle: 'Láser Pequeño', llo: 'Láser Grande', gauss: 'Cañón de Gauss', ion: 'Cañón Iónico', pla: 'Cañón de Plasma', pb: 'Cúpula Pequeña de Protección', gb: 'Cúpula Grande Protección', mic: 'Misiles Antibalísticos', mip: 'Misiles Interplanetarios',
 
-			mine_m:'Mina de Metal',
-			mine_c:'Mina de Cristal',
-			mine_d:'Sintetizador de Deuterio',
+			mine_m: 'Mina de Metal',
+			mine_c: 'Mina de Cristal',
+			mine_d: 'Sintetizador de Deuterio',
 
-			lang_speedsin:'en',
-			lang_dragosin:'english'
+			lang_speedsin: 'en',
+			lang_dragosin: 'english'
 		};
 	}
 	else if (location.href.indexOf('ro.ogame', 0) >= 0) {// thanks Lao Tzi
@@ -2238,19 +2242,19 @@ init();
 			}
 		};
 		vari = {
-			sur:'la ',
-			de:' de la ',
-			tech_arm: 'Tehnologia Armelor',tech_bouc: 'Tehnologia Scuturilor',tech_pro: 'Tehnologia Armurilor',
-			tech_hyp: 'Motor Hiperspatial',tech_com: 'Motor de Combustie',tech_imp: 'Motor pe impuls',
-			pt: 'Transportator mic',gt: 'Transportator mare',cle: 'Vânator Usor',clo: 'Vânator Greu',cro: 'Crucisator',vb: 'Nava de razboi',vc: 'Nava de colonizare',rec: 'Reciclator',esp: 'Proba de spionaj',bb: 'Bombardier',sat: 'Satelit Solar',dest: 'Distrugator',edlm: 'RIP',tra: 'Interceptor',
-			lm: 'Lansatoare de Rachete',lle: 'Lasere usoare',llo: 'Lasere Grele',gauss: 'Tunuri Gauss',ion: 'Tunuri Magnetice',pla: 'Turele de Plasma',pb: 'Scut planetar mic',gb: 'Scut planetar mare',mic: 'Rachete Anti-Balistice',mip: 'Rachete Interplanetare',
+			sur: 'la ',
+			de: ' de la ',
+			tech_arm: 'Tehnologia Armelor', tech_bouc: 'Tehnologia Scuturilor', tech_pro: 'Tehnologia Armurilor',
+			tech_hyp: 'Motor Hiperspatial', tech_com: 'Motor de Combustie', tech_imp: 'Motor pe impuls',
+			pt: 'Transportator mic', gt: 'Transportator mare', cle: 'Vânator Usor', clo: 'Vânator Greu', cro: 'Crucisator', vb: 'Nava de razboi', vc: 'Nava de colonizare', rec: 'Reciclator', esp: 'Proba de spionaj', bb: 'Bombardier', sat: 'Satelit Solar', dest: 'Distrugator', edlm: 'RIP', tra: 'Interceptor',
+			lm: 'Lansatoare de Rachete', lle: 'Lasere usoare', llo: 'Lasere Grele', gauss: 'Tunuri Gauss', ion: 'Tunuri Magnetice', pla: 'Turele de Plasma', pb: 'Scut planetar mic', gb: 'Scut planetar mare', mic: 'Rachete Anti-Balistice', mip: 'Rachete Interplanetare',
 
-			mine_m:'Mina de Metal',
-			mine_c:'Mina de Cristal',
-			mine_d:'Sintetizator de Deuteriu',
+			mine_m: 'Mina de Metal',
+			mine_c: 'Mina de Cristal',
+			mine_d: 'Sintetizator de Deuteriu',
 
-			lang_speedsin:'en',
-			lang_dragosin:'english'
+			lang_speedsin: 'en',
+			lang_dragosin: 'english'
 		};
 	}
 	else if (location.href.indexOf('it.ogame', 0) >= 0) {// thanks Tharivol
@@ -2269,19 +2273,19 @@ init();
 			}
 		};
 		vari = {
-			sur:'su ',
-			de:' di ',
-			tech_arm: 'Tecnologia delle Armi',tech_bouc: 'Tecnologia degli Scudi',tech_pro: 'Tecnologia delle Corazze',
-			tech_hyp: 'Propulsore Iperspaziale',tech_com: 'Propulsore a Combustione',tech_imp: 'Propulsore a Impulso',
-			pt: 'Cargo Leggero',gt: 'Cargo Pesante',cle: 'Caccia Leggero',clo: 'Caccia Pesante',cro: 'Incrociatore',vb: 'Nave da Battaglia',vc: 'Colonizzatrice',rec: 'Riciclatrice',esp: 'Sonda spia',bb: 'Bombardiere',sat: 'Satellite Solare',dest: 'Corazzata',edlm: 'Morte Nera',tra: 'Incrociatore da Battaglia',
-			lm: 'Lanciamissili',lle: 'Laser Leggero',llo: 'Laser Pesante',gauss: 'Cannone Gauss',ion: 'Cannone Ionico',pla: 'Cannone al Plasma',pb: 'Cupola Scudo',gb: 'Cupola Scudo Potenziata',mic: 'Missili Anti Balistici',mip: 'Missili Interplanetari',
+			sur: 'su ',
+			de: ' di ',
+			tech_arm: 'Tecnologia delle Armi', tech_bouc: 'Tecnologia degli Scudi', tech_pro: 'Tecnologia delle Corazze',
+			tech_hyp: 'Propulsore Iperspaziale', tech_com: 'Propulsore a Combustione', tech_imp: 'Propulsore a Impulso',
+			pt: 'Cargo Leggero', gt: 'Cargo Pesante', cle: 'Caccia Leggero', clo: 'Caccia Pesante', cro: 'Incrociatore', vb: 'Nave da Battaglia', vc: 'Colonizzatrice', rec: 'Riciclatrice', esp: 'Sonda spia', bb: 'Bombardiere', sat: 'Satellite Solare', dest: 'Corazzata', edlm: 'Morte Nera', tra: 'Incrociatore da Battaglia',
+			lm: 'Lanciamissili', lle: 'Laser Leggero', llo: 'Laser Pesante', gauss: 'Cannone Gauss', ion: 'Cannone Ionico', pla: 'Cannone al Plasma', pb: 'Cupola Scudo', gb: 'Cupola Scudo Potenziata', mic: 'Missili Anti Balistici', mip: 'Missili Interplanetari',
 
-			mine_m:'Miniera di Metallo',
-			mine_c:'Miniera di Cristalli',
-			mine_d:'Sintetizzatore di Deuterio',
+			mine_m: 'Miniera di Metallo',
+			mine_c: 'Miniera di Cristalli',
+			mine_d: 'Sintetizzatore di Deuterio',
 
-			lang_speedsin:'it',
-			lang_dragosin:'italian'
+			lang_speedsin: 'it',
+			lang_dragosin: 'italian'
 		};
 	}
 	else if (location.href.indexOf('gr.ogame', 0) >= 0) {// Traduit par faethnskonhmou http://userscripts.org/users/499485
@@ -2300,15 +2304,15 @@ init();
 			}
 		};
 		vari = {
-			sur:'στο ',
-			de:' απο ',
-			tech_arm: 'Τεχνολογία Όπλων',tech_bouc: 'Τεχνολογία Ασπίδων',tech_pro: 'Τεχνολογία Θωράκισης',
-			tech_hyp: 'Προώθηση Καύσεως',tech_com: 'Ωστική Προώθηση',tech_imp: 'Υπερδιαστημική Προώθηση',
-			pt: 'Μικρό Μεταγωγικό',gt: 'Μεγάλο Μεταγωγικό',cle: 'Ελαφρύ Μαχητικό',clo: 'Βαρύ Μαχητικό',cro: 'Καταδιωκτικό',vb: 'Καταδρομικό',vc: 'Σκάφος Αποικιοποίησης',rec: 'Ανακυκλωτής',esp: 'Κατασκοπευτικό Στέλεχος',bb: 'Βομβαρδιστικό',sat: 'Ηλιακοί Συλλέκτες',dest: 'Destroyer',edlm: 'Deathstar',tra: 'Θωρηκτό Αναχαίτισης',
-			lm: 'Εκτοξευτής Πυραύλων',lle: 'Ελαφρύ Λέιζερ',llo: 'Βαρύ Λέιζερ',gauss: 'Κανόνι Gauss',ion: 'Κανόνι Ιόντων',pla: 'Πυργίσκοι Πλάσματος',pb: 'Μικρός Αμυντικός Θόλος',gb: 'Μεγάλος Αμυντικός Θόλος',mic: 'Αντι-Βαλλιστικοί Πύραυλοι',mip: 'Διαπλανητικοί Πύραυλοι',
-			mine_m:'Ορυχείο Μετάλλου',
-			mine_c:'Ορυχείο Κρυστάλλου',
-			mine_d:'Συνθέτης Δευτέριου'
+			sur: 'στο ',
+			de: ' απο ',
+			tech_arm: 'Τεχνολογία Όπλων', tech_bouc: 'Τεχνολογία Ασπίδων', tech_pro: 'Τεχνολογία Θωράκισης',
+			tech_hyp: 'Προώθηση Καύσεως', tech_com: 'Ωστική Προώθηση', tech_imp: 'Υπερδιαστημική Προώθηση',
+			pt: 'Μικρό Μεταγωγικό', gt: 'Μεγάλο Μεταγωγικό', cle: 'Ελαφρύ Μαχητικό', clo: 'Βαρύ Μαχητικό', cro: 'Καταδιωκτικό', vb: 'Καταδρομικό', vc: 'Σκάφος Αποικιοποίησης', rec: 'Ανακυκλωτής', esp: 'Κατασκοπευτικό Στέλεχος', bb: 'Βομβαρδιστικό', sat: 'Ηλιακοί Συλλέκτες', dest: 'Destroyer', edlm: 'Deathstar', tra: 'Θωρηκτό Αναχαίτισης',
+			lm: 'Εκτοξευτής Πυραύλων', lle: 'Ελαφρύ Λέιζερ', llo: 'Βαρύ Λέιζερ', gauss: 'Κανόνι Gauss', ion: 'Κανόνι Ιόντων', pla: 'Πυργίσκοι Πλάσματος', pb: 'Μικρός Αμυντικός Θόλος', gb: 'Μεγάλος Αμυντικός Θόλος', mic: 'Αντι-Βαλλιστικοί Πύραυλοι', mip: 'Διαπλανητικοί Πύραυλοι',
+			mine_m: 'Ορυχείο Μετάλλου',
+			mine_c: 'Ορυχείο Κρυστάλλου',
+			mine_d: 'Συνθέτης Δευτέριου'
 		};
 	}
 	else /* anglais */ {
@@ -2327,20 +2331,20 @@ init();
 			}
 		};
 		vari = {
-			sur:'on ',
-			de:' from ',
-			tech_arm: 'Weapons Technology',tech_bouc: 'Shielding Technology',tech_pro: 'Armour Technology',
-			tech_hyp: 'Hyperspace Drive',tech_com: 'Combustion Drive',tech_imp: 'Impulse Drive',
-			pt: 'Small Cargo',gt: 'Large Cargo',cle: 'Light Fighter',clo: 'Heavy Fighter',cro: 'Cruiser',vb: 'Battleship',vc: 'Colony Ship',rec: 'Recycler',esp: 'Espionage Probe',bb: 'Bomber',sat: 'Solar Satellite',dest: 'Destroyer',edlm: 'Deathstar',tra: 'Battlecruiser',
-			lm: 'Rocket Launcher',lle: 'Light Laser',llo: 'Heavy Laser',gauss: 'Gauss Cannon',ion: 'Ion Cannon',pla: 'Plasma Turret',pb: 'Small Shield Dome',gb: 'Large Shield Dome',mic: 'Anti-Ballistic Missiles',mip: 'Interplanetary Missiles',
+			sur: 'on ',
+			de: ' from ',
+			tech_arm: 'Weapons Technology', tech_bouc: 'Shielding Technology', tech_pro: 'Armour Technology',
+			tech_hyp: 'Hyperspace Drive', tech_com: 'Combustion Drive', tech_imp: 'Impulse Drive',
+			pt: 'Small Cargo', gt: 'Large Cargo', cle: 'Light Fighter', clo: 'Heavy Fighter', cro: 'Cruiser', vb: 'Battleship', vc: 'Colony Ship', rec: 'Recycler', esp: 'Espionage Probe', bb: 'Bomber', sat: 'Solar Satellite', dest: 'Destroyer', edlm: 'Deathstar', tra: 'Battlecruiser',
+			lm: 'Rocket Launcher', lle: 'Light Laser', llo: 'Heavy Laser', gauss: 'Gauss Cannon', ion: 'Ion Cannon', pla: 'Plasma Turret', pb: 'Small Shield Dome', gb: 'Large Shield Dome', mic: 'Anti-Ballistic Missiles', mip: 'Interplanetary Missiles',
 
 			// ressource:'Ressources',//pour antigame
-			mine_m:'Metal Mine',
-			mine_c:'Crystal Mine',
-			mine_d:'Deuterium Synthesizer',
+			mine_m: 'Metal Mine',
+			mine_c: 'Crystal Mine',
+			mine_d: 'Deuterium Synthesizer',
 
-			lang_speedsin:'en',
-			lang_dragosin:'english'
+			lang_speedsin: 'en',
+			lang_dragosin: 'english'
 		};
 	}
 //}endregion
@@ -2359,22 +2363,10 @@ init();
 
 	// separateur de milier
 	function addPoints(nombre) {
-		//console.log(nombre, typeof nombre);
 		if (nombre === '?' || nombre === 0) {
 			return nombre;
 		}
 		return nombre.toLocaleString();
-		/*var signe = '';
-		if (nombre < 0) {
-			nombre = Math.abs(nombre);
-			signe = '-';
-		}
-		var str = nombre.toString(), n = str.length;
-		if (n < 4) {
-			return signe + nombre;
-		} else {
-			return  signe + (((n % 3) ? str.substr(0, n % 3) + '.' : '') + str.substr(n % 3).match(new RegExp('[0-9]{3}', 'g')).join('.'));
-		}*/
 	}
 
 	function addPoints2(nombre) {
@@ -2398,7 +2390,7 @@ init();
 	function supr0(number) {
 		number = number.toString();
 		var i = 0;
-		for(; i < number.length - 1 && number[i] == '0'; ++i) {
+		for (; i < number.length - 1 && number[i] == '0'; ++i) {
 			number[i] = '';
 		}
 		return number.substring(i, number.length);
@@ -2427,13 +2419,13 @@ init();
 
 	/** Affiche l'icône "new" avec un commentaire en "title" */
 	function iconeNew(commentaire) {
-		return '<img src="http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/iconeNew.png" alt="new" title="'+commentaire+'">';
+		return '<img src="http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/iconeNew.png" alt="new" title="' + commentaire + '">';
 	}
 //}endregion
 
 /** page mouvement **///{region
 	function recup_flotte_mv() {// sur la page mouvement recupere les mouvements de flottes en cours
-		if (info.url.indexOf('page=movement',0) < 0) {
+		if (info.url.indexOf('page=movement', 0) < 0) {
 			return;
 		}
 		var destination_flotte_f = [];
@@ -2487,7 +2479,7 @@ init();
 
 	function save_option(serveur) {
 		/** checked -> 0, pas checked -> 1 */
-		var checkedFromIdToInt = function(id) {
+		var checkedFromIdToInt = function (id) {
 			var elem = document.getElementById(id);
 			if (elem === null) {
 				return 0;
@@ -2500,7 +2492,7 @@ init();
 				var techno_arme = parseInt(document.getElementById('valeur_arme').value, 10);
 				var techno_boulier = parseInt(document.getElementById('valeur_boulier').value, 10);
 				var techno_protect = parseInt(document.getElementById('valeur_protection').value, 10);
-
+	
 				var techno_combu = parseInt(document.getElementById('valeur_combustion').value, 10);
 				var techno_impu = parseInt(document.getElementById('valeur_impulsion').value, 10);
 				var techno_hyper = parseInt(document.getElementById('valeur_hyper').value, 10);
@@ -2513,86 +2505,86 @@ init();
 
 				// pourcentage de vaisseau dans le cdr
 				var pourcent_cdr_q = document.getElementById('cdr_pourcent').value;
-				pourcent_cdr_q = Math.round(parseFloat(pourcent_cdr_q)/10);
-				pourcent_cdr_q = pourcent_cdr_q/10;
+				pourcent_cdr_q = Math.round(parseFloat(pourcent_cdr_q) / 10);
+				pourcent_cdr_q = pourcent_cdr_q / 10;
 
 				// pourcentage de defense dans le cdr
 				var pourcent_cdr_def_q = document.getElementById('cdr_pourcent_def').value;
-				pourcent_cdr_def_q = Math.round(parseFloat(pourcent_cdr_def_q)/10);
-				pourcent_cdr_def_q = pourcent_cdr_def_q/10;
+				pourcent_cdr_def_q = Math.round(parseFloat(pourcent_cdr_def_q) / 10);
+				pourcent_cdr_def_q = pourcent_cdr_def_q / 10;
 
 				// ancienne question pour la vitesse de l'univers
 				var vitesse_uni_q = 1;
 
-			var option1 = techno_arme +'/'+ techno_boulier +'/'+ techno_protect +'/'+ techno_combu +'/'+ techno_impu+
-						'/'+ techno_hyper +'/'+ coordonee_depart +'/'+ vitesse_vaisseaux_plus_lent +'/'+ pourcent_cdr_q +'/'+ pourcent_cdr_def_q+
-						'/'+ vitesse_uni_q;
-			GM_setValue('option1'+ serveur, option1);
+			var option1 = techno_arme + '/' + techno_boulier + '/' + techno_protect + '/' + techno_combu + '/' + techno_impu +
+				'/' + techno_hyper + '/' + coordonee_depart + '/' + vitesse_vaisseaux_plus_lent + '/' + pourcent_cdr_q + '/' + pourcent_cdr_def_q +
+				'/' + vitesse_uni_q;
+			GM_setValue('option1' + serveur, option1);
 		}
 
 		{//choix variable
 			//Selection de scan :
-				var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value, true);
-				var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value, true);
-				var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value, true);
+			var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value, true);
+			var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value, true);
+			var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value, true);
 
-				var prend_type0 = document.getElementById("prend_type0").checked;
-				var prend_type1 = document.getElementById("prend_type1").checked;
-				var prend_type_x;
-				if (prend_type0 === true) {
-					prend_type_x = 0;
-				} else if (prend_type1 === true) {
-					prend_type_x = 1;
-				} else {
-					prend_type_x = 2;
-				}
+			var prend_type0 = document.getElementById("prend_type0").checked;
+			var prend_type1 = document.getElementById("prend_type1").checked;
+			var prend_type_x;
+			if (prend_type0 === true) {
+				prend_type_x = 0;
+			} else if (prend_type1 === true) {
+				prend_type_x = 1;
+			} else {
+				prend_type_x = 2;
+			}
 
 			//Classement :
-				var selection_classement = document.getElementById('classement').value;
-				var q_reverse_croissant = document.getElementById("q_reverse_croissant").checked;
-				var q_reverse_c = q_reverse_croissant === true ? 0 : 1;
+			var selection_classement = document.getElementById('classement').value;
+			var q_reverse_croissant = document.getElementById("q_reverse_croissant").checked;
+			var q_reverse_c = q_reverse_croissant === true ? 0 : 1;
 
-				var taux_m_rep = parseFloat(document.getElementById('q_taux_m').value, 10);
-				var taux_c_rep = parseFloat(document.getElementById('q_taux_c').value, 10);
-				var taux_d_rep = parseFloat(document.getElementById('q_taux_d').value, 10);
+			var taux_m_rep = parseFloat(document.getElementById('q_taux_m').value, 10);
+			var taux_c_rep = parseFloat(document.getElementById('q_taux_c').value, 10);
+			var taux_d_rep = parseFloat(document.getElementById('q_taux_d').value, 10);
 
 			//Options de sauvegarde de scan :
-				var save_auto_scan_non_q = document.getElementById("save_auto_scan_non").checked;
-				var save_auto_scan_rep = save_auto_scan_non_q === true ? 0 : 1;
+			var save_auto_scan_non_q = document.getElementById("save_auto_scan_non").checked;
+			var save_auto_scan_rep = save_auto_scan_non_q === true ? 0 : 1;
 
-				var scan_remplace_non = document.getElementById("scan_remplace_non").checked;
-				var scan_remplace_rep = scan_remplace_non === true ? 0 : 1;
+			var scan_remplace_non = document.getElementById("scan_remplace_non").checked;
+			var scan_remplace_rep = scan_remplace_non === true ? 0 : 1;
 
-				var heures_suprime_scan = parseInt(document.getElementsByClassName('heures_suprime')[0].value) || 0;
-				var jours_suprime_scan = parseInt(document.getElementsByClassName('jours_suprime')[0].value) || 0;
-				var minutes_suprime_scan = parseInt(document.getElementsByClassName('minutes_suprime')[0].value) || 0;
-				var minutes_total_suprime_scan = minutes_suprime_scan + 60 * (heures_suprime_scan + 24 * jours_suprime_scan);
+			var heures_suprime_scan = parseInt(document.getElementsByClassName('heures_suprime')[0].value) || 0;
+			var jours_suprime_scan = parseInt(document.getElementsByClassName('jours_suprime')[0].value) || 0;
+			var minutes_suprime_scan = parseInt(document.getElementsByClassName('minutes_suprime')[0].value) || 0;
+			var minutes_total_suprime_scan = minutes_suprime_scan + 60 * (heures_suprime_scan + 24 * jours_suprime_scan);
 
-				var nb_max_def_dans_scan = parseInt(document.getElementById('nb_max_def').value);
+			var nb_max_def_dans_scan = parseInt(document.getElementById('nb_max_def').value);
 
 			// Autre :
-				var import_remplace = document.getElementById("import_remplace").checked;
-				var import_qq_rep = import_remplace === true ? 0 : 1;
+			var import_remplace = document.getElementById("import_remplace").checked;
+			var import_qq_rep = import_remplace === true ? 0 : 1;
 
 
-				var nb_gt_preremplit = document.getElementById("lien_raide_nb_gt_remplit").checked;
-				var nb_pt_preremplit = document.getElementById("lien_raide_nb_pt_remplit").checked;
-				var nb_pt_ou_gt_preremplit;
-				if (nb_gt_preremplit === true) {
-					nb_pt_ou_gt_preremplit = 0;
-				} else if (nb_pt_preremplit === true) {
-					nb_pt_ou_gt_preremplit = 1;
-				} else {
-					nb_pt_ou_gt_preremplit = 2;
-				}
-				var nb_pourcent_ajout_lien_rep = document.getElementById('nb_pourcent_ajout_lien').value;
-				var nb_ou_pourcent_rep = document.getElementById('nb_ou_pourcent').value;
+			var nb_gt_preremplit = document.getElementById("lien_raide_nb_gt_remplit").checked;
+			var nb_pt_preremplit = document.getElementById("lien_raide_nb_pt_remplit").checked;
+			var nb_pt_ou_gt_preremplit;
+			if (nb_gt_preremplit === true) {
+				nb_pt_ou_gt_preremplit = 0;
+			} else if (nb_pt_preremplit === true) {
+				nb_pt_ou_gt_preremplit = 1;
+			} else {
+				nb_pt_ou_gt_preremplit = 2;
+			}
+			var nb_pourcent_ajout_lien_rep = document.getElementById('nb_pourcent_ajout_lien').value;
+			var nb_ou_pourcent_rep = document.getElementById('nb_ou_pourcent').value;
 
-			var option2 = ressource_prend +'/'+ cdr_prend +'/'+ tot_prend +'/'+ prend_type_x +'/'+
-				selection_classement +'/'+ save_auto_scan_rep +'/'+ scan_remplace_rep +'/'+ minutes_total_suprime_scan+
-				'/'+ import_qq_rep +'/'+ q_reverse_c +'/'+ nb_max_def_dans_scan +'/'+ taux_m_rep +'/'+ taux_c_rep +'/'+ taux_d_rep+
-				'/'+ nb_pt_ou_gt_preremplit +'/'+ nb_pourcent_ajout_lien_rep +'/'+ nb_ou_pourcent_rep;
-			GM_setValue('option2'+ serveur, option2);
+			var option2 = ressource_prend + '/' + cdr_prend + '/' + tot_prend + '/' + prend_type_x + '/' +
+				selection_classement + '/' + save_auto_scan_rep + '/' + scan_remplace_rep + '/' + minutes_total_suprime_scan +
+				'/' + import_qq_rep + '/' + q_reverse_c + '/' + nb_max_def_dans_scan + '/' + taux_m_rep + '/' + taux_c_rep + '/' + taux_d_rep +
+				'/' + nb_pt_ou_gt_preremplit + '/' + nb_pourcent_ajout_lien_rep + '/' + nb_ou_pourcent_rep;
+			GM_setValue('option2' + serveur, option2);
 		}
 
 		//{ couleur ligne
@@ -2612,15 +2604,15 @@ init();
 		var coll_dest = document.getElementsByClassName('det')[0].value;
 		var coll_dest_r = document.getElementsByClassName('det_r')[0].value;
 
-		var option3 = coll_att +'/'+ coll_att_g +'/'+ coll_dest +'/'+ coll_att_r +'/'+ coll_att_g_r +'/'+ coll_dest_r;
-		GM_setValue('option3'+ serveur, option3);
+		var option3 = coll_att + '/' + coll_att_g + '/' + coll_dest + '/' + coll_att_r + '/' + coll_att_g_r + '/' + coll_dest_r;
+		GM_setValue('option3' + serveur, option3);
 		//}
 
 		//{ Affichage
 			//{ Changement dans les colonnes :
 				var date_type_chrono = document.getElementById("date_type_chrono").checked;
 				var qq_date_type_rep = date_type_chrono === true ? 0 : 1;
-
+	
 				var recycleur_type_affichage_ressource_rep = document.getElementById("recycleur_type_affichage_ressource").checked;
 				var affichage_colone_recycleur_rep = recycleur_type_affichage_ressource_rep === true ? 0 : 1;
 			//}
@@ -2682,7 +2674,7 @@ init();
 				var ress_nb_j = parseInt(document.getElementsByClassName('ress_nb_j')[0].value);
 				var ress_nb_h = parseInt(document.getElementsByClassName('ress_nb_h')[0].value);
 				var ress_nb_min = parseInt(document.getElementsByClassName('ress_nb_min')[0].value);
-				var ress_x_h = Math.floor(ress_nb_min + (ress_nb_h*60) + parseInt((ress_nb_j*60*24)));
+				var ress_x_h = Math.floor(ress_nb_min + (ress_nb_h * 60) + parseInt((ress_nb_j * 60 * 24)));
 
 				var date_q_repons = checkedFromIdToInt('date_affi_non');
 				var tps_vol_afficher_rep = checkedFromIdToInt('tps_vol_afficher_non');
@@ -2770,13 +2762,13 @@ init();
 				'/x/x/'+ tableau_raide_facile_q +'/'+ galaxie_demande_plus_moin_text_rep +//28-29-30-31
 				'/'+affiche_pt_gt +'/'+ affiche_tech;//32-33
 
-			GM_setValue('option4'+ serveur, option4);
+			GM_setValue('option4' + serveur, option4);
 		//}
 
 		{// option de langue
 			var q_langue = document.getElementById('langue').value;
 			var option5 = q_langue;
-			GM_setValue('option5'+ serveur, option5);
+			GM_setValue('option5' + serveur, option5);
 
 			fadeBoxx(text.option_sv, 0, 5000);
 		}
@@ -2827,27 +2819,27 @@ init();
 			q_url_type = 1;
 		}
 
-		var option_save_bbcode = col1 +'/'+	col2 +'/'+ col3 +'/'+ col4 +'/'+ col5 +'/'+	col6 +'/'+ col7 +'/'+
-				rep_center_type +'/'+ q_url_type +'/'+ q_centre +'/'+ q_cite;
-		GM_setValue('option_bbcode'+ serveur, option_save_bbcode);
+		var option_save_bbcode = col1 + '/' + col2 + '/' + col3 + '/' + col4 + '/' + col5 + '/' + col6 + '/' + col7 + '/' +
+			rep_center_type + '/' + q_url_type + '/' + q_centre + '/' + q_cite;
+		GM_setValue('option_bbcode' + serveur, option_save_bbcode);
 		//fadeBoxx(text.option_sv, 0, 5000);
 	}
 
 	function reset(serveur) {
 		var continuer = confirm(text.q_reset);
 		if (continuer === true) {
-			GM_setValue('scan'+ serveur, '');
+			GM_setValue('scan' + serveur, '');
 			fadeBoxx(text.reset, 0, 5000);
 		}
 	}
 	function resetoption(serveur) {
 		var continuer = confirm(text.q_reset_o);
 		if (continuer === true) {
-			GM_setValue('option1'+ serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
-			GM_setValue('option2'+ serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
-			GM_setValue('option3'+ serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
-			GM_setValue('option4'+ serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
-			GM_setValue('exversion'+ serveur, info.version);
+			GM_setValue('option1' + serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
+			GM_setValue('option2' + serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
+			GM_setValue('option3' + serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
+			GM_setValue('option4' + serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
+			GM_setValue('exversion' + serveur, info.version);
 
 			fadeBoxx(text.reset_s, 0, 5000);
 		}
@@ -2861,9 +2853,9 @@ init();
 		if (nb_scan_page !== 0) {
 			var num_page;
 			if (url.indexOf('&page_r=') != -1) {
-				num_page = parseInt(url.split('&page_r=')[1].replace( /[^0-9-]/g, ""));
+				num_page = parseInt(url.split('&page_r=')[1].replace(/[^0-9-]/g, ""));
 			} else {
-				num_page = 1 ;
+				num_page = 1;
 			}
 
 			if (!num_page || num_page === 1) {
@@ -2875,91 +2867,80 @@ init();
 			}
 		} else {
 			nb_scan_fin = nb;
-			nb_scan_deb =0;
+			nb_scan_deb = 0;
 		}
 		var retour_scan = [nb_scan_fin, nb_scan_deb];
 		return retour_scan;
 	}
 
 	// fonction pour creer un tableau html exportable
-	function export_html (serveur, check, url, nb_scan_page) {
+	function export_html(serveur, check, url, nb_scan_page) {
 		var id_num;
 		var tr_num;
 		var scan_info = GM_getValue('scan' + serveur, '').split('#');
 		var nb = scan_info.length;
-		var export_html_2 ='';
+		var export_html_2 = '';
 
 		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, url, nb);
-		for(var p=nb_scan_deb_fin[1]; p<nb_scan_deb_fin[0]; p++)
-		{
-			id_num = 'check_'+ p +'';
+		for (var p = nb_scan_deb_fin[1]; p < nb_scan_deb_fin[0]; p++) {
+			id_num = 'check_' + p + '';
 			if (scan_info[p]) {
-				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p])
-				{
-					if (document.getElementById(id_num))
-					{
-						if (document.getElementById(id_num).checked == check)
-						{
-							tr_num = 'tr_'+ p +'';
-							export_html_2 = export_html_2 +'\n' + document.getElementById(tr_num).innerHTML.split('<td> <a href="http')[0] +'</tr>';
+				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p]) {
+					if (document.getElementById(id_num)) {
+						if (document.getElementById(id_num).checked == check) {
+							tr_num = 'tr_' + p + '';
+							export_html_2 = export_html_2 + '\n' + document.getElementById(tr_num).innerHTML.split('<td> <a href="http')[0] + '</tr>';
 						}
-					} else {nb_scan_deb_fin[0]++;}
+					} else { nb_scan_deb_fin[0]++; }
 				}
-				else {nb_scan_deb_fin[0]++;}
+				else { nb_scan_deb_fin[0]++; }
 			}
 		}
-		export_html_2 = '<table style="text-align:center;border: 1px solid black;font-size:10px;"><caption>Raide Facile. </caption><thead id="haut_table2"><tr>'+ document.getElementById("haut_table2").innerHTML +
-			'</thead><tbody id="export_html_textarea" >'+ export_html_2 + '</tbody></table>';
+		export_html_2 = '<table style="text-align:center;border: 1px solid black;font-size:10px;"><caption>Raide Facile. </caption><thead id="haut_table2"><tr>' + document.getElementById("haut_table2").innerHTML +
+		'</thead><tbody id="export_html_textarea" >' + export_html_2 + '</tbody></table>';
 		document.getElementById("text_html").innerHTML = export_html_2;
 	}
 
 	//function d'export des scans.
-	function export_scan(serveur , check) {
+	function export_scan(serveur, check) {
 		var id_num;
-		var scan_info = GM_getValue('scan'+ serveur, '').split('#');
+		var scan_info = GM_getValue('scan' + serveur, '').split('#');
 		var nb = scan_info.length;
-		var export_f ='';
+		var export_f = '';
 
 		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, info.url, nb);
 
-		for(var p=nb_scan_deb_fin[1]; p<nb_scan_deb_fin[0]; p++)
-		{
-			id_num = 'check_'+ p +'';
+		for (var p = nb_scan_deb_fin[1]; p < nb_scan_deb_fin[0]; p++) {
+			id_num = 'check_' + p + '';
 			if (scan_info[p]) {
-				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p])
-				{
-					if (document.getElementById(id_num))
-					{
-						if (document.getElementById(id_num).checked == check)
-						{
-							export_f = export_f +'#' +scan_info[p];
+				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p]) {
+					if (document.getElementById(id_num)) {
+						if (document.getElementById(id_num).checked == check) {
+							export_f = export_f + '#' + scan_info[p];
 						}
-					} else {nb_scan_deb_fin[0]++;}
+					} else { nb_scan_deb_fin[0]++; }
 				}
-				else {nb_scan_deb_fin[0]++;}
+				else { nb_scan_deb_fin[0]++; }
 			}
 		}
 		document.getElementById("area_export").innerHTML = export_f;
 	}
 
 	//function d'import des scans.
-	function import_scan(serveur , variable_q) {
-		var scan_info = GM_getValue('scan'+ serveur, '');
+	function import_scan(serveur, variable_q) {
+		var scan_info = GM_getValue('scan' + serveur, '');
 		var scan_add = document.getElementById("area_import").value;
 		scan_add = scan_add.split('#');
-		var scan_info3 ='';
+		var scan_info3 = '';
 
 		if (variable_q == 1) {
-			for(var p = 0; p < scan_add.length; p++)
-			{
+			for (var p = 0; p < scan_add.length; p++) {
 				if (scan_add[p].split(';').length > 2)
-				{scan_info3 = scan_info3 + '#'+ scan_add[p];}
+				{ scan_info3 = scan_info3 + '#' + scan_add[p]; }
 			}
 		} else { // variable_q = 0
-			for(var q = 0; q < scan_add.length; q++)
-			{
-				if (scan_add[q].split(';').length > 2)
-				{
+			for (var q = 0; q < scan_add.length; q++) {
+				if (scan_add[q].split(';').length > 2) {
 					if (q === 0) {
 						scan_info3 = scan_info3 + scan_add[q];
 					} else {
@@ -2972,22 +2953,22 @@ init();
 		if (variable_q == 1) {
 			scan_info = scan_info + scan_info3;
 		}
-		else {scan_info = scan_info3;}
+		else { scan_info = scan_info3; }
 
-		scan_info = scan_info.replace( /\#{2,}/g, "#");
-		GM_setValue('scan'+ serveur, scan_info);
+		scan_info = scan_info.replace(/\#{2,}/g, "#");
+		GM_setValue('scan' + serveur, scan_info);
 		fadeBoxx(text.import_rep, 0, 5000);
 	}
 
 	// fonction pour savoir le nombre de pt et gt qu'il faut pour prendre le maximum de reosourcce en raidant
 	function shipCount(m, k, d, cargo, pourcent) {
-		return Math.ceil ((Math.ceil (Math.max (m + k + d, Math.min (0.75 * (m * 2 + k + d), m * 2 + d))) * (pourcent/100)) / cargo);
+		return Math.ceil((Math.ceil(Math.max(m + k + d, Math.min(0.75 * (m * 2 + k + d), m * 2 + d))) * (pourcent / 100)) / cargo);
 	}
 
 	// pouvoir suprimer plusieurs scan. depuis raide-facile grace au checbox
-	function del_scan_checkbox(serveur , check) {
+	function del_scan_checkbox(serveur, check) {
 		var id_num;
-		var scan_info = GM_getValue('scan'+ serveur, '').split('#');
+		var scan_info = GM_getValue('scan' + serveur, '').split('#');
 		var nb = scan_info.length;
 
 		// on regarde de quel scan on doit commencer et combien normalement on doit regarder
@@ -3000,59 +2981,57 @@ init();
 				p = 0;
 				nb_scan_fin = nb_scan_page;
 			} else if (num_page >= 1) {
-				p = (parseInt(num_page) - 1)*nb_scan_page;
-				nb_scan_fin = parseInt(num_page)*nb_scan_page;
+				p = (parseInt(num_page) - 1) * nb_scan_page;
+				nb_scan_fin = parseInt(num_page) * nb_scan_page;
 			}
 		} else {
 			nb_scan_fin = nb;
 			p = 0;
 		}
 
-		for(; p < nb_scan_fin; p++) {
-			id_num = 'check_'+ p +'';
+		for (; p < nb_scan_fin; p++) {
+			id_num = 'check_' + p + '';
 			if (scan_info[p]) {
 				// on verifie que le scan est bien afficher dans la colone sinon on rajoute +1 au nombre final pour verifier les scan afficher l(par rapport au nombre demander)
-				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p].split(';')[4] && document.getElementById(id_num) !== null)
-				{
-					if (document.getElementById(id_num).checked == check)
-					{
+				if (scan_info[p] !== '' && scan_info[p] !== ' ' && scan_info[p].split(';')[4] && document.getElementById(id_num) !== null) {
+					if (document.getElementById(id_num).checked == check) {
 						scan_info[p] = '';
 					}
 
-				} else {nb_scan_fin++;}
+				} else { nb_scan_fin++; }
 			}
 		}
 		scan_info = scan_info.join('#');
-		scan_info = scan_info.replace( /\#{2,}/g, "#");
-		GM_setValue('scan'+ serveur, scan_info);
+		scan_info = scan_info.replace(/\#{2,}/g, "#");
+		GM_setValue('scan' + serveur, scan_info);
 		fadeBoxx(text.del_scan, 0, 3000);
 	}
 
 	//calcul la production en met/cri/deut par heure selon les coordonees , les mines et la temperature max.
 	function calcule_prod(mine_m, mine_c, mine_d, coordonee, tmps_max, vitesse_uni) {
 		var retour = {};
-		if (mine_m != '?' && mine_m != '?' && mine_m != '?' && coordonee.split(':')[2] !== undefined)
-		{
-			var prod_m = Math.floor((30*parseInt(mine_m)*Math.pow(1.1, parseInt(mine_m))+30)*vitesse_uni);
-				retour.metal = prod_m;
-			var prod_c = Math.floor((20*parseInt(mine_c)*Math.pow(1.1, parseInt(mine_c))+15)*vitesse_uni);
-				retour.cristal = prod_c;
+		if (mine_m != '?' && mine_m != '?' && mine_m != '?' && coordonee.split(':')[2] !== undefined) {
+			var prod_m = Math.floor((30 * parseInt(mine_m) * Math.pow(1.1, parseInt(mine_m)) + 30) * vitesse_uni);
+			retour.metal = prod_m;
+			var prod_c = Math.floor((20 * parseInt(mine_c) * Math.pow(1.1, parseInt(mine_c)) + 15) * vitesse_uni);
+			retour.cristal = prod_c;
 
-				// on cherche la temperature de la planette grace au coordonée si on ne la connait pas
-				if (tmps_max === '?' || tmps_max === ' ' || tmps_max === '') {
-					var pos_planette = coordonee.split(':')[2].replace( /[^0-9-]/g, "");
-					if (pos_planette <= 3)
-						{tmps_max = 123;}
-					else if (pos_planette <= 6)
-						{tmps_max = 65;}
-					else if (pos_planette <= 9)
-						{tmps_max = 35;}
-					else if (pos_planette <= 12)
-						{tmps_max = 15;}
-					else if (pos_planette <= 15)
-						{tmps_max = -40;}
+			// on cherche la temperature de la planette grace au coordonée si on ne la connait pas
+			if (tmps_max === '?' || tmps_max === ' ' || tmps_max === '') {
+				var pos_planette = coordonee.split(':')[2].replace(/[^0-9-]/g, "");
+				if (pos_planette <= 3) {
+					tmps_max = 123;
+				} else if (pos_planette <= 6) {
+					tmps_max = 65;
+				} else if (pos_planette <= 9) {
+					tmps_max = 35;
+				} else if (pos_planette <= 12) {
+					tmps_max = 15;
+				} else if (pos_planette <= 15) {
+					tmps_max = -40;
 				}
-			var prod_d = vitesse_uni * parseInt(Math.floor(10 * parseInt(mine_d) * (Math.pow(1.1,parseInt(mine_d)) * (1.44 - (tmps_max * 0.004) ))));
+			}
+			var prod_d = vitesse_uni * parseInt(Math.floor(10 * parseInt(mine_d) * (Math.pow(1.1, parseInt(mine_d)) * (1.44 - (tmps_max * 0.004)))));
 				retour.deut = prod_d;
 
 			return retour;
@@ -3061,9 +3040,9 @@ init();
 			return retour;}
 	}
 
-	function vitesse_vaisseau(impulsion ,hyper_h ,combus, value_select) {
-	/***********  vitessse minimum *********************/
-			// on voit change la vitesse des vaisseaux qui change de techno selon les niveau de celle ci
+	function vitesse_vaisseau(impulsion, hyper_h, combus, value_select) {
+		/***********  vitessse minimum *********************/
+		// on voit change la vitesse des vaisseaux qui change de techno selon les niveau de celle ci
 		var vitesse_pt;
 		var prop_pt;
 		if (parseInt(impulsion) >= 5) {
@@ -3090,106 +3069,100 @@ init();
 
 		// on regarde le vaisseau selectionner et on cherche sa vitesse minimale
 		var vitesse_mini;
-		if (vaisseau_type_prop[value_select] == "comb")
-		{
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select])*(1 + (0.1 * parseInt(combus))));
+		if (vaisseau_type_prop[value_select] == "comb") {
+			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.1 * parseInt(combus))));
 		}
-		else if (vaisseau_type_prop[value_select] == "imp")
-		{
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select])*(1 + (0.2 * parseInt(impulsion))));
+		else if (vaisseau_type_prop[value_select] == "imp") {
+			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.2 * parseInt(impulsion))));
 		}
-		else if (vaisseau_type_prop[value_select] == "hyp")
-		{
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select])* (1 + (0.3 * parseInt(hyper_h))));
+		else if (vaisseau_type_prop[value_select] == "hyp") {
+			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.3 * parseInt(hyper_h))));
 		}
 		return vitesse_mini;
 	}
 
-	function vaisseau_vitesse_mini(impulsion ,hyper_h ,combus, value_select, coordonee_cible , vitesse_uni) {
-		if (!vitesse_uni || vitesse_uni <= 0) {vitesse_uni = 1;}
+	function vaisseau_vitesse_mini(impulsion, hyper_h, combus, value_select, coordonee_cible, vitesse_uni) {
+		if (!vitesse_uni || vitesse_uni <= 0) { vitesse_uni = 1; }
 		var distance;
-		var vitesse_mini = vitesse_vaisseau(impulsion ,hyper_h ,combus, value_select);
-	/***************  Distance *********************/
+		var vitesse_mini = vitesse_vaisseau(impulsion, hyper_h, combus, value_select);
+		/***************  Distance *********************/
 		var planette_selec = document.getElementsByName('ogame-planet-coordinates')[0].content;
 		planette_selec = planette_selec.split(':');
-		var galaxie_j = planette_selec[0].replace( /[^0-9-]/g, "");
-		var system_j = planette_selec[1].replace( /[^0-9-]/g, "");
-		var planet_j = planette_selec[2].replace( /[^0-9-]/g, "");
+		var galaxie_j = planette_selec[0].replace(/[^0-9-]/g, "");
+		var system_j = planette_selec[1].replace(/[^0-9-]/g, "");
+		var planet_j = planette_selec[2].replace(/[^0-9-]/g, "");
 
 		var coordonee_cible_split = coordonee_cible.split(':');
-		var galaxie_c = coordonee_cible_split[0].replace( /[^0-9-]/g, "");
-		var system_c = coordonee_cible_split[1].replace( /[^0-9-]/g, "");
-		var planet_c = coordonee_cible_split[2].replace( /[^0-9-]/g, "");
+		var galaxie_c = coordonee_cible_split[0].replace(/[^0-9-]/g, "");
+		var system_c = coordonee_cible_split[1].replace(/[^0-9-]/g, "");
+		var planet_c = coordonee_cible_split[2].replace(/[^0-9-]/g, "");
 
 		// on calcule la distance entre la cible et la planette d'attaque(de depart)
-		if (galaxie_j != galaxie_c)
-		{
-			distance = 20000*Math.abs(parseInt(galaxie_j) - parseInt(galaxie_c));
+		if (galaxie_j != galaxie_c) {
+			distance = 20000 * Math.abs(parseInt(galaxie_j) - parseInt(galaxie_c));
 
 		}
 		else {
-			if (system_j != system_c)
-			{
-				distance = 2700 + 95*Math.abs(parseInt(system_j) - parseInt(system_c));
+			if (system_j != system_c) {
+				distance = 2700 + 95 * Math.abs(parseInt(system_j) - parseInt(system_c));
 			}
 			else {
-				distance = 1000 + 5*Math.abs(parseInt(system_j) - parseInt(system_c));
+				distance = 1000 + 5 * Math.abs(parseInt(system_j) - parseInt(system_c));
 			}
 		}
 
 	/***************  Temps de vol  *********************/
 
-		var temps_de_vol_sec = 10 + ((35000/100) * (Math.sqrt((distance*1000)/vitesse_mini)));
-		temps_de_vol_sec = Math.round(temps_de_vol_sec/vitesse_uni);
+		var temps_de_vol_sec = 10 + ((35000 / 100) * (Math.sqrt((distance * 1000) / vitesse_mini)));
+		temps_de_vol_sec = Math.round(temps_de_vol_sec / vitesse_uni);
 
-		var minutes = Math.floor(temps_de_vol_sec/60);
-		var heures = Math.floor(minutes/60);
-		var jours = Math.floor(heures/24);
-		var secondes = Math.floor(temps_de_vol_sec%60);
-			minutes = Math.floor(minutes%60);
-			heures = Math.floor(heures%24);
+		var minutes = Math.floor(temps_de_vol_sec / 60);
+		var heures = Math.floor(minutes / 60);
+		var jours = Math.floor(heures / 24);
+		var secondes = Math.floor(temps_de_vol_sec % 60);
+		minutes = Math.floor(minutes % 60);
+		heures = Math.floor(heures % 24);
 
-		var temp_vol = jours +'j '+	heures +'h '+ minutes +'min'+ secondes +'s';
-		var sec_arrive = info.startTime + parseInt(temps_de_vol_sec)*1000;
+		var temp_vol = jours + 'j ' + heures + 'h ' + minutes + 'min' + secondes + 's';
+		var sec_arrive = info.startTime + parseInt(temps_de_vol_sec) * 1000;
 		var date_arrive = new Date();
 		date_arrive.setTime(parseInt(sec_arrive));
-		var date_arrive_f = date_arrive.getDate() +'/'+ date_arrive.getMonth() +'/'+ date_arrive.getFullYear() +' à '+ date_arrive.getHours() +'h '+ date_arrive.getMinutes() +'min'+ date_arrive.getSeconds()+'s';
+		var date_arrive_f = date_arrive.getDate() + '/' + date_arrive.getMonth() + '/' + date_arrive.getFullYear() + ' à ' + date_arrive.getHours() + 'h ' + date_arrive.getMinutes() + 'min' + date_arrive.getSeconds() + 's';
 
-		var sec_retour = info.startTime + parseInt(temps_de_vol_sec)*2000;
+		var sec_retour = info.startTime + parseInt(temps_de_vol_sec) * 2000;
 		var date_retour = new Date();
 		date_retour.setTime(sec_retour);
-		var date_retour_f = date_retour.getDate() +'/'+ date_retour.getMonth() +'/'+ date_retour.getFullYear() +' à '+ date_retour.getHours() +'h '+ date_retour.getMinutes() +'min'+ date_retour.getSeconds()+'s';
+		var date_retour_f = date_retour.getDate() + '/' + date_retour.getMonth() + '/' + date_retour.getFullYear() + ' à ' + date_retour.getHours() + 'h ' + date_retour.getMinutes() + 'min' + date_retour.getSeconds() + 's';
 
-		var acconyme_temps = '<acronym title=" '+ text.arriv_f +' : '+ date_arrive_f +' | '+ text.retour_f +' : '+ date_retour_f +'">'+ temp_vol + '</acronym>';
+		var acconyme_temps = '<acronym title=" ' + text.arriv_f + ' : ' + date_arrive_f + ' | ' + text.retour_f + ' : ' + date_retour_f + '">' + temp_vol + '</acronym>';
 
-	return acconyme_temps;
+		return acconyme_temps;
 	}
 
 	function calcul_dernier_vidage(metal, cristal, deut, prod_m, prod_c, prod_d, heure_scan, mine_m) {
-
 		if (mine_m != '?' && prod_m !== 0 && prod_m != '?') {
 			//prod_par_h on change en prod par minutes.
-			var prod_m_sec = parseInt(prod_m)/3600;
-			var prod_c_sec = parseInt(prod_c)/3600;
-			var prod_d_sec = parseInt(prod_d)/3600;
+			var prod_m_sec = parseInt(prod_m) / 3600;
+			var prod_c_sec = parseInt(prod_c) / 3600;
+			var prod_d_sec = parseInt(prod_d) / 3600;
 
 			// on cherche le nombre de seconde pour produire le metal/cristal/deut sur la planette
-			var nb_sec_m = Math.round(parseInt(metal)/prod_m_sec);
-			var nb_sec_c = Math.round(parseInt(cristal)/prod_c_sec);
-			var nb_sec_d = Math.round(parseInt(deut)/prod_d_sec);
+			var nb_sec_m = Math.round(parseInt(metal) / prod_m_sec);
+			var nb_sec_c = Math.round(parseInt(cristal) / prod_c_sec);
+			var nb_sec_d = Math.round(parseInt(deut) / prod_d_sec);
 
 			// on trie
-			var sortNumber = function(a,b) {return a - b;};
+			var sortNumber = function (a, b) { return a - b; };
 			var array_nb_sec = [nb_sec_m, nb_sec_c, nb_sec_d];
 			array_nb_sec.sort(sortNumber);
 
 			// on prend le temps le plus grand
-			var heure_dernier_vidage = parseInt(heure_scan) - parseInt(array_nb_sec[0])*1000;
+			var heure_dernier_vidage = parseInt(heure_scan) - parseInt(array_nb_sec[0]) * 1000;
 
 			var datecc = new Date();
 			datecc.setTime(heure_dernier_vidage);
-			var date_final = datecc.getDate()+'/'+ (parseInt(datecc.getMonth()) + 1) +'/'+datecc.getFullYear()+ ' ' +
-				datecc.getHours()+ ':'+ datecc.getMinutes()+ ':'+datecc.getSeconds()  ;
+			var date_final = datecc.getDate() + '/' + (parseInt(datecc.getMonth()) + 1) + '/' + datecc.getFullYear() + ' ' +
+				datecc.getHours() + ':' + datecc.getMinutes() + ':' + datecc.getSeconds();
 
 			return date_final;
 		}
@@ -3203,32 +3176,31 @@ init();
 		var attaque_deja = GM_getValue('attaque_24h', '');
 		var attaque_deja_split = attaque_deja.split('#');
 		var attaque_heure;
-		var heure_moin24h = info.startTime - 24*60*60*1000;
-		for(var t=0; t<attaque_deja_split.length; t++)
-		{
+		var heure_moin24h = info.startTime - 24 * 60 * 60 * 1000;
+		for (var t = 0; t < attaque_deja_split.length; t++) {
 			attaque_heure = attaque_deja_split[t].split('/')[0];
 			if (attaque_heure < heure_moin24h)// alors l'attaque etait fait il y a plus de 24h donc on s'en fou
 			{
 				attaque_deja_split[t] = '';
 			}
 		}
-		attaque_deja = attaque_deja_split.join('#').replace( /\#{2,}/g, "#");
+		attaque_deja = attaque_deja_split.join('#').replace(/\#{2,}/g, "#");
 		GM_setValue('attaque_24h', attaque_deja);
 	}
 
 	function afficher_erreur(lieu, err) {
-		var erreur = '<center><strong>Erreur</strong></center> \n <BR/> <strong>Name: </strong>'+ err.name +'\n <BR/><strong>Description: </strong>'+ err.message + '\n <BR/> <strong> Browser : </strong>'+navigator.userAgent +
-					'\n <BR/> <strong>Url: </strong>'+ document.location.href.split('&s')[0] + '\n <BR/> <strong>Line: </strong>'+ err.lineNumber +'<BR/>\n <strong>Version : </strong>'+ info.version;
+		var erreur = '<center><strong>Erreur</strong></center> \n <BR/> <strong>Name: </strong>' + err.name + '\n <BR/><strong>Description: </strong>' + err.message + '\n <BR/> <strong> Browser : </strong>' + navigator.userAgent +
+			'\n <BR/> <strong>Url: </strong>' + document.location.href.split('&s')[0] + '\n <BR/> <strong>Line: </strong>' + err.lineNumber + '<BR/>\n <strong>Version : </strong>' + info.version;
 		if (langue != 'fr') {
-			erreur = erreur +'\n <BR/><strong> Report here: </strong>' + '<a href="http://userscripts.org/scripts/show/72438"> http://userscripts.org/scripts/show/72438 </a>';
+			erreur += '\n <BR/><strong> Report here: </strong>' + '<a href="http://userscripts.org/scripts/show/72438"> http://userscripts.org/scripts/show/72438 </a>';
 		} else {
-			erreur = erreur +'\n <BR/><strong> Merci de signalez l\'erreur ici: </strong>' + '<a href="http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/">http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/</a>';
+			erreur += '\n <BR/><strong> Merci de signalez l\'erreur ici: </strong>' + '<a href="http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/">http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/</a>';
 		}
 		var sp1 = document.createElement('div');
 		sp1.id = "erreur";
-		sp1.setAttribute('style','display:block !important;color:#214563;background-color: #FFFFFF;');
+		sp1.setAttribute('style', 'display:block !important;color:#214563;background-color: #FFFFFF;');
 		sp1.innerHTML = erreur;
-		document.getElementById('contentWrapper').insertBefore(sp1,document.getElementById(lieu));
+		document.getElementById('contentWrapper').insertBefore(sp1, document.getElementById(lieu));
 	}
 //}endregion
 
@@ -3236,28 +3208,26 @@ init();
 	//recupere les informations des rapports de combat pour que le compteur d'attaque
 	function get_info_combat() {
 		var messages = document.getElementById('messagebox').getElementsByClassName('note')[0].innerHTML;
-		if (document.getElementById('battlereport'))
-		{
+		if (document.getElementById('battlereport')) {
 			//recupere la date du combat.
 			var date_complet_combat = document.getElementsByClassName('infohead')[0].getElementsByTagName('td')[3].innerHTML;//exemple : 02-09 10:39:35
-				var jours_mois_anne_combat = date_complet_combat.split('.');
-					var mois_combat = parseInt(supr0(jours_mois_anne_combat[1])) - 1 ;
-					var jours_combat = parseInt(supr0(jours_mois_anne_combat[0]));
-					var anne_combat = parseInt(jours_mois_anne_combat[2].split(' ')[0]);
+			var jours_mois_anne_combat = date_complet_combat.split('.');
+			var mois_combat = parseInt(supr0(jours_mois_anne_combat[1])) - 1;
+			var jours_combat = parseInt(supr0(jours_mois_anne_combat[0]));
+			var anne_combat = parseInt(jours_mois_anne_combat[2].split(' ')[0]);
 
-				var sec_min_heure_combat = date_complet_combat.split(' ')[1].split(':');
-					var heures_combat = sec_min_heure_combat[0];
-					var min_combat = sec_min_heure_combat[1];
-					var sec_combat = sec_min_heure_combat[2];
+			var sec_min_heure_combat = date_complet_combat.split(' ')[1].split(':');
+			var heures_combat = sec_min_heure_combat[0];
+			var min_combat = sec_min_heure_combat[1];
+			var sec_combat = sec_min_heure_combat[2];
 
-				var date_combat_ms = new Date(info.date.getFullYear(), mois_combat, jours_combat, heures_combat, min_combat, sec_combat);
-				date_combat_ms = date_combat_ms.getTime();
+			var date_combat_ms = new Date(info.date.getFullYear(), mois_combat, jours_combat, heures_combat, min_combat, sec_combat);
+			date_combat_ms = date_combat_ms.getTime();
 
-			if (date_combat_ms  > (info.startTime - 24*60*60*1000))//on verifie que cela fait moin de 24h que l'attaque a eu lieu
-			{
+			if (date_combat_ms > (info.startTime - 24 * 60 * 60 * 1000)) {//on verifie que cela fait moin de 24h que l'attaque a eu lieu
 				var attaque_deja = GM_getValue('attaque_24h', '');
-				if (attaque_deja.indexOf(date_combat_ms) == -1)// si le combat n'est pas déja enregistré
-				{
+				if (attaque_deja.indexOf(date_combat_ms) == -1) {// si le combat n'est pas déja enregistré
+					
 					// recuperer les coordonées du combats.
 					var info_head = document.getElementsByClassName('infohead')[0].getElementsByTagName('tr')[2].getElementsByTagName('td')[0].innerHTML;
 					var coordonee_combat = info_head.split('[')[1].split(']')[0];
@@ -3273,21 +3243,21 @@ init();
 					var bloc_combatants = document.getElementById("combatants").children;
 					var bloc_attaquant = bloc_combatants[0].children;
 					var attaquant = [];
-					for(var k = 0; k < bloc_attaquant.length; k++) {
+					for (var k = 0; k < bloc_attaquant.length; k++) {
 						attaquant[k] = bloc_attaquant[k].firstElementChild.textContent;
 					}
 
 					var bloc_defenseur = bloc_combatants[2].children;
 					var defenseur = [];
-					for(var l = 0; l < bloc_defenseur.length; l++) {
+					for (var l = 0; l < bloc_defenseur.length; l++) {
 						defenseur[l] = bloc_defenseur[l].firstElementChild.textContent;
 					}
 
 					if ($.inArray(pseudo_de, attaquant) !== -1) {
 						// le joueur est un des attaquants
-						var attaque_news =  date_combat_ms + '/'+ coordonee_combat;
-						attaque_deja = attaque_deja + '#'+ attaque_news;
-						attaque_deja = attaque_deja.replace( /\#{2,}/g, "#");
+						var attaque_news = date_combat_ms + '/' + coordonee_combat;
+						attaque_deja = attaque_deja + '#' + attaque_news;
+						attaque_deja = attaque_deja.replace(/\#{2,}/g, "#");
 						GM_setValue('attaque_24h', attaque_deja);
 					}
 				}
@@ -3295,4 +3265,3 @@ init();
 		}
 	}
 //}endregion
-

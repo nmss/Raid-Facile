@@ -1,3 +1,4 @@
+/* global Tipped */
 /* test encodage
 ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
 aâàã eéêè iîì ñ oôòõ uûù €
