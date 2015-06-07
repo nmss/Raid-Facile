@@ -1,18 +1,18 @@
-/* global GM_xmlhttpRequest */
-/* global GM_info */
-/* global unsafeWindow */
-/* global chrome */
-/* Pour éditer ce fichier je conseille Sublime Text, Notepad++ ou Brackets
+// Sujet sur le forum officiel : http://board.ogame.fr/index.php?page=Thread&threadID=978693
+/* Pour éditer ce fichier je conseille un de ces éditeurs
 	lien: http://www.sublimetext.com/
 	lien: http://notepad-plus-plus.org/fr
 	lien: http://brackets.io/
-	il permet de masquer certaines partie du code pour que celui-ci soir mieux organisé, et plus compréhensible */
-// Sujet sur le forum officiel : http://board.ogame.fr/index.php?page=Thread&threadID=978693
+*/
 /* test encodage
 ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
 aâàã eéêè iîì ñ oôòõ uûù €
 */
 
+/// <reference path="typings/jquery/jquery.d.ts"/>
+/// <reference path="typings/greasemonkey/greasemonkey.d.ts"/>
+/* global XPathResult */
+/* global chrome */
 
 /** Logger **///{region
 	function Logger() {
@@ -131,7 +131,7 @@ logger.log('Salut :)');
 /** Fonctions de compatibilité **///{region
 	// Si ces fonctions n'existent pas, elle sont créées
 	if (typeof GM_getValue === 'undefined') {
-		var GM_getValue = function (key, defaultValue) {
+		GM_getValue = function (key, defaultValue) {
 			var retValue = localStorage.getItem(key);
 			if (!retValue) {
 				retValue = defaultValue;
@@ -140,12 +140,12 @@ logger.log('Salut :)');
 		};
 	}
 	if (typeof GM_setValue === 'undefined') {
-		var GM_setValue = function (key, value) {
+		GM_setValue = function (key, value) {
 			localStorage.setItem(key, value);
 		};
 	}
 	if (typeof GM_deleteValue === 'undefined') {
-		var GM_deleteValue = function (key) {
+		GM_deleteValue = function (key) {
 			localStorage.removeItem(key);
 		};
 	}
@@ -630,7 +630,7 @@ logger.log('Salut :)');
 			option5: GM_getValue('option5' + info.serveur, navigator.language),
 			vitesse_uni: parseInt(GM_getValue('vitesse_uni', '1'))
 		};
-		prompt("Voice l'export des options", JSON.stringify(optionExport));
+		prompt("Voici l'export des options", JSON.stringify(optionExport));
 	}
 
 	/** Renvoie un objet contenant toutes les données utiles pour les statistiques */
@@ -924,9 +924,9 @@ init();
 		//Classement :
 		var classement = option2_split[4];//0 date ; 1 coordonee ; 2 joueur ; 3 nom ^planette ; 4 ressource  metal; 5 cristal ; 6 deut ; 7 activite  ; 8 cdr possible ; 9 vaisseau; 10 defense ; 11 idrc ; 12 ressource total,13 reherche , 14 type de planette (lune ou planette)
 		var reverse = option2_split[9];
-		if (option2_split[11] !== undefined) { var q_taux_m = option2_split[11]; } else { var q_taux_m = 1; }
-		if (option2_split[12] !== undefined) { var q_taux_c = option2_split[12]; } else { var q_taux_c = 1; }
-		if (option2_split[13] !== undefined) { var q_taux_d = option2_split[13]; } else { var q_taux_d = 1; }
+		var q_taux_m = (option2_split[11] !== undefined) ? option2_split[11] : 1;
+		var q_taux_c = (option2_split[12] !== undefined) ? option2_split[12] : 1;
+		var q_taux_d = (option2_split[13] !== undefined) ? option2_split[13] : 1;
 	
 		//Options de sauvegarde de scan :
 		var scan_preenrgistre = option2_split[5];// si le scan est enregistre lorsqu'on le regarde ou seulement quand on clique sur enregistre.
@@ -934,17 +934,17 @@ init();
 		var nb_minutesgardescan = option2_split[7];
 		var minutes_opt = Math.floor(parseInt(nb_minutesgardescan) % 60);
 		var nb_minutesgardescan2 = parseInt(nb_minutesgardescan) - minutes_opt;
-		var heures_opt = Math.floor(Math.floor(parseInt(nb_minutesgardescan2) / 60) % 24);
-		nb_minutesgardescan2 = parseInt(nb_minutesgardescan2) - heures_opt * 60;
-		var jours_opt = Math.floor(parseInt(nb_minutesgardescan2) / 60 / 24);
+		var heures_opt = Math.floor(Math.floor(nb_minutesgardescan2 / 60) % 24);
+		nb_minutesgardescan2 = nb_minutesgardescan2 - heures_opt * 60;
+		var jours_opt = Math.floor(nb_minutesgardescan2 / 60 / 24);
 		var nb_ms_garde_scan = nb_minutesgardescan * 60 * 1000;
-		if (option2_split[10] !== undefined) { var nb_max_def = option2_split[10]; } else { var nb_max_def = 0; }
+		var nb_max_def = option2_split[10] !== undefined ? option2_split[10] : 0;
 	
 		//Autre :
 		var import_q_rep = option2_split[8];
-		if (option2_split[14] !== undefined) { var lien_raide_nb_pt_gt = option2_split[14]; } else { var lien_raide_nb_pt_gt = 2; }
-		if (option2_split[15] !== undefined) { var nb_pourcent_ajout_lien = parseInt(option2_split[15]); } else { var nb_pourcent_ajout_lien = 0; }
-		if (option2_split[16] !== undefined) { var nb_ou_pourcent = option2_split[16]; } else { var nb_ou_pourcent = 0; }
+		var lien_raide_nb_pt_gt = (option2_split[14] !== undefined) ? option2_split[14] : 2;
+		var nb_pourcent_ajout_lien = (option2_split[15] !== undefined) ? parseInt(option2_split[15]) : 0;
+		var nb_ou_pourcent = (option2_split[16] !== undefined) ? option2_split[16] : 0;
 	}
 
 	//couleur
@@ -967,43 +967,43 @@ init();
 		var simulateur = option4_split[11];
 		var q_mess = option4_split[12];
 		var espionnage_lien = option4_split[1];
-		if (option4_split[25] !== undefined) { var q_lien_simu_meme_onglet = option4_split[25]; } else { var q_lien_simu_meme_onglet = 1; }
+		var q_lien_simu_meme_onglet = (option4_split[25] !== undefined) ? option4_split[25] : 1;
 	
 		//Affichage de Colonne :
-		if (option4_split[21] !== undefined) { var q_compteur_attaque = option4_split[21]; } else { var q_compteur_attaque = 0; }
-		if (option4_split[17] !== undefined) { var q_vid_colo = option4_split[17]; } else { var q_vid_colo = 0; }
+		var q_compteur_attaque = option4_split[21] !== undefined ? option4_split[21] : 0;
+		var q_vid_colo = (option4_split[17] !== undefined) ? option4_split[17] : 0;
 		var question_rassemble_col = option4_split[14];
 		var prod_h_q = option4_split[9];
 		var prod_gg = option4_split[10];
 		var prod_min_g = Math.floor(parseInt(prod_gg) % 60);
 		var nb_minutesgardescan3 = parseInt(prod_gg) - prod_min_g;
-		var prod_h_g = Math.floor(Math.floor(parseInt(nb_minutesgardescan3) / 60) % 24);
-		nb_minutesgardescan3 = parseInt(nb_minutesgardescan3) - prod_h_g * 60;
-		var prod_j_g = Math.floor(parseInt(nb_minutesgardescan3) / 60 / 24);
+		var prod_h_g = Math.floor(Math.floor(nb_minutesgardescan3 / 60) % 24);
+		nb_minutesgardescan3 = nb_minutesgardescan3 - prod_h_g * 60;
+		var prod_j_g = Math.floor(nb_minutesgardescan3 / 60 / 24);
 		var date_affiche = option4_split[7];//0 date non affiche, 1 date affiche
 		var tps_vol_q = option4_split[3];
 		var nom_j_q_q = option4_split[4];
 		var nom_p_q_q = option4_split[5];
 		var coor_q_q = option4_split[6];
-		if (option4_split[26] !== undefined) { var defense_question = option4_split[26]; } else { var defense_question = 1; }
-		if (option4_split[27] !== undefined) { var vaisseau_question = option4_split[27]; } else { var vaisseau_question = 1; }
-		if (option4_split[32] !== undefined) { var pt_gt = option4_split[32]; } else { var pt_gt = 1; }
-		if (option4_split[33] !== undefined) { var tech_q = option4_split[33]; } else { var tech_q = 1; }
+		var defense_question = (option4_split[26] !== undefined) ? option4_split[26] : 1;
+		var vaisseau_question = (option4_split[27] !== undefined) ? option4_split[27] : 1;
+		var pt_gt = (option4_split[32] !== undefined) ? option4_split[32] : 1;
+		var tech_q = (option4_split[33] !== undefined) ? option4_split[33] : 1;
 
 		//Affichage Global :
-		if (option4_split[22] !== undefined) { var q_galaxie_scan = option4_split[22]; } else { var q_galaxie_scan = 0; }
-		if (option4_split[23] !== undefined) { var galaxie_demande = option4_split[23]; } else { var galaxie_demande = 1; }
-		if (option4_split[31] !== undefined) { var galaxie_plus_ou_moins = parseInt(option4_split[31]); } else { var galaxie_plus_ou_moins = 1; }
-		if (option4_split[24] !== undefined) { var afficher_seulement = option4_split[24]; } else { var afficher_seulement = 0; }
-		if (option4_split[19] !== undefined) { var q_def_vis = option4_split[19]; } else { var q_def_vis = 1; }
-		if (option4_split[18] !== undefined) { var q_flo_vis = option4_split[18]; } else { var q_flo_vis = 1; }
+		var q_galaxie_scan = (option4_split[22] !== undefined) ? option4_split[22] : 0;
+		var galaxie_demande = (option4_split[23] !== undefined) ? option4_split[23] : 1;
+		var galaxie_plus_ou_moins = (option4_split[31] !== undefined) ? parseInt(option4_split[31]) : 1;
+		var afficher_seulement = (option4_split[24] !== undefined) ? option4_split[24] : 0;
+		var q_def_vis = (option4_split[19] !== undefined) ? option4_split[19] : 1;
+		var q_flo_vis = (option4_split[18] !== undefined) ? option4_split[18] : 1;
 		var nb_scan_page = parseInt(option4_split[13]);
 
 		//Autre :
 		var q_techzero = option4_split[15];
-		if (option4_split[30] !== undefined) { var tableau_raide_facile_value = option4_split[30]; } else { var tableau_raide_facile_value = 100; }
+		var tableau_raide_facile_value = (option4_split[30] !== undefined) ? option4_split[30] : 100;
 		var q_icone_mess = option4_split[16];
-	}
+}
 
 	// langue
 	var langue = option5_split;
@@ -2369,14 +2369,6 @@ init();
 		return nombre.toLocaleString();
 	}
 
-	function addPoints2(nombre) {
-		if (nombre === '?' || nombre < 1000) {
-			return nombre;
-		}
-		return nombre.toLocaleString();
-	}
-
-	// merci mushroonm et Lame noire qui mon donner cette function
 	function insertAfter(elem, after) {
 		var dad = after.parentNode;
 		if (dad.lastchild == after) {
@@ -2674,7 +2666,7 @@ init();
 				var ress_nb_j = parseInt(document.getElementsByClassName('ress_nb_j')[0].value);
 				var ress_nb_h = parseInt(document.getElementsByClassName('ress_nb_h')[0].value);
 				var ress_nb_min = parseInt(document.getElementsByClassName('ress_nb_min')[0].value);
-				var ress_x_h = Math.floor(ress_nb_min + (ress_nb_h * 60) + parseInt((ress_nb_j * 60 * 24)));
+				var ress_x_h = Math.floor(ress_nb_min + (ress_nb_h * 60) + (ress_nb_j * 60 * 24));
 
 				var date_q_repons = checkedFromIdToInt('date_affi_non');
 				var tps_vol_afficher_rep = checkedFromIdToInt('tps_vol_afficher_non');
@@ -3031,7 +3023,7 @@ init();
 					tmps_max = -40;
 				}
 			}
-			var prod_d = vitesse_uni * parseInt(Math.floor(10 * parseInt(mine_d) * (Math.pow(1.1, parseInt(mine_d)) * (1.44 - (tmps_max * 0.004)))));
+			var prod_d = vitesse_uni * Math.floor(10 * parseInt(mine_d) * (Math.pow(1.1, parseInt(mine_d)) * (1.44 - (tmps_max * 0.004))));
 				retour.deut = prod_d;
 
 			return retour;
@@ -3124,12 +3116,12 @@ init();
 		heures = Math.floor(heures % 24);
 
 		var temp_vol = jours + 'j ' + heures + 'h ' + minutes + 'min' + secondes + 's';
-		var sec_arrive = info.startTime + parseInt(temps_de_vol_sec) * 1000;
+		var sec_arrive = info.startTime + temps_de_vol_sec * 1000;
 		var date_arrive = new Date();
 		date_arrive.setTime(parseInt(sec_arrive));
 		var date_arrive_f = date_arrive.getDate() + '/' + date_arrive.getMonth() + '/' + date_arrive.getFullYear() + ' à ' + date_arrive.getHours() + 'h ' + date_arrive.getMinutes() + 'min' + date_arrive.getSeconds() + 's';
 
-		var sec_retour = info.startTime + parseInt(temps_de_vol_sec) * 2000;
+		var sec_retour = info.startTime + temps_de_vol_sec * 2000;
 		var date_retour = new Date();
 		date_retour.setTime(sec_retour);
 		var date_retour_f = date_retour.getDate() + '/' + date_retour.getMonth() + '/' + date_retour.getFullYear() + ' à ' + date_retour.getHours() + 'h ' + date_retour.getMinutes() + 'min' + date_retour.getSeconds() + 's';
@@ -3157,11 +3149,11 @@ init();
 			array_nb_sec.sort(sortNumber);
 
 			// on prend le temps le plus grand
-			var heure_dernier_vidage = parseInt(heure_scan) - parseInt(array_nb_sec[0]) * 1000;
+			var heure_dernier_vidage = parseInt(heure_scan) - array_nb_sec[0] * 1000;
 
 			var datecc = new Date();
 			datecc.setTime(heure_dernier_vidage);
-			var date_final = datecc.getDate() + '/' + (parseInt(datecc.getMonth()) + 1) + '/' + datecc.getFullYear() + ' ' +
+			var date_final = datecc.getDate() + '/' + (datecc.getMonth() + 1) + '/' + datecc.getFullYear() + ' ' +
 				datecc.getHours() + ':' + datecc.getMinutes() + ':' + datecc.getSeconds();
 
 			return date_final;
@@ -3221,8 +3213,7 @@ init();
 			var min_combat = sec_min_heure_combat[1];
 			var sec_combat = sec_min_heure_combat[2];
 
-			var date_combat_ms = new Date(info.date.getFullYear(), mois_combat, jours_combat, heures_combat, min_combat, sec_combat);
-			date_combat_ms = date_combat_ms.getTime();
+			var date_combat_ms = new Date(info.date.getFullYear(), mois_combat, jours_combat, heures_combat, min_combat, sec_combat).getTime();
 
 			if (date_combat_ms > (info.startTime - 24 * 60 * 60 * 1000)) {//on verifie que cela fait moin de 24h que l'attaque a eu lieu
 				var attaque_deja = GM_getValue('attaque_24h', '');
@@ -3267,20 +3258,13 @@ init();
 //}endregion
 
 
-/* global GM_setValue */
-/* global GM_getValue */
-/// <reference path="../typings/jquery/jquery.d.ts"/>
-/* test encodage
-ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
-aâàã eéêè iîì ñ oôòõ uûù €
-*/
 
 /************************* PAGE DE MESSAGE *************************///{
 	// function suprimer un scan depuis le pop-up
 	function supr_scan1(serveur) {
 		var dateCombat = $('div.showmessage[data-message-id] .infohead tr:eq(3) td').text().match(/(\d+)\.(\d+)\.(\d+) (\d+):(\d+):(\d+)/);
 		if (dateCombat.length != 7) {
-			console.error('[raid facile] Erreur n°15045');
+			logger.error('Erreur n°15045');
 		}
 		var date_scan = new Date(dateCombat[3], parseInt(dateCombat[2]) - 1, dateCombat[1], dateCombat[4], dateCombat[5], dateCombat[6]).getTime();
 
@@ -3305,13 +3289,14 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		if (!id_rc) return;
 
 		var date_combat_total = "";
+		var document_spatio;
 
 		if (popup) {// on se place dans le scan en pop up
-			var document_spatio = $('div.showmessage[data-message-id="'+id_rc+'"]').get(0);
+			document_spatio = $('div.showmessage[data-message-id="'+id_rc+'"]').get(0);
 			date_combat_total = document_spatio.getElementsByClassName('infohead')[0].innerHTML;
 		} else { // on se place dans la partie du scan(partie pour les scans pré-ouverts)
 			var nom_spatio = 'spioDetails_'+ id_rc;
-			var document_spatio = document.getElementById(nom_spatio);
+			document_spatio = document.getElementById(nom_spatio);
 			var document_entete = document.getElementById(id_rc + 'TR');
 			if (!document_entete) // Pour la version 5.0.0
 				document_entete = document.getElementById('TR' + id_rc);
@@ -3332,8 +3317,8 @@ aâàã eéêè iîì ñ oôòõ uûù €
 
 		var planette_et_joueur_scan = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].innerHTML;
 
-		spans = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementsByTagName('span');
-		nom_joueur = spans[spans.length - 1].innerHTML;
+		var spans = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementsByTagName('span');
+		var nom_joueur = spans[spans.length - 1].innerHTML;
 		// si antigame est installé et interfere dans le nom du joueurs
 		if (nom_joueur.indexOf('war-riders.de') !== -1) {
 			nom_joueur = document_spatio.getElementsByClassName('material spy')[0].getElementsByTagName('tr')[0].getElementsByTagName('th')[0].getElementById("player_name").innerHTML;
@@ -3399,11 +3384,12 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			typeHonor = "s3";
 
 		// on recupere l'id du rc
+		var idRC;
 		if (info.url.indexOf('index.php?page=messages') >= 0) {//si on est dans les scan preouvert
-			var idRC = id_rc;
+			idRC = id_rc;
 		}
 		else {// si on est dans la page pop up
-			var idRC = info.url.split('&msg_id=')[1];
+			idRC = info.url.split('&msg_id=')[1];
 			if (info.url.indexOf('&mids') === -1) {
 				idRC = idRC.split('&cat')[0];
 			}
@@ -3493,15 +3479,13 @@ aâàã eéêè iîì ñ oôòõ uûù €
 			}//sinon elle existe pas alors on le voit pas donc ?
 			else {
 				nb_recherche = '?';
-				recherche_scan = new Array("?", "?", "?");}
+				recherche_scan = new Array("?", "?", "?");
+			}
 
-			if (recherche_scan[0] == "?") { var recherche_pour_valeur = new Array(0, 0, 0); }
-			else { var recherche_pour_valeur = recherche_scan; }
+			var recherche_pour_valeur = (recherche_scan[0] == "?") ? new Array(0, 0, 0) : recherche_scan;
 
 		/******* VAISSEAU + CDR *******/// on recupere les vaisseaux et le cdr creables.
-			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0]) {
-				var flotte_inter = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].innerHTML;
-			} else { flotte_inter = ''; }
+			var flotte_inter = (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0]) ? document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].innerHTML : '';
 
 			// on verifie que l'on voit bien la flotte
 			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0] && flotte_inter.indexOf('area plunder', 0) == -1) {
@@ -3605,7 +3589,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		/* ******* INFO FINAL ********* */
 			// on verifie que l'on peut enregistré selon toute les options
 			var ressource_pillable = parseInt(ressource_m_scan) + parseInt(ressource_c_scan) + parseInt(ressource_d_scan);
-			var cdr_possible2 = Math.round( ( cdr_possible!='?' ? cdr_possible : 0 ) * pourcent_cdr ) + Math.round( ( cdr_possible_def!='?' ? cdr_possible_def : 0 ) * pourcent_cdr_def );
+			var cdr_possible2 = Math.round((cdr_possible !== '?' ? cdr_possible : 0) * pourcent_cdr) + Math.round((cdr_possible_def !== '?' ? cdr_possible_def : 0) * pourcent_cdr_def);
 			// les trois premiere ligne c'est selon le type d'enregistrement par rapport au ressource /cdr ou les deux. / la derniere ligne pour savoir par rapport a la def et que on voit bien les coordonées
 
 			if (((type_prend_scan == 0 && (cdr_possible2 >= parseInt(valeur_cdr_mini) || (ressource_pillable * pourcent / 100) >= parseInt(nb_scan_accpte)))
@@ -3637,6 +3621,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 				}
 
 				// puis on sauvegarde si on remplace les scan de la meme planette et qu'il existe un scan avec les meme coordonées
+				var scan_info2;
 				if (GM_getValue('scan' + serveur, '').indexOf(coordonnee) > -1 && scan_remplace == 1) {
 					var scan_remplacer_q = 0;// on boucle par rapport au nombre de scan
 					for (var p = 0; p < scan_info.length; p++) {
@@ -3653,7 +3638,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 						}
 					}
 					// on regarde si il a remplacer ou pas le scan par un ancien, si non alors on l'ajoute
-					var scan_info2 = scan_info.join('#');
+					scan_info2 = scan_info.join('#');
 					if (scan_remplacer_q == 0) {
 						scan_info2 += '#' + info_final;
 					}
@@ -3668,8 +3653,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 					}
 				}// si on remplace pas alors on ajoute sans reflechir et on suprime les scan ''
 				else {
-					var scan_info2 = scan_info.join('#');
-					scan_info2 = scan_info2.replace(/\#{2,}/g, "#");
+					scan_info2 = scan_info.join('#').replace(/\#{2,}/g, "#");
 
 					if (scan_info2 == '' || scan_info2 == '#') {
 						GM_setValue('scan' + serveur, info_final);
@@ -3996,8 +3980,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 /************************************** Trie du tableau ******************************************************/
 	function trie_tableau(serveur, classementsecondaire, type_trie) {
-		var ligne_tableau = ' ';
-
 		var scan_i = GM_getValue('scan' + serveur, '').split('#');
 		var nb = scan_i.length;
 		for (var h = 0; h < nb; h++) {// on split chaque scan en un tableau
@@ -4076,7 +4058,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						var cdr_possible_c = Math.round(parseInt(scan_i[gh][16]) * pourcent_cdr);
 
 						//cdr defense
-						if (scan_i[gh][21]) { var cdr_def = scan_i[gh][21].split('/'); } else { var cdr_def = '?'; }
+						var cdr_def = scan_i[gh][21] ? scan_i[gh][21].split('/') : '?';
 						if (cdr_def[0] != '?' && pourcent_cdr_def != 0 && cdr_def != 'undefined') {
 							var cdr_possible_def_m = Math.round(parseInt(cdr_def[1]) * pourcent_cdr_def);
 							var cdr_possible_def_c = Math.round(parseInt(cdr_def[2]) * pourcent_cdr_def);
@@ -4221,7 +4203,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			scan_i.reverse();
 
 		// On remet à x la valeur qui nous a servir pour le tri
-		if (parseInt(classement.replace(/[^0-9-]/g, "")) == '20' || classement == 12 || classement == 1) {
+		if (parseInt(classement.replace(/[^0-9-]/g, "")) == 20 || classement == 12 || classement == 1) {
 			for (var gh = 0; gh < nb; gh++) {
 				if (scan_i[gh] != undefined)
 					scan_i[gh][20] = 'x';
@@ -4270,7 +4252,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 
 		// on les utilises et les place
-		cptLigne = 0;
+		var cptLigne = 0;
 		for (var i = nb_scan_deb; i < nb_scan_fin; i++) {
 			if (scan_info[i] != undefined && scan_info[i] != ';;;;;;;;;;;;;;;;;x;;') {
 				var scan_info_i = scan_info[i].split(';');
@@ -4763,7 +4745,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							//ligne du tableau <tr> de toute les infos du scan
 							cptLigne++;
 							ligne_tableau += '\n<tr class="' + coordonee + '" id="tr_' + i + '">';
-							num_scan = nb_scan_deb + cptLigne;
+							var num_scan = nb_scan_deb + cptLigne;
 							ligne_tableau += '<td class="right">' + num_scan + '.</td>';
 							ligne_tableau += '<td><input type="checkbox" name="delcase" value="' + i + '" id="check_' + i + '"/></td>';
 							ligne_tableau += '<td class="marqueur"></td>';
@@ -5581,7 +5563,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 	//ouvrir fermer export scan simulateur
 	if (simulateur == 3) {
-		for (p = 0; p <= i; p++) {
+		for (var p = 0; p <= i; p++) {
 			if (document.getElementById('simul_' + p)) {
 				display_change('simul_' + p, 'textarea_' + p);
 			}
