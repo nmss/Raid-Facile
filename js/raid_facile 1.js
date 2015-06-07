@@ -13,6 +13,7 @@ aâàã eéêè iîì ñ oôòõ uûù €
 /** Logger **///{region
 	function Logger() {
 		this.logs = [];
+		this.errors = [];
 	}
 	Logger.prototype.log = function(message) {
 		if (info && !info.args.raidFacileDebug) {
@@ -25,6 +26,14 @@ aâàã eéêè iîì ñ oôòõ uûù €
 		this.logs.push(messageParts);
 		console.debug.apply(console, ['[raid facile]'].concat(messageParts));
 	};
+	Logger.prototype.error = function(message) {
+		var messageParts = [];
+		for (var i = 0; i < arguments.length; i++) {
+			messageParts.push(arguments[i]);
+		}
+		this.errors.push(messageParts);
+		console.error.apply(console, ['[raid facile]'].concat(messageParts));
+	}
 	var logger = new Logger();
 //}endregion
 logger.log('Salut :)');
@@ -170,7 +179,8 @@ logger.log('Salut :)');
 			'couleur attaque2': ['d', '#c7050d'],
 			'couleur attaque2 retour': ['e', '#e75a4f'],
 			'couleur espionnage': ['f', '#FF8C00'],
-			'couleur espionnage retour': ['f_r', '']
+			'couleur espionnage retour': ['f_r', ''],
+			'touche raid suivant': ['trs', 80], // touche P
 		};
 		if (!this.checkMappingCount()) {
 			throw 'Erreur de mapping, ya pas le bon nombre!';
@@ -189,14 +199,17 @@ logger.log('Salut :)');
 		/** Change la valeur en mémoire d'une donnée */
 		set: function(nom, valeur) {
 			this.data[this.mapping[nom][0]] = valeur;
+			return this;
 		},
 		/** Charge en mémoire les données du stockage */
 		load: function() {
 			this.data = JSON.parse(GM_getValue(this.storageKeyName, '{}'));
+			return this;
 		},
 		/** Sauvegarde dans le stockage les données en mémoire */
 		save: function() {
 			GM_setValue(this.storageKeyName, JSON.stringify(this.data));
+			return this;
 		},
 		/** Vérification qu'il n'y a pas eu d'erreur de mapping (que chaque valeur n'est utilisée qu'une fois) */
 		checkMappingCount: function() {
@@ -277,11 +290,17 @@ logger.log('Salut :)');
 
 /** Classe d'internationalisation  **///{region
 	function I18n() {
-		this.langue = langue;
+		this.fr = {};
+		this.en = {};
+		this.ro = {};
+		this.es = {};
 	}
 	I18n.prototype = {
 		get: function(key) {
 			var local = this[langue][key];
+			if (local === undefined && key !== 'missing_translation') {
+				logger.error(i18n('missing_translation') + ' : "' + key + '"');
+			}
 			if (local === undefined && langue !== 'en') {
 				local = this.en[key];
 			}
@@ -378,7 +397,7 @@ logger.log('Salut :)');
 	/** Fait l'action appropiée quand une touche du clavier est appuyée */
 	function keyShortcut(eventObject) {
 		// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
-		if (eventObject.which === 80) { // Touche P
+		if (eventObject.which === stockageOption.get('touche raid suivant')) {
 			if (info.page === 'tableauRaidFacile') {
 				eventObject.preventDefault();
 				eventObject.stopPropagation();
@@ -621,7 +640,8 @@ logger.log('Salut :)');
 
 	/** Affiche qu'il y a une mise à jour de disponible */
 	function mise_a_jour(version) {
-		if (!/^\d+\.\d+(\.\d+(\.\d+)?)?$/.test(version)) {
+		if (!/^\d+(?:\.\d+){1,3}$/.test(version)) {
+			// La version ne ressemble pas à 8.4.4
 			return;
 		}
 		if (version.split('.') <= info.version.split('.')) {
@@ -803,6 +823,50 @@ logger.log('Salut :)');
 			return url;
 		}
 	};
+
+	/** Demande à l'utilisateur d'appuyer sur une touche du clavier et détecte laquelle */
+	function findKey(options) {
+		var which = options.defaultValue;
+		function findKeyCallback (eventData) {
+			eventData.preventDefault();
+			eventData.stopPropagation();
+			which = eventData.which;
+			$('#which', popup).text(which);
+		}
+		var buttons = {};
+		buttons[i18n.get('ok')] = function() {
+			if (which) {
+				popup.dialog('close');
+				options.callback(which);
+			}
+		};
+		buttons[i18n.get('cancel')] = function() {
+			popup.dialog('close');
+			options.callback();
+		};
+		var popupHtml = [
+			'<div title="'+ i18n.get('raid facile') +'">',
+			'<p>'+ i18n.get('quelle_touche') +'</p><br>',
+			'<p>Le code de la touche choisie est : <span id="which">'+ which +'</span></p>',
+			'</div>'
+		].join('');
+		var popup = $(popupHtml).dialog({
+			width: 500,
+			modal: true,
+			buttons: buttons,
+			close: function() {
+				$(document).off('keyup', findKeyCallback);
+				popup.dialog('destroy');
+			}
+		});
+		popup.css({
+			background: 'initial'
+		}).parent().css({
+			background: 'black url(http://gf1.geo.gfsrv.net/cdn09/3f1cb3e1709fa2fa1c06b70a3e64a9.jpg) -200px -200px no-repeat'
+		});
+
+		$(document).on('keyup', findKeyCallback);
+	}
 //}endregion
 
 init();
@@ -1012,6 +1076,7 @@ init();
 	text = {
 		//{ Global
 		'raid facile': 'Raid Facile',
+		missing_translation: 'Traduction manquante',
 		//}
 		//{ Menu de gauche
 		'options de': 'Options de',
@@ -1085,6 +1150,11 @@ init();
 				//nb_gt:'Le nb de GT',
 				rien:'rien',
 			lien_raide_ajout_nb_pourcent:"Rajouter au nombre de PT/GT preselectionner de base",
+
+		raccourcis:'Raccourcis',
+			shortcut_attack_next:'Raccourci pour attaquer la cible suivante',
+			modifier: 'Modifier',
+			ce_nombre_est_keycode: 'Ce nombre correspond au code de la touche choisie',
 
 		//couleur ligne
 		couleur_ligne:'Couleur ligne ',
@@ -1171,6 +1241,8 @@ init();
 		//global
 			oui:'oui',
 			non:'non',
+			ok: 'Ok',
+			cancel: 'Annuler',
 
 		//option langue
 		option_langue:'Language',
@@ -1241,6 +1313,7 @@ init();
 			option_sv:'Options de Raide-Facile sauvegardées',
 			del_scan:'Scans supprimés, rafraîchissement de la page',
 			rep_mess_supri:'Messages Supprimés',
+			quelle_touche: 'Quelle touche veux-tu utiliser ?',
 
 		// ecrit dans les scans en pop up
 			del_scan_d:'Effacer ce message',
@@ -1779,6 +1852,7 @@ init();
 		text = {
 			//{ Global
 			'raid facile': 'Easy Raid',
+			missing_translation: 'Missing translation',
 			//}
 			//{ Menu de gauche
 			'options de': 'Options of',
@@ -1850,6 +1924,10 @@ init();
 					//nb_gt:'Number of LC',
 					rien:'Nothing',
 
+			raccourcis: 'Shortcuts',
+				shortcut_attack_next: 'Shortcut to attack the next target',
+				modifier: 'Modify',
+				ce_nombre_est_keycode: 'This number correspond to the keycode of the chosen key',
 
 			//couleur ligne
 			couleur_ligne:'Colour line ',
@@ -1930,6 +2008,8 @@ init();
 		   //global
 				oui:'yes',
 				non:'no',
+				ok: 'Ok',
+				cancel: 'Cancel',
 
 			//option langue
 			option_langue:'Language',
@@ -1999,6 +2079,7 @@ init();
 			option_sv:'Options of Raide-Facile saved',
 			del_scan:'Spying reports deleted, pages refresh',
 			rep_mess_supri:'Posts deleted',
+			quelle_touche: 'What key do you want to use ?',
 
 			// ecrit dans les scans en pop up
 			del_scan_d:'|delete this message',
