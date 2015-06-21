@@ -1,15 +1,38 @@
+// ==UserScript==
+// @name           Raide Facile [modified by Deberron]
+// @namespace      Snaquekiller
+// @version        8.5.0
+// @author         Snaquekiller + Autre + Deberron + Alu
+// @creator        snaquekiller
+// @description    Raide facile
+// @homepage       http://lastworld.etenity.free.fr/ogame/raid_facile
+// @updateURL      http://lastworld.etenity.free.fr/ogame/raid_facile/userscript.header.js
+// @downloadURL    http://lastworld.etenity.free.fr/ogame/raid_facile/72438.user.js
+// @include        http://*.ogame.gameforge.com/game/index.php?page=*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=buddies*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=notices*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=search*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=combatreport*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=eventList*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=jump*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=phalanx*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=techtree*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=techinfo*
+// @exclude        http://*.ogame.gameforge.com/game/index.php?page=globalTechtree*
+// ==/UserScript==
+
+
 // Sujet sur le forum officiel : http://board.ogame.fr/index.php?page=Thread&threadID=978693
 /* Pour éditer ce fichier je conseille un de ces éditeurs
+	lien: https://code.visualstudio.com/
 	lien: http://www.sublimetext.com/
 	lien: http://notepad-plus-plus.org/fr
-	lien: http://brackets.io/
 */
 /* test encodage
 ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
 aâàã eéêè iîì ñ oôòõ uûù €
 */
 
-/// <reference path="typings/jquery/jquery.d.ts"/>
 /// <reference path="typings/greasemonkey/greasemonkey.d.ts"/>
 /* global XPathResult */
 /* global chrome */
@@ -185,6 +208,8 @@ logger.log('Salut :)');
 			'couleur espionnage': ['f', '#FF8C00'],
 			'couleur espionnage retour': ['f_r', ''],
 			'touche raid suivant': ['trs', 80], // touche P
+			'langue': ['l', navigator.language],
+			'popup duration': ['mt', 1000],
 		};
 		if (!this.checkMappingCount()) {
 			throw 'Erreur de mapping, ya pas le bon nombre!';
@@ -241,8 +266,8 @@ logger.log('Salut :)');
 /** Classe de communication avec la page **///{region
 	var Intercom = function () {
 		this.loaded = false;
-		this.listen();
 		this.listeAttente = [];
+		this.listen();
 	};
 	Intercom.prototype = {
 		/**	send envoie un message à l'autre classe Intercom
@@ -267,18 +292,25 @@ logger.log('Salut :)');
 		listen: function () {
 			window.addEventListener('message', this.received.bind(this), false);
 		},
-		/** Défini les action à effectuer en cas de message reçu */
-		received: function (event) {
+		/** Défini les actions à effectuer en cas de message reçu */
+		received: function (message) {
 			// On s'assure que le message est bien pour nous
-			if (event.data.namespace !== 'Raid facile' || event.data.fromPage === false) {
+			if (message.data.namespace !== 'Raid facile' || message.data.fromPage === false) {
 				return;
 			}
-			switch (event.data.action) {
+			switch (message.data.action) {
 				case 'loaded':
 					// l'autre intercom est chargé, on peut donc traiter les messages en attente
 					this.loaded = true;
 					this.traiterListeAttente();
 					break;
+				default:
+					var handler = eventHandlers[message.data.action];
+					if (!handler) {
+						logger.error('No handler for action :', message.data.action);
+						break;
+					}
+					handler(message.data);
 			}
 		},
 		traiterListeAttente: function () {
@@ -311,7 +343,7 @@ logger.log('Salut :)');
 			if (local === undefined && langue !== 'fr') {
 				local = this.fr[key];
 			}
-			return local;
+			return local || '##' + key + '##';
 		},
 		exporter: function (langue) {
 			return this[langue];
@@ -366,7 +398,6 @@ logger.log('Salut :)');
 
 	/** un des première fonction à être appelée, initialise un peu tout */
 	function init() {
-		// exportOptions();
 		remplirInfo();
 		logger.log('Version', info.version);
 		setPage();
@@ -415,7 +446,7 @@ logger.log('Salut :)');
 
 	/** Instancie une classe mais en mode fonction (comme jQuery)
 	 * mainMethod correspond à la méthode qui sera utilisé en mode raccourci
-	 * exemple : i18n(...) est identique à i18n.get(...) si mainMethod = 'get' 
+	 * exemple : i18n(...) est identique à i18n.get(...) si mainMethod = 'get'
 	 */
 	function instanciateAsFunction(ClassObject, mainMethod) {
 		var instance = new ClassObject();
@@ -616,7 +647,7 @@ logger.log('Salut :)');
 	}
 
 	/** Permet de récupérer un objet contenant toutes les options */
-	function exportOptions() {
+	function exportOptions(target) {
 		var optionExport = {};
 		optionExport.optionNew = {
 			data: stockageOption.data,
@@ -627,10 +658,29 @@ logger.log('Salut :)');
 			option2: GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0'),
 			option3: GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F'),
 			option4: GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1'),
-			option5: GM_getValue('option5' + info.serveur, navigator.language),
-			vitesse_uni: parseInt(GM_getValue('vitesse_uni', '1'))
 		};
-		prompt("Voici l'export des options", JSON.stringify(optionExport));
+		var exportTxt = JSON.stringify(optionExport);
+		$(target).val(exportTxt);
+	}
+	function importOptions(source) {
+		try {
+			var importData = JSON.parse($(source).val());
+		} catch(e) {
+			fadeBoxx(i18n('erreur'), true);
+			return;
+		}
+		if (!importData.optionNew || !importData.optionOld) {
+			fadeBoxx(i18n('erreur'), true);
+			return;
+		}
+		stockageOption.data = importData.optionNew.data;
+		stockageOption.save();
+		GM_setValue('option1' + info.serveur, importData.optionOld.option1);
+		GM_setValue('option2' + info.serveur, importData.optionOld.option2);
+		GM_setValue('option3' + info.serveur, importData.optionOld.option3);
+		GM_setValue('option4' + info.serveur, importData.optionOld.option4);
+		$(source).val('');
+		fadeBoxx(i18n('ok'));
 	}
 
 	/** Renvoie un objet contenant toutes les données utiles pour les statistiques */
@@ -885,13 +935,12 @@ init();
 	var option2 = GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
 	var option3 = GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
 	var option4 = GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
-	var option5 = GM_getValue('option5' + info.serveur, navigator.language);
+	var langue = stockageOption.get('langue');
 	
 	var option1_split = option1.split('/');
 	var option2_split = option2.split('/');
 	var option3_split = option3.split('/');
 	var option4_split = option4.split('/');
-	var option5_split = option5;
 
 	//votre compte
 	/**option1_mon_compte**/{
@@ -910,7 +959,7 @@ init();
 		var vaisseau_lent = option1_split[7];
 		var pourcent_cdr = parseFloat(option1_split[8]);
 		var pourcent_cdr_def = parseFloat(option1_split[9]);
-		var vitesse_uni = parseInt(GM_getValue('vitesse_uni', '1'));
+		var vitesse_uni = parseInt(info.ogameMeta['ogame-universe-speed']);
 	}
 
 	//choix
@@ -1004,9 +1053,6 @@ init();
 		var tableau_raide_facile_value = (option4_split[30] !== undefined) ? option4_split[30] : 100;
 		var q_icone_mess = option4_split[16];
 }
-
-	// langue
-	var langue = option5_split;
 //}endregion
 
 /** initialisation des filtres **///{region
@@ -1246,6 +1292,7 @@ init();
 			oui:'oui',
 			non:'non',
 			ok: 'Ok',
+			erreur: 'Erreur',
 			cancel: 'Annuler',
 
 		//option langue
@@ -1336,6 +1383,8 @@ init();
 		//import / export
 			export_scan_se:'Exporter les scans sélectionnés',
 			export_scan_nnse:'Exporter les scans non sélectionnés',
+			export_options:'Exporter les options',
+			import_options:'Importer les options',
 			importer_scan:'Importer les scans',
 			import_rep:'Scan importé et ajouté à votre base de données',
 			importt:'Import :',
@@ -2013,6 +2062,7 @@ init();
 				oui:'yes',
 				non:'no',
 				ok: 'Ok',
+				erreur: 'Error',
 				cancel: 'Cancel',
 
 			//option langue
@@ -2102,6 +2152,8 @@ init();
 			//import / export
 			export_scan_se:'Export selected esp reports',
 			export_scan_nnse:'Export unselected esp reports',
+			export_options:'Export options',
+			import_options:'Import options',
 			importer_scan:'Import esp reports',
 			import_rep:'esp report imported and added to your Database',
 			importt:'Import :',
@@ -2394,19 +2446,18 @@ init();
 		return nomAraccourcir.length >= 10 ? nomAraccourcir.substring(0, 10) : nomAraccourcir;
 	}
 
-	//function petit rectangle affiche (genre pop up) 0 V , 1 erreur
-	function fadeBoxx(message, failed, temps) {
-		// var $;
-		// try { $ = unsafeWindow.$; }
-		// catch(e) { $ = window.$; }
-
-		if (failed) {
+	/** Affiche un message sous forme de popup qui disparait avec le temps */
+	function fadeBoxx(message, isError, duration) {
+		if (duration === undefined) {
+			duration = stockageOption.get('popup duration');
+		}
+		if (isError) {
 			$("#fadeBoxStyle").attr("class", "failed");
 		} else {
 			$("#fadeBoxStyle").attr("class", "success");
 		}
 		$("#fadeBoxContent").html(message);
-		$("#fadeBox").stop(true, true).fadeIn(0).delay(temps).fadeOut(500);
+		$("#fadeBox").stop(true, true).fadeIn(0).delay(duration).fadeOut(500);
 	}
 
 	/** Affiche l'icône "new" avec un commentaire en "title" */
@@ -2505,12 +2556,9 @@ init();
 				pourcent_cdr_def_q = Math.round(parseFloat(pourcent_cdr_def_q) / 10);
 				pourcent_cdr_def_q = pourcent_cdr_def_q / 10;
 
-				// ancienne question pour la vitesse de l'univers
-				var vitesse_uni_q = 1;
-
 			var option1 = techno_arme + '/' + techno_boulier + '/' + techno_protect + '/' + techno_combu + '/' + techno_impu +
 				'/' + techno_hyper + '/' + coordonee_depart + '/' + vitesse_vaisseaux_plus_lent + '/' + pourcent_cdr_q + '/' + pourcent_cdr_def_q +
-				'/' + vitesse_uni_q;
+				'/' + vitesse_uni;
 			GM_setValue('option1' + serveur, option1);
 		}
 
@@ -2757,14 +2805,11 @@ init();
 			GM_setValue('option4' + serveur, option4);
 		//}
 
-		{// option de langue
-			var q_langue = document.getElementById('langue').value;
-			var option5 = q_langue;
-			GM_setValue('option5' + serveur, option5);
-
-			fadeBoxx(text.option_sv, 0, 5000);
-		}
+		// option de langue
+		stockageOption.set('langue', document.getElementById('langue').value);
+		
 		stockageOption.save();
+		fadeBoxx(i18n('option_sv'));
 	}
 	function save_optionbbcode(serveur) {
 		var col1 = document.getElementById('col_1').value;
@@ -2894,13 +2939,13 @@ init();
 	}
 
 	//function d'export des scans.
-	function export_scan(serveur, check) {
+	function export_scan(check, target) {
 		var id_num;
-		var scan_info = GM_getValue('scan' + serveur, '').split('#');
+		var scan_info = GM_getValue('scan' + info.serveur, '').split('#');
 		var nb = scan_info.length;
 		var export_f = '';
 
-		var nb_scan_deb_fin = connaitre_scan_afficher(serveur, nb_scan_page, info.url, nb);
+		var nb_scan_deb_fin = connaitre_scan_afficher(info.serveur, nb_scan_page, info.url, nb);
 
 		for (var p = nb_scan_deb_fin[1]; p < nb_scan_deb_fin[0]; p++) {
 			id_num = 'check_' + p + '';
@@ -2915,13 +2960,13 @@ init();
 				else { nb_scan_deb_fin[0]++; }
 			}
 		}
-		document.getElementById("area_export").innerHTML = export_f;
+		$(target).val(export_f);
 	}
 
 	//function d'import des scans.
-	function import_scan(serveur, variable_q) {
-		var scan_info = GM_getValue('scan' + serveur, '');
-		var scan_add = document.getElementById("area_import").value;
+	function import_scan(variable_q, source) {
+		var scan_info = GM_getValue('scan' + info.serveur, '');
+		var scan_add = $(source).val();
 		scan_add = scan_add.split('#');
 		var scan_info3 = '';
 
@@ -2948,7 +2993,7 @@ init();
 		else { scan_info = scan_info3; }
 
 		scan_info = scan_info.replace(/\#{2,}/g, "#");
-		GM_setValue('scan' + serveur, scan_info);
+		GM_setValue('scan' + info.serveur, scan_info);
 		fadeBoxx(text.import_rep, 0, 5000);
 	}
 
@@ -3000,7 +3045,7 @@ init();
 	}
 
 	//calcul la production en met/cri/deut par heure selon les coordonees , les mines et la temperature max.
-	function calcule_prod(mine_m, mine_c, mine_d, coordonee, tmps_max, vitesse_uni) {
+	function calcule_prod(mine_m, mine_c, mine_d, coordonee, tmps_max) {
 		var retour = {};
 		if (mine_m != '?' && mine_m != '?' && mine_m != '?' && coordonee.split(':')[2] !== undefined) {
 			var prod_m = Math.floor((30 * parseInt(mine_m) * Math.pow(1.1, parseInt(mine_m)) + 30) * vitesse_uni);
@@ -3073,8 +3118,7 @@ init();
 		return vitesse_mini;
 	}
 
-	function vaisseau_vitesse_mini(impulsion, hyper_h, combus, value_select, coordonee_cible, vitesse_uni) {
-		if (!vitesse_uni || vitesse_uni <= 0) { vitesse_uni = 1; }
+	function vaisseau_vitesse_mini(impulsion, hyper_h, combus, value_select, coordonee_cible) {
 		var distance;
 		var vitesse_mini = vitesse_vaisseau(impulsion, hyper_h, combus, value_select);
 		/***************  Distance *********************/
@@ -3179,22 +3223,10 @@ init();
 		attaque_deja = attaque_deja_split.join('#').replace(/\#{2,}/g, "#");
 		GM_setValue('attaque_24h', attaque_deja);
 	}
-
-	function afficher_erreur(lieu, err) {
-		var erreur = '<center><strong>Erreur</strong></center> \n <BR/> <strong>Name: </strong>' + err.name + '\n <BR/><strong>Description: </strong>' + err.message + '\n <BR/> <strong> Browser : </strong>' + navigator.userAgent +
-			'\n <BR/> <strong>Url: </strong>' + document.location.href.split('&s')[0] + '\n <BR/> <strong>Line: </strong>' + err.lineNumber + '<BR/>\n <strong>Version : </strong>' + info.version;
-		if (langue != 'fr') {
-			erreur += '\n <BR/><strong> Report here: </strong>' + '<a href="http://userscripts.org/scripts/show/72438"> http://userscripts.org/scripts/show/72438 </a>';
-		} else {
-			erreur += '\n <BR/><strong> Merci de signalez l\'erreur ici: </strong>' + '<a href="http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/">http://board.ogame.fr/board1474-ogame-le-jeu/board641-les-cr-ations-ogamiennes/board642-logiciels-tableurs/978693-raide-facile/</a>';
-		}
-		var sp1 = document.createElement('div');
-		sp1.id = "erreur";
-		sp1.setAttribute('style', 'display:block !important;color:#214563;background-color: #FFFFFF;');
-		sp1.innerHTML = erreur;
-		document.getElementById('contentWrapper').insertBefore(sp1, document.getElementById(lieu));
-	}
 //}endregion
+
+var eventHandlers = {
+};
 
 /** page de combat report **///{region
 	//recupere les informations des rapports de combat pour que le compteur d'attaque
@@ -3832,16 +3864,8 @@ init();
 
 init2();
 
-/////////////////// PAGE GENERAL ///////////////////
-if (info.page === 'overview') {
-	// setSpeed();
-	if (document.getElementsByName('ogame-universe-speed')[0]) {
-		GM_setValue('vitesse_uni', document.getElementsByName('ogame-universe-speed')[0].content);
-	}
-}
-
 /////////////////// PAGE DE MESSAGES AVEC POP UP ///////////////////
-else if (info.page === 'showmessage') {
+if (info.page === 'showmessage') {
 	// inutile depuis la màj des popup ?
 	alert('[raid facile] Erreur n°164881');
 	if (document.getElementsByClassName('note')[0].getElementsByClassName('material spy')[0]) {
@@ -4092,7 +4116,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 						//ressource x h
 						if (mine_array != '?/?/?' && coordonee) {
-							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
+							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?');
 							var prod_m_h = prod_t.metal;
 							var prod_c_h = prod_t.cristal;
 							var prod_d_h = prod_t.deut;
@@ -4136,7 +4160,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 						var coordonee = scan_i[gh][1];
 
 						if (mine_array != '?/?/?') {
-							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
+							var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?');
 
 							var prod_m_h = prod_t.metal;
 							var prod_c_h = prod_t.cristal;
@@ -4440,7 +4464,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							}
 
 							// vitesse minimum.
-							var accronyme_temp_vol = vaisseau_vitesse_mini(tech_impul_a, tech_hyper_a, tech_combus_a, vaisseau_lent, coordonee, vitesse_uni);
+							var accronyme_temp_vol = vaisseau_vitesse_mini(tech_impul_a, tech_hyper_a, tech_combus_a, vaisseau_lent, coordonee);
 
 							//cdr possible
 							var cdr_possible = Math.round(parseInt(scan_info_i[8]) * pourcent_cdr);
@@ -4649,7 +4673,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							// si on a besoin de la production pour afficher une colone
 							if (prod_h_q == 1 || prod_gg != 0 || q_vid_colo == 1) {
 								if (mine_array != '?,?,?') {
-									var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?', vitesse_uni);
+									var prod_t = calcule_prod(mine_m, mine_c, mine_d, coordonee, '?');
 									var prod_m_h = prod_t.metal;
 									var prod_c_h = prod_t.cristal;
 									var prod_d_h = prod_t.deut;
@@ -4918,7 +4942,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 					+ ' </select></td></tr>'
 					+ '<tr><td><label for="cdr_pourcent">• '+ text.pourcent +' </label></td><td><input type="text" id="cdr_pourcent"  value="'+ (pourcent_cdr*100) +'" style="width:20px;" /></td></tr>'
 					+ '<tr><td><label for="cdr_pourcent_def">• '+ text.pourcent_def +' </label></td><td><input type="text" id="cdr_pourcent_def"  value="'+ (pourcent_cdr_def*100) +'" style="width:20px;" /></td></tr>'
-				//+ '<BR /><label> '+ text.vitesse_uni +' </label>&nbsp<input type="text" id="vitesse_uni"  value="'+ vitesse_uni +'" style="width:20px;" />
 					+'</table>'
 				+'</div>'
 
@@ -5185,15 +5208,15 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		}
 
 		/**************** IMPORT / EXPORT **************/{
-			var import_export = '<div id="div_import_exp"><center style="margin-left: auto; margin-right: auto; width: 99%;">';
-			import_export += text.exportt;
-			import_export += '<textarea style="margin-top:5px; margin-bottom:10px; width:100%;background-color:black;color:#999999;text-align:center;" id=area_export ></textarea>';
-			import_export += text.importt;
-			import_export += '<textarea style="margin-top:5px; margin-bottom:10px; width:100%;background-color:black;color:#999999;text-align:center;" id=area_import ></textarea>';
-			import_export += '<a id="export_script"><input type="submit" value="'+ text.export_scan_se +'" /> </a>';
-			import_export += ' <a id="export_script_ns"><input type="submit" value="'+ text.export_scan_nnse +'" /> </a>';
-			import_export += ' <a id="import_scan"><input type="submit" value="'+ text.importer_scan +'" /> </a>';
-			import_export += '</center></div>';
+			var import_export = '<div id="div_import_exp" style="text-align:center">';
+			import_export += '<input type="submit" id="export_script" value="'+ i18n('export_scan_se') +'" />';
+			import_export += '<input type="submit" id="export_script_ns" value="'+ i18n('export_scan_nnse') +'" />';
+			import_export += '<input type="submit" id="export_options" value="'+ i18n('export_options') +'">';
+			import_export += '<br><label for="area_export">' + i18n('exportt') + '</label><textarea id="area_export" readonly style="box-sizing:border-box; width:100%"></textarea>';
+			import_export += '<label for="area_import">' + i18n('importt') + '</label><textarea id="area_import" style="box-sizing:border-box; width:100%"></textarea>';
+			import_export += '<input type="submit" id="import_scan" value="'+ i18n('importer_scan') +'" />';
+			import_export += '<input type="submit" id="import_options" value="'+ i18n('import_options') +'" />';
+			import_export += '</div>';
 		}
 
 		/****************************/
@@ -5267,8 +5290,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 		}
 
 /////// on  trie le tableau ,affiche les lignes, on remplit en meme temps les export(bbcode/html) et colorie les lignes de flottes en vol. ///////////////////////////////////
-	// try{
-
 		function remlir_tableau(serveur, classementsecondaire, type_croissant) {
 			// on trie le tableau que si besoin est.
 			if(parseInt(classementsecondaire) !== -1)
@@ -5335,10 +5356,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			document.getElementById('page').innerHTML = page_bas;
 		}
 		remlir_tableau(info.serveur, -2, 0);
-	// }
-	// catch(err){
-		// afficher_erreur('inhalt', err);
-	// }
 
 		//classer par colone croissante /decroissante grace au titre de colone
 		/** Truc pour classer en cliquant sur le titre des colones **///{
@@ -5576,21 +5593,15 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			save_option(info.serveur);
 			save_optionbbcode(info.serveur);
 			// On recharge la page pour que les changements prennent effet
-			location.reload();
+			setTimeout(location.reload.bind(location), 1000);
 		}, true);
 
-	//export
-		document.getElementById("export_script").addEventListener("click", function (event) {
-			export_scan(info.serveur, true);
-		}, true);
-		document.getElementById("export_script_ns").addEventListener("click", function (event) {
-			export_scan(info.serveur, false);
-		}, true);
-
-	//import
-		document.getElementById("import_scan").addEventListener("click", function (event) {
-			import_scan(info.serveur, import_q_rep);
-		}, true);
+		// import/export
+		document.getElementById("export_script").addEventListener("click", export_scan.bind(undefined, true, '#area_export'), true);
+		document.getElementById("export_script_ns").addEventListener("click", export_scan.bind(undefined, false, '#area_export'), true);
+		document.getElementById("export_options").addEventListener("click", exportOptions.bind(undefined, '#area_export'), true);
+		document.getElementById("import_scan").addEventListener("click", import_scan.bind(undefined, import_q_rep, '#area_import'), true);
+		document.getElementById("import_options").addEventListener("click", importOptions.bind(undefined, '#area_import'), true);
 
 	/**** partie pour le css du tableau avec les options + déplacer le menu planette ***************/{
 		// modification du css de la page et du tableau.

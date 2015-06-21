@@ -1,6 +1,6 @@
 {
 	"name": "Raid Facile",
-	"version": "8.4.4",
+	"version": "8.5.0",
 	"description": "Raid facile pour Ogame",
 	"homepage_url": "http://lastworld.etenity.free.fr/ogame/raid_facile/",
 	"update_url": "http://lastworld.etenity.free.fr/ogame/raid_facile/?check=chrome",
@@ -25,9 +25,7 @@
 		"js": [
 			"deps/jquery-1.9.0.min.js",
 			"deps/jquery-ui-1.10.0.custom.min.js",
-			"js/raid_facile 1.js",
-			"js/raid_facile 2.js",
-			"js/raid_facile injected.js"
+			"raid_facile.js"
 		],
 		"matches": [
 			"http://*/*",
