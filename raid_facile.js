@@ -3153,7 +3153,39 @@ init();
 	}
 //}endregion
 
+// page des messages
+var scan = {
+	parsePreview: function (html) {
+		var msg_contents = $('.msg_content > span', html);
+		return {
+			id: $(html).data('msg-id'),
+			coord: $('.msg_head .msg_title a', html).text(),
+			timestamp: new Date($('.msg_head .msg_date ', html).text()).getTime(),
+			resources: scan.parseRessource($(msg_contents[0]).text()),
+			fleets: $(msg_contents[1]).text().replace('Fleets: ', ''),
+			loot: $(msg_contents[2]).text().replace('Loot: ', '')
+		};
+	},
+	parseRessource: function (ressources) {
+		var match = ressources.match(/([0-9.]+[MCD])/g);
+		var metal = match.filter(function (res) { return res[res.length - 1] === 'M'; })[0] || '0M';
+		var cristal = match.filter(function (res) { return res[res.length - 1] === 'C'; })[0] || '0C';
+		var deut = match.filter(function (res) { return res[res.length - 1] === 'D'; })[0] || '0D';
+		return {
+			metal: parseFloat(metal.slice(0, -1)),
+			cristal: parseFloat(cristal.slice(0, -1)),
+			deut: parseFloat(deut.slice(0, -1))
+		};
+	},
+};
+
 var eventHandlers = {
+    messageEspionnageLoaded: function (data) {
+		var messages = $('>li', data.text);
+		for (var i = 0; i < messages.length; i++) {
+			console.log(scan.parsePreview(messages[i]));
+		}
+    }
 };
 
 /** page de combat report **///{region
@@ -5635,6 +5667,17 @@ Intercom.prototype = {
 var intercom = new Intercom();
 intercom.send('loaded');
 //}
+
+$(document).ajaxSuccess(function (event, jqXHR, ajaxOptions, data) {
+	if (ajaxOptions.url !== 'index.php?page=messages&tab=20&ajax=1') {
+		return;
+	}
+	intercom.send('messageEspionnageLoaded', {
+		url: ajaxOptions.url,
+		text: data,
+	});
+});
+
 };
 
 // injection du script
