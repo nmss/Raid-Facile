@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Raide Facile [modified by Deberron]
 // @namespace      Snaquekiller
-// @version        8.5.0
+// @version        8.5.1
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile
@@ -2859,14 +2859,13 @@ init();
 		var option_save_bbcode = col1 + '/' + col2 + '/' + col3 + '/' + col4 + '/' + col5 + '/' + col6 + '/' + col7 + '/' +
 			rep_center_type + '/' + q_url_type + '/' + q_centre + '/' + q_cite;
 		GM_setValue('option_bbcode' + serveur, option_save_bbcode);
-		//fadeBoxx(text.option_sv, 0, 5000);
 	}
 
 	function reset(serveur) {
 		var continuer = confirm(text.q_reset);
 		if (continuer === true) {
 			GM_setValue('scan' + serveur, '');
-			fadeBoxx(text.reset, 0, 5000);
+			fadeBoxx(text.reset, 0, 3000);
 		}
 	}
 	function resetoption(serveur) {
@@ -2878,7 +2877,7 @@ init();
 			GM_setValue('option4' + serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
 			GM_setValue('exversion' + serveur, info.version);
 
-			fadeBoxx(text.reset_s, 0, 5000);
+			fadeBoxx(text.reset_s, 0, 3000);
 		}
 	}
 
@@ -2994,7 +2993,7 @@ init();
 
 		scan_info = scan_info.replace(/\#{2,}/g, "#");
 		GM_setValue('scan' + info.serveur, scan_info);
-		fadeBoxx(text.import_rep, 0, 5000);
+		fadeBoxx(text.import_rep, 0, 3000);
 	}
 
 	// fonction pour savoir le nombre de pt et gt qu'il faut pour prendre le maximum de reosourcce en raidant
@@ -3484,7 +3483,6 @@ var eventHandlers = {
 			var defense_scan = new Array("0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
 			var recherche_scan = new Array("0", "0", "0");
 			var mine_scan = new Array("0", "0", "0");
-			var nb_vaisseau_type = ' ';
 			var nb_def_type = ' ';
 			var nb_recherche = '';
 			var nb_mine = '';
@@ -3529,15 +3527,15 @@ var eventHandlers = {
 					var type_vaisseau = document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('key')[j].innerHTML;
 					for (var k = 0; k < vaisseau.length; k++) {
 						if (type_vaisseau == vaisseau[k]) {
-							nb_vaisseau_type = parseInt(document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('value')[j].innerHTML).replace(/[^0-9-]/g, '');
-							valeur_attaque_flotte = valeur_attaque_flotte + parseInt(nb_vaisseau_type) * parseInt(valeur_attaque_vaisseau[k]) * (1 + 0.1 * recherche_pour_valeur[0]);
+							var nb_vaisseau_type = parseInt(document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].getElementsByClassName('value')[j].textContent.replace(/[^0-9-]/g, ''));
+							valeur_attaque_flotte = valeur_attaque_flotte + nb_vaisseau_type * parseInt(valeur_attaque_vaisseau[k]) * (1 + 0.1 * recherche_pour_valeur[0]);
 
-							cdr_possible = cdr_possible + parseInt(vaisseau_perte[k]) * parseInt(nb_vaisseau_type);
-							cdr_possible_m = cdr_possible_m + parseInt(vaisseau_perte_m[k]) * parseInt(nb_vaisseau_type);
-							cdr_possible_c = cdr_possible_c + parseInt(vaisseau_perte_c[k]) * parseInt(nb_vaisseau_type);
+							cdr_possible = cdr_possible + parseInt(vaisseau_perte[k]) * nb_vaisseau_type;
+							cdr_possible_m = cdr_possible_m + parseInt(vaisseau_perte_m[k]) * nb_vaisseau_type;
+							cdr_possible_c = cdr_possible_c + parseInt(vaisseau_perte_c[k]) * nb_vaisseau_type;
 
-							vaisseau_scan[k] = parseInt(vaisseau_scan[k]) + parseInt(nb_vaisseau_type);
-							nb_vaisseau_s = nb_vaisseau_s + parseInt(nb_vaisseau_type);
+							vaisseau_scan[k] = parseInt(vaisseau_scan[k]) + nb_vaisseau_type;
+							nb_vaisseau_s = nb_vaisseau_s + nb_vaisseau_type;
 						}
 					}
 
@@ -3545,7 +3543,6 @@ var eventHandlers = {
 			}
 			else {
 				cdr_possible = '?';
-				nb_vaisseau_type = '?';
 				valeur_attaque_flotte = '?';
 				vaisseau_scan = new Array("?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?", "?");
 				nb_vaisseau_s = -1;
@@ -3782,10 +3779,11 @@ var eventHandlers = {
 			}
 		}
 		else {
-			fadeBoxx('Error', 0, 3000);
+			fadeBoxx(i18n('erreur'), true);
 			nb_scan_enregistre = 0;
 		}
-		fadeBoxx((nb_scan_enregistre) + ' ' + text.rep_mess_add, 0, 3000);
+		debugger;
+		fadeBoxx(nb_scan_enregistre + ' ' + i18n('rep_mess_add'));
 	}
 
 	function supr_scan_dep_mess(type_clique, check_q) {
@@ -3894,7 +3892,7 @@ else if (info.page === 'messages') {
 				}
 			}
 			if (nb_scan_enregistre > 0) {
-				fadeBoxx((nb_scan_enregistre) + ' ' + text.rep_mess_add, 0, 3000);
+				fadeBoxx(nb_scan_enregistre + ' ' + i18n('rep_mess_add'));
 			}
 		}
 	}
