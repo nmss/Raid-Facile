@@ -77,7 +77,7 @@ logger.log('Salut :)');
 		var parseOgameMeta = function () {
 			var content, name;
 			var metaVars = $('meta[name^=ogame-]', document.head);
-	
+
 			info.ogameMeta = {};
 			for (var i = 0; i < metaVars.length; ++i) {
 				name = metaVars[i].getAttribute('name');
@@ -936,7 +936,7 @@ init();
 	var option3 = GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
 	var option4 = GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
 	var langue = stockageOption.get('langue');
-	
+
 	var option1_split = option1.split('/');
 	var option2_split = option2.split('/');
 	var option3_split = option3.split('/');
@@ -949,11 +949,11 @@ init();
 		var tech_arme_a = option1_split[0];
 		var tech_bouclier_a = option1_split[1];
 		var tech_protect_a = option1_split[2];
-	
+
 		var tech_combus_a = option1_split[3];
 		var tech_impul_a = option1_split[4];
 		var tech_hyper_a = option1_split[5];
-	
+
 		// Autre :
 		var pos_depart = option1_split[6];
 		var vaisseau_lent = option1_split[7];
@@ -969,14 +969,14 @@ init();
 		var valeur_cdr_mini = option2_split[1];// valeur de cdr a partir de laquel il prend le scan
 		var valeur_tot_mini = option2_split[2];// valeur de total a partir de laquel il prend le scan
 		var type_prend_scan = option2_split[3];// choix entre les 3options du haut a partir de laquel il prend le scan
-	
+
 		//Classement :
 		var classement = option2_split[4];//0 date ; 1 coordonee ; 2 joueur ; 3 nom ^planette ; 4 ressource  metal; 5 cristal ; 6 deut ; 7 activite  ; 8 cdr possible ; 9 vaisseau; 10 defense ; 11 idrc ; 12 ressource total,13 reherche , 14 type de planette (lune ou planette)
 		var reverse = option2_split[9];
 		var q_taux_m = (option2_split[11] !== undefined) ? option2_split[11] : 1;
 		var q_taux_c = (option2_split[12] !== undefined) ? option2_split[12] : 1;
 		var q_taux_d = (option2_split[13] !== undefined) ? option2_split[13] : 1;
-	
+
 		//Options de sauvegarde de scan :
 		var scan_preenrgistre = option2_split[5];// si le scan est enregistre lorsqu'on le regarde ou seulement quand on clique sur enregistre.
 		var scan_remplace = option2_split[6];
@@ -988,7 +988,7 @@ init();
 		var jours_opt = Math.floor(nb_minutesgardescan2 / 60 / 24);
 		var nb_ms_garde_scan = nb_minutesgardescan * 60 * 1000;
 		var nb_max_def = option2_split[10] !== undefined ? option2_split[10] : 0;
-	
+
 		//Autre :
 		var import_q_rep = option2_split[8];
 		var lien_raide_nb_pt_gt = (option2_split[14] !== undefined) ? option2_split[14] : 2;
@@ -1011,13 +1011,13 @@ init();
 		//Changement dans les colonnes :
 		var q_date_type_rep = option4_split[8];
 		var cdr_q_type_affiche = option4_split[2];
-	
+
 		//Changement dans boutons de droites :
 		var simulateur = option4_split[11];
 		var q_mess = option4_split[12];
 		var espionnage_lien = option4_split[1];
 		var q_lien_simu_meme_onglet = (option4_split[25] !== undefined) ? option4_split[25] : 1;
-	
+
 		//Affichage de Colonne :
 		var q_compteur_attaque = option4_split[21] !== undefined ? option4_split[21] : 0;
 		var q_vid_colo = (option4_split[17] !== undefined) ? option4_split[17] : 0;
@@ -1334,10 +1334,10 @@ init();
 			th_tech:'Tech.',
 
 			// bouton de droite
-			espionner:'|Espionner',
-			eff_rapp:'|Effacer ce rapport',
-			att:'|Attaquer',
-			simul:'|Simuler',
+			espionner:'Espionner',
+			eff_rapp:'Effacer ce rapport',
+			att:'Attaquer',
+			simul:'Simuler',
 
 			// entete
 			mise_jours:'Mise à jour possible pour Raide-Facile',
@@ -1563,10 +1563,10 @@ init();
 		selec_scan_st:'Selectare rapoartele de spionaj',
 
 			// tableau icone et autre
-			espionner:'|spioneaza',
-			eff_rapp:'|Sterge acest raport de spionaj',
-			att:'|Ataca',
-			simul:'|Simuleaza',
+			espionner:'spioneaza',
+			eff_rapp:'Sterge acest raport de spionaj',
+			att:'Ataca',
+			simul:'Simuleaza',
 			mise_jours:'Posibil Update al Raid Facile',
 			cdr_pos:'Câmp de ramasite',
 			dated:'Date',
@@ -1833,10 +1833,10 @@ init();
 				th_tech:'',
 
 				// bouton de droite
-				espionner:'|Espiar',
-				eff_rapp:'|Eliminar el informe de espionaje',
-				att:'|Atacar',
-				simul:'|Simular',
+				espionner:'Espiar',
+				eff_rapp:'Eliminar el informe de espionaje',
+				att:'Atacar',
+				simul:'Simular',
 
 			// entete
 			mise_jours:'Actualizar Raid Facile',
@@ -2102,10 +2102,10 @@ init();
 			th_tech:'Tech.',
 
 			// bouton de droite
-			espionner:'|spying',
-			eff_rapp:'|Remove this espionage report',
-			att:'|Attack',
-			simul:'|Simulate',
+			espionner:'spying',
+			eff_rapp:'Remove this espionage report',
+			att:'Attack',
+			simul:'Simulate',
 
 			// entete
 			mise_jours:'Possible Update of Raid Facile',
@@ -2446,16 +2446,16 @@ init();
 		return nomAraccourcir.length >= 10 ? nomAraccourcir.substring(0, 10) : nomAraccourcir;
 	}
 
-	/** Affiche un message sous forme de popup qui disparait avec le temps */
+	/** Affiche un message sous forme de popup qui disparait avec le temps
+	 * message - le message à afficher
+	 * isError - true (pour afficher une erreur), false sinon
+	 * duration - la durée d'affichage du message en millisecondes
+	 */
 	function fadeBoxx(message, isError, duration) {
 		if (duration === undefined) {
 			duration = stockageOption.get('popup duration');
 		}
-		if (isError) {
-			$("#fadeBoxStyle").attr("class", "failed");
-		} else {
-			$("#fadeBoxStyle").attr("class", "success");
-		}
+		$("#fadeBoxStyle").attr("class", isError ? "failed" : "success");
 		$("#fadeBoxContent").html(message);
 		$("#fadeBox").stop(true, true).fadeIn(0).delay(duration).fadeOut(500);
 	}
@@ -2466,60 +2466,7 @@ init();
 	}
 //}endregion
 
-/** page mouvement **///{region
-	function recup_flotte_mv() {// sur la page mouvement recupere les mouvements de flottes en cours
-		if (info.url.indexOf('page=movement', 0) < 0) {
-			return;
-		}
-		var destination_flotte_f = [];
-		var type_missions_f = [];
-		var xpathExpression = '//DIV[contains(@class,"fleetDetails")]/SPAN[contains(@class,"hostile")]/..';
-		var xpathResult = document.evaluate(xpathExpression, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-		for (var k = 0; k < xpathResult.snapshotLength; k++) {
-			var doc2 = xpathResult.snapshotItem(k);
-
-			var destination_flotte = doc2.getElementsByClassName('destinationCoords')[0].getElementsByTagName('a')[0].innerHTML;
-			destination_flotte_f[k] = destination_flotte;
-
-
-			var type_missions = doc2.getElementsByClassName('mission hostile textBeefy')[0].innerHTML;
-			if (!doc2.getElementsByClassName('reversal')[0] && type_missions.indexOf('(R)') == -1) {// si il n'y as pas de bouton "rappel de flotte",
-				type_missions += " (R)";// c'est que la flotte est forcement sur le retour
-			}
-			type_missions_f[k] = type_missions;
-
-		}
-		GM_setValue("attaque_cours_d", destination_flotte_f.join(';'));
-		GM_setValue("attaque_cours_t", type_missions_f.join(';'));
-	}
-//}endregion
-
 /** page de tableau **///{region
-	// mettre ou enlever l'inactivité d'un joueur
-	/* function inactif_change(pseudo_inactif, check) {
-		var inactif = GM_getValue('inactif', '');
-		var deja = inactif.indexOf(pseudo_inactif);
-		if (check == true && deja == -1)//si on dit qu'il est inactif et qu'il y est pas deja alors on le rajoute a la fin
-		{
-			inactif = inactif + '#'+ pseudo_inactif;
-		}
-		else if (check == true)//si on enleve l'inactivité
-		{
-			var inactif_split = GM_getValue('inactif', '').split('!#!');
-			for(var r=0; r<inactif_split.length; r++)
-			{
-				if (inactif_split[r] == pseudo_inactif)
-				{
-					inactif_split[r] = '';
-				}
-
-			}
-			inactif = inactif_split.join('#');
-		}
-		inactif = inactif.replace( /\#{2,}/g, "#");
-		GM_setValue('inactif', inactif);
-	} */
-
 	function save_option(serveur) {
 		/** checked -> 0, pas checked -> 1 */
 		var checkedFromIdToInt = function (id) {
@@ -2535,7 +2482,7 @@ init();
 				var techno_arme = parseInt(document.getElementById('valeur_arme').value, 10);
 				var techno_boulier = parseInt(document.getElementById('valeur_boulier').value, 10);
 				var techno_protect = parseInt(document.getElementById('valeur_protection').value, 10);
-	
+
 				var techno_combu = parseInt(document.getElementById('valeur_combustion').value, 10);
 				var techno_impu = parseInt(document.getElementById('valeur_impulsion').value, 10);
 				var techno_hyper = parseInt(document.getElementById('valeur_hyper').value, 10);
@@ -2652,7 +2599,7 @@ init();
 			//{ Changement dans les colonnes :
 				var date_type_chrono = document.getElementById("date_type_chrono").checked;
 				var qq_date_type_rep = date_type_chrono === true ? 0 : 1;
-	
+
 				var recycleur_type_affichage_ressource_rep = document.getElementById("recycleur_type_affichage_ressource").checked;
 				var affichage_colone_recycleur_rep = recycleur_type_affichage_ressource_rep === true ? 0 : 1;
 			//}
@@ -2661,7 +2608,6 @@ init();
 				var qq_sim_q_dra = document.getElementById("sim_q_dra").checked;
 				var qq_sim_q_speed1 = document.getElementById("sim_q_speed").checked;
 				var qq_sim_q_ogwin = document.getElementById("sim_q_ogwin").checked;
-				var sim_q_autre = document.getElementById("sim_q_autre").checked;
 				var qq_sim_q;
 				if (qq_sim_q_dra === true) {
 					qq_sim_q = 0;
@@ -2807,7 +2753,7 @@ init();
 
 		// option de langue
 		stockageOption.set('langue', document.getElementById('langue').value);
-		
+
 		stockageOption.save();
 		fadeBoxx(i18n('option_sv'));
 	}
@@ -2862,22 +2808,10 @@ init();
 	}
 
 	function reset(serveur) {
-		var continuer = confirm(text.q_reset);
+		var continuer = confirm(i18n('q_reset'));
 		if (continuer === true) {
 			GM_setValue('scan' + serveur, '');
-			fadeBoxx(text.reset, 0, 3000);
-		}
-	}
-	function resetoption(serveur) {
-		var continuer = confirm(text.q_reset_o);
-		if (continuer === true) {
-			GM_setValue('option1' + serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
-			GM_setValue('option2' + serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
-			GM_setValue('option3' + serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
-			GM_setValue('option4' + serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
-			GM_setValue('exversion' + serveur, info.version);
-
-			fadeBoxx(text.reset_s, 0, 3000);
+			fadeBoxx(i18n('reset'), 0, 3000);
 		}
 	}
 
@@ -3077,77 +3011,72 @@ init();
 	}
 
 	function vitesse_vaisseau(impulsion, hyper_h, combus, value_select) {
-		/***********  vitessse minimum *********************/
-		// on voit change la vitesse des vaisseaux qui change de techno selon les niveau de celle ci
-		var vitesse_pt;
-		var prop_pt;
-		if (parseInt(impulsion) >= 5) {
-			vitesse_pt = "10000";
-			prop_pt = "imp";
-		} else {
-			vitesse_pt = "5000";
-			prop_pt = "comb";
+		if (!value_select) {
+			return;
 		}
 
-		var vitesse_bb;
-		var prop_bb;
-		if (parseInt(hyper_h) >= 8) {
-			vitesse_bb = "5000";
-			prop_bb = "hyp";
-		} else {
-			vitesse_bb = "4000";
-			prop_bb = "imp";
-		}
-
-		var vaisseau_type = new Array(vari.pt, vari.gt, vari.cle, vari.clo, vari.cro, vari.vb, vari.vc, vari.rec, vari.esp, vari.bb, vari.dest, vari.edlm, vari.tra);
-		var vaisseau_vitess_deb = new Array(vitesse_pt, "7500", "12500", "10000", "15000", "10000", "2500", "2000", "100000000", vitesse_bb, "5000", "100", "10000");
-		var vaisseau_type_prop = new Array(prop_pt, "comb", "comb", "imp", "imp", "hyp", "imp", "comb", "comb", prop_bb, "hyp", "hyp", "hyp");
+		var vitesse_pt = parseInt(impulsion) >= 5 ? 10000 : 5000;
+		var prop_pt = parseInt(impulsion) >= 5 ? 'imp' : 'comb';
+		var vitesse_bb = parseInt(hyper_h) >= 8 ? 5000 : 4000;
+		var prop_bb = parseInt(hyper_h) >= 8 ? 'hyp' : 'imp';
+		var donnéesVaisseaux = [
+			{ nom: vari.pt, vitesse: vitesse_pt, prop: prop_pt },
+			{ nom: vari.gt, vitesse: 7500, prop: 'comb' },
+			{ nom: vari.cle, vitesse: 12500, prop: 'comb' },
+			{ nom: vari.clo, vitesse: 10000, prop: 'imp' },
+			{ nom: vari.cro, vitesse: 15000, prop: 'imp' },
+			{ nom: vari.vb, vitesse: 10000, prop: 'hyp' },
+			{ nom: vari.vc, vitesse: 2500, prop: 'imp' },
+			{ nom: vari.rec, vitesse: 2000, prop: 'comb' },
+			{ nom: vari.esp, vitesse: 100000000, prop: 'comb' },
+			{ nom: vari.bb, vitesse: vitesse_bb, prop: prop_bb },
+			{ nom: vari.dest, vitesse: 5000, prop: 'hyp' },
+			{ nom: vari.edlm, vitesse: 100, prop: 'hyp' },
+			{ nom: vari.tra, vitesse: 10000, prop: 'hyp' },
+		];
 
 		// on regarde le vaisseau selectionner et on cherche sa vitesse minimale
 		var vitesse_mini;
-		if (vaisseau_type_prop[value_select] == "comb") {
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.1 * parseInt(combus))));
-		}
-		else if (vaisseau_type_prop[value_select] == "imp") {
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.2 * parseInt(impulsion))));
-		}
-		else if (vaisseau_type_prop[value_select] == "hyp") {
-			vitesse_mini = Math.round(parseInt(vaisseau_vitess_deb[value_select]) * (1 + (0.3 * parseInt(hyper_h))));
+		if (donnéesVaisseaux[value_select].prop === "comb") {
+			vitesse_mini = Math.round(donnéesVaisseaux[value_select].vitesse * (1 + (0.1 * parseInt(combus))));
+		} else if (donnéesVaisseaux[value_select].prop === "imp") {
+			vitesse_mini = Math.round(donnéesVaisseaux[value_select].vitesse * (1 + (0.2 * parseInt(impulsion))));
+		} else if (donnéesVaisseaux[value_select].prop === "hyp") {
+			vitesse_mini = Math.round(donnéesVaisseaux[value_select].vitesse * (1 + (0.3 * parseInt(hyper_h))));
 		}
 		return vitesse_mini;
 	}
 
 	function vaisseau_vitesse_mini(impulsion, hyper_h, combus, value_select, coordonee_cible) {
-		var distance;
-		var vitesse_mini = vitesse_vaisseau(impulsion, hyper_h, combus, value_select);
 		/***************  Distance *********************/
-		var planette_selec = document.getElementsByName('ogame-planet-coordinates')[0].content;
-		planette_selec = planette_selec.split(':');
-		var galaxie_j = planette_selec[0].replace(/[^0-9-]/g, "");
-		var system_j = planette_selec[1].replace(/[^0-9-]/g, "");
-		var planet_j = planette_selec[2].replace(/[^0-9-]/g, "");
+		var planette_selec = info.ogameMeta['ogame-planet-coordinates'].split(':').map(function (pos) {
+			return parseInt(pos);
+		});
+		var galaxie_j = planette_selec[0];
+		var system_j = planette_selec[1];
+		var planet_j = planette_selec[2];
 
-		var coordonee_cible_split = coordonee_cible.split(':');
-		var galaxie_c = coordonee_cible_split[0].replace(/[^0-9-]/g, "");
-		var system_c = coordonee_cible_split[1].replace(/[^0-9-]/g, "");
-		var planet_c = coordonee_cible_split[2].replace(/[^0-9-]/g, "");
+		var coordonee_cible_split = coordonee_cible.split(':').map(function (pos) {
+			return parseInt(pos);
+		});
+		var galaxie_c = coordonee_cible_split[0];
+		var system_c = coordonee_cible_split[1];
+		var planet_c = coordonee_cible_split[2];
 
-		// on calcule la distance entre la cible et la planette d'attaque(de depart)
-		if (galaxie_j != galaxie_c) {
-			distance = 20000 * Math.abs(parseInt(galaxie_j) - parseInt(galaxie_c));
-
+		// on calcule la distance entre la cible et la planette d'attaque (de depart)
+		var distance;
+		if (galaxie_j !== galaxie_c) {
+			distance = 20000 * Math.abs(galaxie_j - galaxie_c);
+		} else if (system_j !== system_c) {
+			distance = 2700 + 95 * Math.abs(system_j - system_c);
+		} else {
+			distance = 1000 + 5 * Math.abs(planet_j - planet_c);
 		}
-		else {
-			if (system_j != system_c) {
-				distance = 2700 + 95 * Math.abs(parseInt(system_j) - parseInt(system_c));
-			}
-			else {
-				distance = 1000 + 5 * Math.abs(parseInt(system_j) - parseInt(system_c));
-			}
-		}
 
-	/***************  Temps de vol  *********************/
 
+		/***************  Temps de vol  *********************/
+
+		var vitesse_mini = vitesse_vaisseau(impulsion, hyper_h, combus, value_select);
 		var temps_de_vol_sec = 10 + ((35000 / 100) * (Math.sqrt((distance * 1000) / vitesse_mini)));
 		temps_de_vol_sec = Math.round(temps_de_vol_sec / vitesse_uni);
 
@@ -3175,7 +3104,7 @@ init();
 	}
 
 	function calcul_dernier_vidage(metal, cristal, deut, prod_m, prod_c, prod_d, heure_scan, mine_m) {
-		if (mine_m != '?' && prod_m !== 0 && prod_m != '?') {
+		if (mine_m !== '?' && prod_m !== 0 && prod_m !== '?') {
 			//prod_par_h on change en prod par minutes.
 			var prod_m_sec = parseInt(prod_m) / 3600;
 			var prod_c_sec = parseInt(prod_c) / 3600;
@@ -3229,27 +3158,22 @@ var eventHandlers = {
 
 /** page de combat report **///{region
 	//recupere les informations des rapports de combat pour que le compteur d'attaque
+	function getDate(fullDate) {
+		var fullDateSplit = fullDate.split(' ');
+		var date = fullDateSplit[0].split('.').map(function (s) { return parseInt(s); });
+		var heure = fullDateSplit[1].split(':').map(function (s) { return parseInt(s); });
+		return new Date(date[2], date[1] - 1, date[0], heure[2], heure[1], heure[0]);
+	}
 	function get_info_combat() {
-		var messages = document.getElementById('messagebox').getElementsByClassName('note')[0].innerHTML;
 		if (document.getElementById('battlereport')) {
 			//recupere la date du combat.
-			var date_complet_combat = document.getElementsByClassName('infohead')[0].getElementsByTagName('td')[3].innerHTML;//exemple : 02-09 10:39:35
-			var jours_mois_anne_combat = date_complet_combat.split('.');
-			var mois_combat = parseInt(supr0(jours_mois_anne_combat[1])) - 1;
-			var jours_combat = parseInt(supr0(jours_mois_anne_combat[0]));
-			var anne_combat = parseInt(jours_mois_anne_combat[2].split(' ')[0]);
-
-			var sec_min_heure_combat = date_complet_combat.split(' ')[1].split(':');
-			var heures_combat = sec_min_heure_combat[0];
-			var min_combat = sec_min_heure_combat[1];
-			var sec_combat = sec_min_heure_combat[2];
-
-			var date_combat_ms = new Date(info.date.getFullYear(), mois_combat, jours_combat, heures_combat, min_combat, sec_combat).getTime();
+			var date_complet_combat = document.getElementsByClassName('infohead')[0].getElementsByTagName('td')[3].textContent;//exemple : 28.06.2015 10:13:14
+			var date_combat_ms = getDate(date_complet_combat).getTime();
 
 			if (date_combat_ms > (info.startTime - 24 * 60 * 60 * 1000)) {//on verifie que cela fait moin de 24h que l'attaque a eu lieu
 				var attaque_deja = GM_getValue('attaque_24h', '');
 				if (attaque_deja.indexOf(date_combat_ms) == -1) {// si le combat n'est pas déja enregistré
-					
+
 					// recuperer les coordonées du combats.
 					var info_head = document.getElementsByClassName('infohead')[0].getElementsByTagName('tr')[2].getElementsByTagName('td')[0].innerHTML;
 					var coordonee_combat = info_head.split('[')[1].split(']')[0];
@@ -3300,7 +3224,7 @@ var eventHandlers = {
 		var date_scan = new Date(dateCombat[3], parseInt(dateCombat[2]) - 1, dateCombat[1], dateCombat[4], dateCombat[5], dateCombat[6]).getTime();
 
 		var scan_info = GM_getValue('scan' + serveur, '').split('#');
-		var listeDateRC = '';
+		var listeDateRC;
 		var suppr = 0;
 		for (var i = 0; i < scan_info.length; i++) {
 			listeDateRC = scan_info[i].split(';')[0];
@@ -3487,7 +3411,7 @@ var eventHandlers = {
 			var nb_recherche = '';
 			var nb_mine = '';
 
-		/******* RECHERCHE *******/ // j'ai la mit la recherche avant alors que c'est apres a cause du besoin de recherche pour calculer la valeur de flotte/def
+			/******* RECHERCHE *******/ // j'ai la mit la recherche avant alors que c'est apres a cause du besoin de recherche pour calculer la valeur de flotte/def
 			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[3]) {
 				var flotte_inter3 = document_spatio.getElementsByClassName('fleetdefbuildings spy')[3].innerHTML;
 			} else { flotte_inter3 = ''; }
@@ -3504,17 +3428,16 @@ var eventHandlers = {
 							recherche_scan[k] = parseInt(nb_recherche);
 						}
 					}
-
 				}
-			}//sinon elle existe pas alors on le voit pas donc ?
-			else {
+			} else {
+				//sinon elle existe pas alors on le voit pas donc ?
 				nb_recherche = '?';
 				recherche_scan = new Array("?", "?", "?");
 			}
 
 			var recherche_pour_valeur = (recherche_scan[0] == "?") ? new Array(0, 0, 0) : recherche_scan;
 
-		/******* VAISSEAU + CDR *******/// on recupere les vaisseaux et le cdr creables.
+			/******* VAISSEAU + CDR *******/// on recupere les vaisseaux et le cdr creables.
 			var flotte_inter = (document_spatio.getElementsByClassName('fleetdefbuildings spy')[0]) ? document_spatio.getElementsByClassName('fleetdefbuildings spy')[0].innerHTML : '';
 
 			// on verifie que l'on voit bien la flotte
@@ -3862,18 +3785,8 @@ var eventHandlers = {
 
 init2();
 
-/////////////////// PAGE DE MESSAGES AVEC POP UP ///////////////////
-if (info.page === 'showmessage') {
-	// inutile depuis la màj des popup ?
-	alert('[raid facile] Erreur n°164881');
-	if (document.getElementsByClassName('note')[0].getElementsByClassName('material spy')[0]) {
-		scan_pop_up();
-	}
-	else if (document.getElementById('battlereport')) { get_info_combat(); }
-}
-
 /////////////////// Scan des Rapports d'espionnage ///////////////////
-else if (info.page === 'messages') {
+if (info.page === 'messages') {
 	function sauve_option2() {
 		if (document.getElementById('messageContent')) {
 			var scans = $('#mailz > tbody > tr[id^="spioDetails"]');
@@ -3985,8 +3898,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	for (var i = 0; i < planetes.length; ++i) {
 		planetes[i].setAttribute('href', planetes[i].getAttribute('href') + '#raidFacile=tableau&go');
 	}
-	//recupere les flottes en vol
-	//recup_flotte_mv();
 
 	/* ********************** On recupere les infos ************************/
 	var url_2 = info.url.split('&raidefacil=scriptOptions')[0];
@@ -4750,7 +4661,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							if (q_compteur_attaque == 1) {//si il est activé
 								var coordonee2_ss_crochet = galaxie + ':' + systeme + ':' + planette;
 								if (attaque_24h.indexOf(coordonee2_ss_crochet) > -1) {//si il est pas compté.
-								
 									var compteur = 0;
 									for (var s = 0; s < attaque_24h_split.length; s++) {
 										if (attaque_24h_split2[s][1] == coordonee2_ss_crochet) {
@@ -4827,7 +4737,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 								ligne_tableau += '<td class="nombreAttaque">' + attaque_deja_fait + '</td>';
 
 							ligne_tableau += '<td> <a href="' + espionnage + '" title="' + text.espionner + '"> <img src="http://gf2.geo.gfsrv.net/45/f8eacc254f16d0bafb85e1b1972d80.gif" height="16" width="16"></a></td>';
-							ligne_tableau += '<td> <a class="del1_scan" id="del1_scan' + i + '" title="' + text.eff_rapp + '" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>';
+							ligne_tableau += '<td> <a class="del1_scan" data-id="' + i + '" title="' + text.eff_rapp + '" ><img src="http://gf1.geo.gfsrv.net/99/ebaf268859295cdfe4721d3914bf7e.gif" height="16" width="16"></a></td>';
 							var target;
 							if (stockageOption.get('attaquer nouvel onglet') === 1) {
 								target = '';
@@ -5226,54 +5136,50 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 	document.getElementById('inhalt').style.display = "none";
 
 	var div_raide_facile = document.createElement('div');
-	insertAfter(div_raide_facile,document.getElementById('inhalt'));
+	insertAfter(div_raide_facile, document.getElementById('inhalt'));
 	div_raide_facile.outerHTML = texte_a_afficher;
 	// Stylisation des éléments (select, input, ...) comme ogame
 	intercom.send('ogame style');
 	// Activation des tooltips dans le style ogame
-	intercom.send('tooltip', {selector:'#corps_tableau2 acronym[title]'});
-	intercom.send('tooltip', {selector:'#corps_tableau2 .htmlTooltip', htmlTooltip:true});
-	intercom.send('tooltip', {selector:'#raide_facile_titre #optionclique', htmlTooltip:true});
-	intercom.send('tooltip', {selector:'#option_script #shortcut_attack_next'});
+	intercom.send('tooltip', { selector: '#corps_tableau2 acronym[title]' });
+	intercom.send('tooltip', { selector: '#corps_tableau2 .htmlTooltip', htmlTooltip: true });
+	intercom.send('tooltip', { selector: '#raide_facile_titre #optionclique', htmlTooltip: true });
+	intercom.send('tooltip', { selector: '#option_script #shortcut_attack_next' });
 
 
 	//document.getElementById("contentWrapper").appendChild(document.createElement('div')).outerHTML = texte_a_afficher;
 
 	//on affiche les boutons de suppression de scan .
 		/**bouton en hauts **/{
-			document.getElementById('boutons_haut').innerHTML = '<center><a id="plus_moins" style="float:left;"><img src="http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/plus.png" id="img_moin_plus" height="16" width="16"/></a><a id="supr_scan_h" style="display:none;"><input type="submit" value="'+ text.supr_scan_coche +'" style="margin-bottom:5px;"/></a>  <a id="supr_scan_nn_selec_h" style="display:none;"><input type="submit" value="'+ text.supr_scan_coche_nnslec +'" style="margin-bottom:5px;"/></a></center>'
-//			+ '<a id="zero_h" style="float:left;display:none;">'+ text.remis_z +'</a>'
-			+ '<div id="page_h" style="float:right;display:none;">'+ page_bas +'</div>'+filtres;
+			document.getElementById('boutons_haut').innerHTML = '<center><a id="plus_moins" style="float:left;"><img src="http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/plus.png" id="img_moin_plus" height="16" width="16"/></a><a id="supr_scan_h" style="display:none;"><input type="submit" value="' + text.supr_scan_coche + '" style="margin-bottom:5px;"/></a>  <a id="supr_scan_nn_selec_h" style="display:none;"><input type="submit" value="' + text.supr_scan_coche_nnslec + '" style="margin-bottom:5px;"/></a></center>'
+			+ '<div id="page_h" style="float:right;display:none;">' + page_bas + '</div>' + filtres;
 
 
 			// ouvrir fermer le span du haut pour les boutons
- 			document.getElementById('plus_moins').addEventListener("click", function(event){
+			document.getElementById('plus_moins').addEventListener("click", function (event) {
 				var img_plus_moin = document.getElementById('plus_moins');
 				var supr_scan_h = document.getElementById('supr_scan_h');
 				var supr_scan_nn_selec_h = document.getElementById('supr_scan_nn_selec_h');
-				var supr_scan_h = document.getElementById('supr_scan_h');
-//				var zero_h = document.getElementById('zero_h');
 				var page_h = document.getElementById('page_h');
-				if (supr_scan_h.style.display == 'none'){
+				if (supr_scan_h.style.display == 'none') {
 					supr_scan_h.style.display = '';
 					supr_scan_nn_selec_h.style.display = '';
-//					zero_h.style.display = '';
 					page_h.style.display = '';
-					img_plus_moin.src ='http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/moins.png';}
+					img_plus_moin.src = 'http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/moins.png';
+				}
 				else {
 					supr_scan_h.style.display = 'none';
 					supr_scan_nn_selec_h.style.display = 'none';
-//					zero_h.style.display = 'none';
 					page_h.style.display = 'none';
-					img_plus_moin.src ='http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/plus.png';}
+					img_plus_moin.src = 'http://snaquekiller.free.fr/ogame/messraide/raidefacile%20mess/plus.png';
+				}
 
-				}, true);
-			//remise a 0
-//			document.getElementById("zero_h").addEventListener("click", function(event){reset(info.serveur);remlir_tableau(info.serveur, -1, 0);}, true);
+			}, true);
+
 			//supressions de scan
-			document.getElementById("supr_scan_h").addEventListener("click", function(event){del_scan_checkbox(info.serveur, true);remlir_tableau(info.serveur, -1, 0);}, true);
-			document.getElementById("supr_scan_nn_selec_h").addEventListener("click", function(event){del_scan_checkbox(info.serveur, false);remlir_tableau(info.serveur, -1, 0);}, true);
-		}
+			document.getElementById("supr_scan_h").addEventListener("click", function (event) { del_scan_checkbox(info.serveur, true); remlir_tableau(-1, 0); }, true);
+			document.getElementById("supr_scan_nn_selec_h").addEventListener("click", function (event) { del_scan_checkbox(info.serveur, false); remlir_tableau(-1, 0); }, true);
+	}
 
 		/**bouton en en bas**/{
 			document.getElementById('boutons_bas').innerHTML = '<a id="zero_b" style="float:left;">'+ text.remis_z +'</a>'
@@ -5281,62 +5187,41 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 				+ '<center><a id="supr_scan_b"><input type="submit" value="'+ text.supr_scan_coche +'" style="margin-top:5px;"/></a>  <a id="supr_scan_nn_selec_b"><input type="submit" value="'+ text.supr_scan_coche_nnslec +'" style="margin-top:5px;"/></a></center>';
 
 			//remise a 0
-			document.getElementById("zero_b").addEventListener("click", function(event){reset(info.serveur);remlir_tableau(info.serveur, -1, 0);}, true);
+			document.getElementById("zero_b").addEventListener("click", function(event){reset(info.serveur);remlir_tableau(-1, 0);}, true);
 			//supressions de scan
-			document.getElementById("supr_scan_b").addEventListener("click", function(event){del_scan_checkbox(info.serveur, true);remlir_tableau(info.serveur, -1, 0);}, true);
-			document.getElementById("supr_scan_nn_selec_b").addEventListener("click", function(event){del_scan_checkbox(info.serveur, false);remlir_tableau(info.serveur, -1, 0);}, true);
+			document.getElementById("supr_scan_b").addEventListener("click", function(event){del_scan_checkbox(info.serveur, true);remlir_tableau(-1, 0);}, true);
+			document.getElementById("supr_scan_nn_selec_b").addEventListener("click", function(event){del_scan_checkbox(info.serveur, false);remlir_tableau(-1, 0);}, true);
 		}
 
 /////// on  trie le tableau ,affiche les lignes, on remplit en meme temps les export(bbcode/html) et colorie les lignes de flottes en vol. ///////////////////////////////////
-		function remlir_tableau(serveur, classementsecondaire, type_croissant) {
+		function remlir_tableau(classementsecondaire, type_croissant) {
 			// on trie le tableau que si besoin est.
-			if(parseInt(classementsecondaire) !== -1)
-				trie_tableau(serveur, classementsecondaire, type_croissant);
-			afficher_ligne_interieur_tab(serveur);
-
-			// si il y a le truc pour dire si il est inactif on creer les events pour que sa bouge tout seul .
-			/* if(q_inactif == 1){
-				var id_class;
-				var numero_i_interieur;
-				var check;
-				var pseudo_inactif;
-				var nb_afficher = document.getElementsByClassName('inactif').length;
-				for(var y=0; y<nb_afficher; y++)
-				{
-					id_class = document.getElementsByClassName('inactif')[y].id;
-					document.getElementById(id_class).addEventListener("change", function(event){
-						pseudo_inactif = this.value;
-						check = this.checked;
-					inactif_change(pseudo_inactif,check);}, true);
-
-				}
-			} */
-
-			// on creer les events pour les suppressions de scans via l'icone corbeille .
-			var nb_scan_supr = document.getElementsByClassName('del1_scan').length;
-			for (var t = 0; t < nb_scan_supr; t++) {
-				if (document.getElementsByClassName('del1_scan')[t]) {
-					document.getElementsByClassName('del1_scan')[t].addEventListener("click", function (event) {
-						// on recupere le numero de scans dans le split d'enregistrement ( enregistrer dans l'id)
-						var numero_scan = this.id.split('del1_scan')[1]; // todo : mettre le numéro dans le HTML
-
-						var scanList = GM_getValue('scan' + serveur, '').split('#');
-						scanList.splice(numero_scan, 1);
-						GM_setValue('scan' + serveur, scanList.join('#'));
-
-						remlir_tableau(serveur, -1, 0);
-					}, true);
-				}
+			if (parseInt(classementsecondaire) !== -1) {
+				trie_tableau(info.serveur, classementsecondaire, type_croissant);
 			}
+			afficher_ligne_interieur_tab(info.serveur);
+
+			// On crée les événement pour les suppressions de scans via l'icone corbeille
+			$('.del1_scan').on('click', function() {
+				// on extrait le numéro du scan de l'id
+				var numero_scan = parseInt($(this).data('id'));
+
+				var scanList = GM_getValue('scan' + info.serveur, '').split('#');
+				scanList.splice(numero_scan, 1);
+				GM_setValue('scan' + info.serveur, scanList.join('#'));
+
+				remlir_tableau(-1, 0);
+			});
 
 			// on colorie les lignes selon les mouvements de flottes
 			$.get('/game/index.php?page=eventList&ajax=1', showAttaque, 'html');
 
 			// on affiche les numeros de pages si un nombre de scans par page est demandé
+			var page_bas = '';
 			if (nb_scan_page != 0) {
-				var page_bas = 'Page : ';
+				page_bas = 'Page : ';
 				var num_page = info.url.split('&page_r=')[1];
-				var scan_info = GM_getValue('scan' + serveur, '').split('#');
+				var scan_info = GM_getValue('scan' + info.serveur, '').split('#');
 				var nb = scan_info.length;
 				var nb_page_poss = Math.ceil(nb / nb_scan_page);
 
@@ -5350,32 +5235,32 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 					if (i != nb_page_poss) { page_bas = page_bas + ','; }
 				}
 			}
-			else { var page_bas = ''; }
 			document.getElementById('page').innerHTML = page_bas;
 		}
-		remlir_tableau(info.serveur, -2, 0);
+		remlir_tableau(-2, 0);
 
 		//classer par colone croissante /decroissante grace au titre de colone
 		/** Truc pour classer en cliquant sur le titre des colones **///{
 		var id_th_classement = new Array("ccoordonee","cjoueur","cplanete","cdate","cprod_h","cressourcexh","cress","ccdr","ccdr_ress","cnb_v1","cnb_v2","cnb_d1","cnb_d2");
 		var numero_th_classement = new Array("1","2","3","0","20e","20d","12","8","20c","17","22","18","23");
-		for (var q = 0; q < id_th_classement.length; q++) {
-			if (document.getElementById(id_th_classement[q]) != 'null' && document.getElementById(id_th_classement[q])) {
-				document.getElementById(id_th_classement[q]).addEventListener("click", function (event) {
-					var id_colone_titre = this.id;
-					for (var e = 0; e < (id_th_classement.length); e++) {
-						if (id_th_classement[e] == id_colone_titre) {
-							if (this.className != "decroissant") {// soit pas de classe soit croissant
-								remlir_tableau(info.serveur, numero_th_classement[e], 'croissant');
-								this.className = 'decroissant';
-							}
-							else {
-								remlir_tableau(info.serveur, numero_th_classement[e], 'decroissant');
-								this.className = "croissant";
-							}
-						}
+		var trierColonneCallback = function (event) {
+			var id_colone_titre = this.id;
+			for (var e = 0; e < (id_th_classement.length); e++) {
+				if (id_th_classement[e] == id_colone_titre) {
+					if (this.className != "decroissant") {// soit pas de classe soit croissant
+						remlir_tableau(numero_th_classement[e], 'croissant');
+						this.className = 'decroissant';
 					}
-				}, true);
+					else {
+						remlir_tableau(numero_th_classement[e], 'decroissant');
+						this.className = "croissant";
+					}
+				}
+			}
+		};
+		for (var q = 0; q < id_th_classement.length; q++) {
+			if (document.getElementById(id_th_classement[q])) {
+				document.getElementById(id_th_classement[q]).addEventListener("click", trierColonneCallback, true);
 			}
 		}
 		//}
@@ -5385,7 +5270,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			afficher_seulement = document.getElementById('choix_affichage2').value;
 			filtre_actif_inactif = document.getElementById('filtre_actif_inactif').value;
 			filtre_joueur = document.getElementById('filtre_joueur').value;
-			remlir_tableau(info.serveur, -1, 0);
+			remlir_tableau(-1, 0);
 		}, true);
 
 //////////////// on coche les options et rajoute les addevents et rajoute les boutons ///////////////
