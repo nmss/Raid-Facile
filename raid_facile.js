@@ -33,9 +33,9 @@ ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y
 aâàã eéêè iîì ñ oôòõ uûù €
 */
 
-/// <reference path="typings/greasemonkey/greasemonkey.d.ts"/>
 /* global XPathResult */
 /* global chrome */
+/* global unsafeWindow, GM_info, GM_getValue, GM_setValue, GM_deleteValue, GM_addStyle, GM_xmlhttpRequest */
 
 /** Logger **///{region
 	function Logger() {
@@ -767,12 +767,10 @@ logger.log('Salut :)');
 
 	/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
 	var numberConverter = {
-		toInt: function (number, useShortNotation) {
+		toInt: function (number) {
 			var str = number.toString();
-			if (useShortNotation) {
-				str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
-			}
-			str = str.replace(/ /g, '');
+			str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
+			str = str.replace(/[. ]/g, '');
 			return parseInt(str, 10);
 		},
 		shortenNumber: function (number, factor) {
@@ -2511,9 +2509,9 @@ init();
 
 		{//choix variable
 			//Selection de scan :
-			var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value, true);
-			var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value, true);
-			var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value, true);
+			var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value);
+			var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value);
+			var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value);
 
 			var prend_type0 = document.getElementById("prend_type0").checked;
 			var prend_type1 = document.getElementById("prend_type1").checked;
@@ -3155,37 +3153,137 @@ init();
 
 // page des messages
 var scan = {
-	parsePreview: function (html) {
-		var msg_contents = $('.msg_content > span', html);
+	/** Renvoie true si c'est nous qui espionnons, false si c'est quelqu'un qui nous espionne */
+	isOwnScan: function (message) {
+		return $('.msg_content > .espionageDefText', message).length === 0;
+	},
+	parsePreview: function (message) {
+		var contents = $('.msg_content > div', message);
+		var playerDiv = contents[0];
+		var ressourceDiv = contents[1];
+		var lootDiv = contents[2];
+		var fleetDefDiv = contents[3];
+
 		return {
-			id: $(html).data('msg-id'),
-			coord: $('.msg_head .msg_title a', html).text(),
-			timestamp: new Date($('.msg_head .msg_date ', html).text()).getTime(),
-			resources: scan.parseRessource($(msg_contents[0]).text()),
-			fleets: $(msg_contents[1]).text().replace('Fleets: ', ''),
-			loot: $(msg_contents[2]).text().replace('Loot: ', '')
+			id: $(message).data('msg-id'),
+			playerName: playerDiv.querySelector('span > span').textContent.trim(),
+			coord: scan.parseCoord(message.querySelector('.msg_head .msg_title a').textContent),
+			timestamp: new Date($('.msg_head .msg_date ', message).text()).getTime(),
+			resources: scan.parseRessourcePreview(ressourceDiv),
+			fleets: numberConverter.toInt($('> span:eq(0)', fleetDefDiv).text().replace('Fleets: ', '')),
+			defs: numberConverter.toInt($('> span:eq(1)', fleetDefDiv).text().replace('Defence: ', '')),
+			loot: $('> span:eq(0)', lootDiv).text().replace('Loot: ', '')
 		};
 	},
-	parseRessource: function (ressources) {
-		var match = ressources.match(/([0-9.]+[MCD])/g);
-		var metal = match.filter(function (res) { return res[res.length - 1] === 'M'; })[0] || '0M';
-		var cristal = match.filter(function (res) { return res[res.length - 1] === 'C'; })[0] || '0C';
-		var deut = match.filter(function (res) { return res[res.length - 1] === 'D'; })[0] || '0D';
+	parseRessourcePreview: function (ressourceDiv) {
+		var ressourceDivs = $('.resspan', ressourceDiv);
+		var metal = ressourceDivs[0].textContent.replace('Metal: ', '');
+		var cristal = ressourceDivs[1].textContent.replace('Crystal: ', '');
+		var deut = ressourceDivs[2].textContent.replace('Deuterium: ', '');
 		return {
-			metal: parseFloat(metal.slice(0, -1)),
-			cristal: parseFloat(cristal.slice(0, -1)),
-			deut: parseFloat(deut.slice(0, -1))
+			metal: numberConverter.toInt(metal),
+			cristal: numberConverter.toInt(cristal),
+			deut: numberConverter.toInt(deut)
 		};
+	},
+	parseCoord: function (coords) {
+		var match = coords.match(/\[([\d\:]+)\]/);
+		if (match) {
+			return match[1];
+		}
+	},
+	parsefull: function ($message) {
+		var message = $message[0];
+		var scanContent = message.querySelector('.detail_msg_ctn > .detail_txt');
+		var dataElems = scanContent.querySelectorAll('.detail_list');
+		return {
+			id: $message.data('msg-id'),
+			playerName: scanContent.querySelector('span > span').textContent.trim(),
+			coord: scan.parseCoord(message.querySelector('.detail_msg_head .msg_title a').textContent),
+			resources: scan.parseResources(dataElems[0]),
+			fleets: scan.parseFleets(dataElems[1]),
+			defence: scan.parseDefence(dataElems[2]),
+			building: scan.parseBuilding(dataElems[3]),
+			research: scan.parseResearch(dataElems[4]),
+		}
+	},
+	parseResources: function(elem) {
+		var metal = elem.querySelector('.metal').parentElement.title;
+		var cristal = elem.querySelector('.crystal').parentElement.title;
+		var deuterium = elem.querySelector('.deuterium').parentElement.title;
+		var energie = elem.querySelector('.energy').parentElement.title;
+		return {
+			metal: numberConverter.toInt(metal),
+			cristal: numberConverter.toInt(cristal),
+			deuterium: numberConverter.toInt(deuterium),
+			energie: numberConverter.toInt(energie),
+		};
+	},
+	parseFleets: function(elem) {
+		return {};
+	},
+	parseDefence: function(elem) {
+		return {};
+	},
+	parseBuilding: function(elem) {
+		var buildings = {};
+		var buildingsMapping = {
+			'mineMetal': '.building1',
+			'mineCristal': '.building2',
+			'mineDeut': '.building3',
+			'centraleSolaire': '.building4',
+			'usineRobot': '.building14',
+			'usineNanite': '.building15',
+			'chantierSpatial': '.building21',
+			'hangarMetal': '.building22',
+			'hangarCristal': '.building23',
+			'hangarDeuterium': '.building24',
+			'laboRecherche': '.building31',
+		};
+		var buildingElem;
+		for (var mapping in buildingsMapping) {
+			buildingElem = elem.querySelector(buildingsMapping[mapping]);
+			if (buildingElem !== null) {
+				buildings[mapping] = parseInt(buildingElem.parentElement.parentElement.lastElementChild.textContent);
+			}
+		}
+		return buildings;
+	},
+	parseResearch: function(elem) {
+		var research = {};
+		var researchMapping = {
+			'espio': '.research106',
+			'ordi': '.research108',
+			'energie': '.research113',
+			'combustion': '.research115',
+		};
+		var researchElem;
+		for (var mapping in researchMapping) {
+			researchElem = elem.querySelector(researchMapping[mapping]);
+			if (researchElem !== null) {
+				research[mapping] = parseInt(researchElem.parentElement.parentElement.lastElementChild.textContent);
+			}
+		}
+		return research;
 	},
 };
 
 var eventHandlers = {
-    messageEspionnageLoaded: function (data) {
+	messageEspionnagePreviewLoaded: function (data) {
 		var messages = $('>li', data.text);
-		for (var i = 0; i < messages.length; i++) {
-			console.log(scan.parsePreview(messages[i]));
-		}
-    }
+		messages.each(function (index, message) {
+			if (!scan.isOwnScan(message)) {
+				return;
+			}
+			var preview = scan.parsePreview(message);
+			console.log(preview);
+		});
+	},
+	messageEspionnageFullLoaded: function (data) {
+		var message = $(data.text).filter('.detail_msg');
+		var parsedScan = scan.parsefull(message);
+		console.log(parsedScan);
+	},
 };
 
 /** page de combat report **///{region
@@ -5607,85 +5705,83 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 ces caractère doivent être ben accentués et bien écrits, sinon c'est qu'il y a un problème
 aâàã eéêè iîì ñ oôòõ uûù €
 */
-(function(){
+(function () {
 
-var injectScript = function() {
-"use strict";
-/** classe de communication avec le script *///{
-var Intercom = function() {
-	this.listen();
-};
-Intercom.prototype = {
-	send: function(action, data){
-		if (data === undefined) {
-			data = {};
-		}
-		data.fromPage = true;
-		data.namespace = 'Raid facile';
-		data.action = action;
-		window.postMessage(data, '*');
-	},
-	listen: function(){
-		window.addEventListener('message', this.received.bind(this), false);
-	},
-	received: function(event){
-		if (event.data.namespace !== 'Raid facile' || event.data.fromPage === true) {
-			return;
-		}
-		var data = event.data.data;
-		switch(event.data.action) {
-		case 'ogame style':
-			// Affichage des select et des boutons façon Ogame
-			$('#div_raide_facile select').ogameDropDown();
-			$('#div_raide_facile input[type="submit"]').button();
-			break;
-		case 'tooltip':
-			var tooltipSettings = {
-				hideOn: [
-					{ element: 'self', event: 'mouseleave' },
-					{ element: 'tooltip', event: 'mouseenter' }
-				],
-				skin: 'cloud'
-			};
-			for (var prop in data.settings) {
-				tooltipSettings[prop] = data.settings[prop];
-			}
-			var elems = $(data.selector);
-			if (data.htmlTooltip) {
-				for (var i = 0; i < elems.length; ++i) {
-					Tipped.create(elems[i], $('>.tooltipTitle', elems[i])[0], tooltipSettings);
+	var injectScript = function () {
+		"use strict";
+		/** classe de communication avec le script *///{
+		var Intercom = function () {
+			this.listen();
+		};
+		Intercom.prototype = {
+			send: function (action, data) {
+				if (data === undefined) {
+					data = {};
 				}
-			} else {
-				for (var j = 0; j < elems.length; ++j) {
-					Tipped.create(elems[j], tooltipSettings);
+				data.fromPage = true;
+				data.namespace = 'Raid facile';
+				data.action = action;
+				window.postMessage(data, '*');
+			},
+			listen: function () {
+				window.addEventListener('message', this.received.bind(this), false);
+			},
+			received: function (event) {
+				if (event.data.namespace !== 'Raid facile' || event.data.fromPage === true) {
+					return;
+				}
+				var data = event.data.data;
+				switch (event.data.action) {
+					case 'ogame style':
+						// Affichage des select et des boutons façon Ogame
+						$('#div_raide_facile select').ogameDropDown();
+						$('#div_raide_facile input[type="submit"]').button();
+						break;
+					case 'tooltip':
+						var tooltipSettings = {
+							hideOn: [
+								{ element: 'self', event: 'mouseleave' },
+								{ element: 'tooltip', event: 'mouseenter' }
+							],
+							skin: 'cloud'
+						};
+						for (var prop in data.settings) {
+							tooltipSettings[prop] = data.settings[prop];
+						}
+						var elems = $(data.selector);
+						if (data.htmlTooltip) {
+							for (var i = 0; i < elems.length; ++i) {
+								Tipped.create(elems[i], $('>.tooltipTitle', elems[i])[0], tooltipSettings);
+							}
+						} else {
+							for (var j = 0; j < elems.length; ++j) {
+								Tipped.create(elems[j], tooltipSettings);
+							}
+						}
+						break;
 				}
 			}
-			break;
-		}
-	}
-};
-var intercom = new Intercom();
-intercom.send('loaded');
-//}
+		};
+		var intercom = new Intercom();
+		intercom.send('loaded');
+		//}
 
-$(document).ajaxSuccess(function (event, jqXHR, ajaxOptions, data) {
-	if (ajaxOptions.url !== 'index.php?page=messages&tab=20&ajax=1') {
-		return;
-	}
-	intercom.send('messageEspionnageLoaded', {
-		url: ajaxOptions.url,
-		text: data,
-	});
-});
+		$(document).ajaxSuccess(function (event, jqXHR, ajaxOptions, data) {
+			var espioPageMatch = ajaxOptions.url.match(/index\.php\?page=messages(?:&messageId=(\w+))?&tab(?:id)?=20&ajax=1/);
+			if (espioPageMatch) {
+				intercom.send(espioPageMatch[1] ? 'messageEspionnageFullLoaded' : 'messageEspionnagePreviewLoaded', {
+					url: ajaxOptions.url,
+					text: data,
+				});
+			}
+		});
 
-};
+	};
 
-// injection du script
-var script = document.createElement('script');
-script.setAttribute('type', 'text/javascript');
-script.innerHTML = '('+injectScript.toString()+')();';
-document.head.appendChild(script);
+	// injection du script
+	var script = document.createElement('script');
+	script.setAttribute('type', 'text/javascript');
+	script.textContent = '(' + injectScript.toString() + ')();';
+	document.head.appendChild(script);
 
 })();
-
-// console.profileEnd('Raid facile');
