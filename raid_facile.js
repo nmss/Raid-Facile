@@ -5,6 +5,7 @@
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile
+// @require        http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js
 // @homepage       http://lastworld.etenity.free.fr/ogame/raid_facile
 // @updateURL      http://lastworld.etenity.free.fr/ogame/raid_facile/userscript.header.js
 // @downloadURL    http://lastworld.etenity.free.fr/ogame/raid_facile/72438.user.js
@@ -74,7 +75,12 @@ logger.log('Salut :)');
 /** Variables utilitaires **///{region
 	// Si jQuery n'est pas dans le scope courant c'est qu'il est dans le scope de l'unsafeWindow
 	if (typeof $ === 'undefined') {
-		var $ = unsafeWindow.$;
+		var $;
+		if(typeof jQuery === 'undefined'){
+			$ = unsafeWindow.$;
+		} else{
+			$ = jQuery;
+		}
 	}
 	// Variable contenant tout un tas d'informations utiles, pour ne pas laisser les variables dans le scope global.
 	var info;
@@ -3836,7 +3842,7 @@ if (info.page === 'messages') {
 
 	// SCAN PREVOUERT
 	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
+		$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
 			//l'url de la requête ajax contient page=messages
 			if (settings.url.indexOf("page=messages") == -1) return;
 			if (settings.data.indexOf("displayPage") == -1) return;
@@ -3870,7 +3876,7 @@ if (info.page === 'messages') {
 
 	// SCAN POPUP
 	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
+		$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
 			//l'url de la requête ajax contient page=showmessage
 			if (settings.url.indexOf("page=showmessage") == -1) return;
 			scan_pop_up();
