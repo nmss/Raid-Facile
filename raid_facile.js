@@ -943,7 +943,8 @@ init();
 	x/x/x/x/x/.... signifie
 	arme/bouclier/protect/combus/impul/hyper/coordonee/date/option/ressource/classement/sauvegard auto/temps garde scan/exversion/coul_att/coul_att_g/coul_dest/lien/remplace/lien esp/rec/itesse/tps_vol/nom_j/nom_p/coord_q/prod_h/ress_h
 	*/
-	var option1 = GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
+
+	var option1 = GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/1/0.3/0/1');
 	var option2 = GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
 	var option3 = GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
 	var option4 = GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
