@@ -214,7 +214,7 @@ logger.log('Salut :)');
 			'couleur espionnage': ['f', '#FF8C00'],
 			'couleur espionnage retour': ['f_r', ''],
 			'touche raid suivant': ['trs', 80], // touche P
-			'langue': ['l', navigator.language],
+			'langue': ['l', navigator.language.substr(0,2)],
 			'popup duration': ['mt', 1000],
 		};
 		if (!this.checkMappingCount()) {
