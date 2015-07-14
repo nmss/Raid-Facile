@@ -443,7 +443,7 @@ logger.log('Salut :)');
 
 	/** Fait l'action appropiée quand une touche du clavier est appuyée */
 	function keyShortcut(eventObject) {
-		// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
+		// logger.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
 		if (eventObject.which === stockageOption.get('touche raid suivant')) {
 			if (info.page === 'tableauRaidFacile') {
 				eventObject.preventDefault();
@@ -3854,7 +3854,7 @@ if (info.page === 'messages') {
 		var waitAjaxSuccessPreouvert = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
-				console.log('[raid facile] Attente des messages');
+				logger.log('Attente des messages');
 				setTimeout(waitAjaxSuccessPreouvert, 333);
 			} else {
 				var form = $('#messageContent>form');
@@ -3885,7 +3885,7 @@ if (info.page === 'messages') {
 		var waitAjaxSuccessPopup = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
-				console.log('[raid facile] Attente de la popup');
+				logger.log('Attente de la popup');
 				setTimeout(waitAjaxSuccessPopup, 333);
 			} else {
 				var form = $('#messageContent>form');
