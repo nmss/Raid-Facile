@@ -19,6 +19,12 @@
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=techtree*
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=techinfo*
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=globalTechtree*
+// @grant          GM_info
+// @grant          GM_getValue
+// @grant          GM_setValue
+// @grant          GM_deleteValue
+// @grant          GM_addStyle
+// @grant          GM_xmlhttpRequest
 // ==/UserScript==
 
 
