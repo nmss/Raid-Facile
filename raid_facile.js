@@ -3842,16 +3842,7 @@ if (info.page === 'messages') {
 	}
 
 	// SCAN PREVOUERT
-	if (info.firefox) {
-		$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
-			//l'url de la requête ajax contient page=messages
-			if (settings.url.indexOf("page=messages") == -1) return;
-			if (settings.data.indexOf("displayPage") == -1) return;
-			// on affiche l'onglet charge
-			var cat = settings.data.replace(/^.*displayCategory=([\d-]*).*$/, "$1");
-			switchCat(cat);
-		}));
-	} else if (info.chrome) {
+	if (info.chrome || info.firefox) {
 		var waitAjaxSuccessPreouvert = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
@@ -3876,13 +3867,7 @@ if (info.page === 'messages') {
 	}
 
 	// SCAN POPUP
-	if (info.firefox) {
-		$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
-			//l'url de la requête ajax contient page=showmessage
-			if (settings.url.indexOf("page=showmessage") == -1) return;
-			scan_pop_up();
-		}));
-	} else if (info.chrome) {
+	if (info.chrome || info.firefox) {
 		var waitAjaxSuccessPopup = function () {
 			// on vérifie si l'image de chargement est encore là
 			if ($('#messageContent>img').length) {
