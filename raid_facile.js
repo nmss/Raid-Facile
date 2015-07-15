@@ -919,6 +919,14 @@ logger.log('Salut :)');
 
 		$(document).on('keyup', findKeyCallback);
 	}
+
+	/** Converti une date (comme affichée dans ogame) en un vrai objet date (javascript) */
+	function getDate(fullDate) {
+		var fullDateSplit = fullDate.split(' ');
+		var date = fullDateSplit[0].split('.').map(function (s) { return parseInt(s); });
+		var heure = fullDateSplit[1].split(':').map(function (s) { return parseInt(s); });
+		return new Date(date[2], date[1] - 1, date[0], heure[2], heure[1], heure[0]);
+	}
 //}endregion
 
 init();
@@ -2428,16 +2436,6 @@ init();
 		}
 	}
 
-	//suprimer les 0 devants.
-	function supr0(number) {
-		number = number.toString();
-		var i = 0;
-		for (; i < number.length - 1 && number[i] == '0'; ++i) {
-			number[i] = '';
-		}
-		return number.substring(i, number.length);
-	}
-
 	//raccourcisseur de noms
 	function raccourcir(nomAraccourcir) {
 		// conditions ? si c'est vrai : si c'est faut
@@ -3163,12 +3161,11 @@ var scan = {
 		var ressourceDiv = contents[1];
 		var lootDiv = contents[2];
 		var fleetDefDiv = contents[3];
-
 		return {
 			id: $(message).data('msg-id'),
-			playerName: playerDiv.querySelector('span > span').textContent.trim(),
+			playerName: playerDiv.querySelectorAll('span')[1].textContent.trim(),
 			coord: scan.parseCoord(message.querySelector('.msg_head .msg_title a').textContent),
-			timestamp: new Date($('.msg_head .msg_date ', message).text()).getTime(),
+			timestamp: getDate(message.querySelector('.msg_head .msg_date').textContent).getTime(),
 			resources: scan.parseRessourcePreview(ressourceDiv),
 			fleets: numberConverter.toInt($('> span:eq(0)', fleetDefDiv).text().replace('Fleets: ', '')),
 			defs: numberConverter.toInt($('> span:eq(1)', fleetDefDiv).text().replace('Defence: ', '')),
@@ -3200,12 +3197,13 @@ var scan = {
 			id: $message.data('msg-id'),
 			playerName: scanContent.querySelector('span > span').textContent.trim(),
 			coord: scan.parseCoord(message.querySelector('.detail_msg_head .msg_title a').textContent),
+			timestamp: getDate(message.querySelector('.detail_msg_head .msg_date').textContent).getTime(),
 			resources: scan.parseResources(dataElems[0]),
 			fleets: scan.parseFleets(dataElems[1]),
 			defence: scan.parseDefence(dataElems[2]),
 			building: scan.parseBuilding(dataElems[3]),
 			research: scan.parseResearch(dataElems[4]),
-		}
+		};
 	},
 	parseResources: function(elem) {
 		var metal = elem.querySelector('.metal').parentElement.title;
@@ -3266,6 +3264,45 @@ var scan = {
 		}
 		return research;
 	},
+	toOldString: function (scanData) {
+		return [
+			scanData.timestamp,
+			scanData.coord,
+			scanData.playerName,
+			'',// nom_plannette,
+			// 0-1-2-3
+			scanData.resources.metal,
+			scanData.resources.cristal,
+			scanData.resources.deuterium,
+			// 4-5-6
+			'',// activite_scan,
+			'',// cdr_possible,
+			'',// vaisseau_scan.join('/'),
+			// 7-8-9
+			'',// defense_scan.join('/'),
+			'',// idRC,
+			'',// ressource_pillable,
+			// 10-11-12
+			'',// recherche_scan.join('/'),
+			'',// type_planette,
+			// 13/14
+			'',// cdr_possible_m,
+			'',// cdr_possible_c,
+			'',// nb_vaisseau_s,
+			'',// nb_def_s,
+			'',// // 15-16-17-18
+			'',// mine_scan.join('/'),
+			'x',
+			'',// cdr_def,
+			// 19-20-21
+			'',// valeur_attaque_flotte,
+			'',// valeur_attaque_def,
+			// 22-23
+			'',// typeJoueur,
+			'',// typeHonor,
+			// 24-25
+		].join(';');
+	}
 };
 
 var eventHandlers = {
@@ -3276,24 +3313,19 @@ var eventHandlers = {
 				return;
 			}
 			var preview = scan.parsePreview(message);
-			console.log(preview);
 		});
 	},
 	messageEspionnageFullLoaded: function (data) {
 		var message = $(data.text).filter('.detail_msg');
-		var parsedScan = scan.parsefull(message);
-		console.log(parsedScan);
+		var scanData = scan.parsefull(message);
+		var oldString = scan.toOldString(scanData);
+		console.log(scanData);
+		console.log(oldString);
 	},
 };
 
 /** page de combat report **///{region
 	//recupere les informations des rapports de combat pour que le compteur d'attaque
-	function getDate(fullDate) {
-		var fullDateSplit = fullDate.split(' ');
-		var date = fullDateSplit[0].split('.').map(function (s) { return parseInt(s); });
-		var heure = fullDateSplit[1].split(':').map(function (s) { return parseInt(s); });
-		return new Date(date[2], date[1] - 1, date[0], heure[2], heure[1], heure[0]);
-	}
 	function get_info_combat() {
 		if (document.getElementById('battlereport')) {
 			//recupere la date du combat.
@@ -3607,6 +3639,7 @@ var eventHandlers = {
 				var flotte_inter1 = document_spatio.getElementsByClassName('fleetdefbuildings spy')[1].innerHTML;
 			} else { flotte_inter1 = ''; }
 
+			var cdr_def;
 			// on verifie que l'on voit bien la def et on verifie que ce que je prenne c'est pas le tableau d'antigame
 			if (document_spatio.getElementsByClassName('fleetdefbuildings spy')[1] && flotte_inter1.indexOf('area plunder', 0) == -1) {
 				// on compte le nombre de type de vaisseau affiché.
@@ -3630,14 +3663,14 @@ var eventHandlers = {
 					}
 
 				}
-				var cdr_def = cdr_possible_def + '/' + cdr_possible_def_m + '/' + cdr_possible_def_c;
+				cdr_def = cdr_possible_def + '/' + cdr_possible_def_m + '/' + cdr_possible_def_c;
 			}
 			else {
 				nb_def_type = '?';
 				valeur_attaque_def = '?';
 				defense_scan = new Array("?", "?", "?", "?", "?", "?", "?", "?", "?", "?");
 				nb_def_s = -1;
-				var cdr_def = '?/?/?';
+				cdr_def = '?/?/?';
 			}
 
 		/******* Batiment (MINE) *******/
@@ -3806,8 +3839,6 @@ var eventHandlers = {
 
 	function add_scan_dep_mess(type_clique, check_q) {
 		//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
-		var nb_scan_total_a_enr = document.getElementsByClassName('material spy').length;
-
 		var tout_mess = document.getElementById('messageContent').innerHTML;
 		tout_mess = tout_mess.split('switchView(\'spioDetails_');
 		var nb_scan_plus_un = tout_mess.length;
@@ -3843,8 +3874,6 @@ var eventHandlers = {
 		//type_clique 1=affiche, 2 = select juste supr scan script , 3/4 idem mais script +scan
 		var info_scan = GM_getValue('scan' + info.serveur, '');
 		var info_scan_i = info_scan.split('#');
-		var nb_scan_total_a_enr = document.getElementsByClassName('material spy').length;
-
 		var tout_mess = document.getElementById('messageContent').innerHTML;
 		tout_mess = tout_mess.split('switchView(\'spioDetails_');
 		var nb_scan_plus_un = tout_mess.length;
@@ -4244,22 +4273,24 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 		}
 
-		if (classement == 2 || classement == 3) {			// si c'est un classement par rapport au nom de joueur ou de planète
-			var sort_Info = function (a, b) {
-				return strcmp(a[parseInt(classement.replace(/[^0-9-]/g, ""))], b[parseInt(classement.replace(/[^0-9-]/g, ""))]);
-			};
-		} else if (classement == 12 || classement == 1) { 	// si c'est par ressources ou par coordonnées
-			var sort_Info = function (a, b) {
-				return b[20] - a[20];
-			};
-		} else {
-			var sort_Info = function (a, b) {
-				return b[parseInt(classement.replace(/[^0-9-]/g, ""))] - a[parseInt(classement.replace(/[^0-9-]/g, ""))];
-			};
-		}
+		if (parseInt(classement.replace(/[^0-9-]/g, "")) > -1) {
+			var sort_Info;
+			if (classement == 2 || classement == 3) {			// si c'est un classement par rapport au nom de joueur ou de planète
+				sort_Info = function (a, b) {
+					return strcmp(a[parseInt(classement.replace(/[^0-9-]/g, ""))], b[parseInt(classement.replace(/[^0-9-]/g, ""))]);
+				};
+			} else if (classement == 12 || classement == 1) { 	// si c'est par ressources ou par coordonnées
+				sort_Info = function (a, b) {
+					return b[20] - a[20];
+				};
+			} else {
+				sort_Info = function (a, b) {
+					return b[parseInt(classement.replace(/[^0-9-]/g, ""))] - a[parseInt(classement.replace(/[^0-9-]/g, ""))];
+				};
+			}
 
-		if (parseInt(classement.replace(/[^0-9-]/g, "")) > -1)
 			scan_i.sort(sort_Info);
+		}
 
 		// si on a fait a coché la case reverse ou que l'on trie grace au colone
 		if (reverse == '0' || type_trie == 'decroissant')
@@ -4304,15 +4335,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			attaque_24h_split2[x] = attaque_24h_split[x].split('/');
 		}
 
-		// on regarde la planette selectionner(liste de droite des planettes)  pour connaitre la galaxie
-		if (document.getElementsByName('ogame-planet-coordinates')[0]) {
-			var coordonnee_slelec = document.getElementsByName('ogame-planet-coordinates')[0].content;
-		}
-		else {
-			if (pos_depart != 'x:xxx:x') { var coordonnee_slelec = pos_depart; }
-			else { var coordonnee_slelec = '0'; }
-		}
-
+		var coordonnee_slelec = pos_depart !== 'x:xxx:x' ? pos_depart : info.ogameMeta['ogame-planet-coordinates'];
 
 		// on les utilises et les place
 		var cptLigne = 0;
@@ -4352,8 +4375,6 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var date_scan = scan_info_i[0];
 							var datecc = new Date();
 							datecc.setTime(date_scan);
-							var date_final = datecc.getDate() + '/' + (datecc.getMonth() + 1) + '/' + datecc.getFullYear() + ' ' +
-								datecc.getHours() + ':' + datecc.getMinutes() + ':' + datecc.getSeconds();
 
 
 							// si la date est demander en chronos
