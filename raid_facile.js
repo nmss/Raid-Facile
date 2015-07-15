@@ -3842,52 +3842,44 @@ if (info.page === 'messages') {
 	}
 
 	// SCAN PREVOUERT
-	if (info.chrome || info.firefox) {
-		var waitAjaxSuccessPreouvert = function () {
-			// on vérifie si l'image de chargement est encore là
-			if ($('#messageContent>img').length) {
-				logger.log('Attente des messages');
-				setTimeout(waitAjaxSuccessPreouvert, 333);
-			} else {
-				var form = $('#messageContent>form');
-				// si on est sur le carnet d'adresse on ne fait rien
-				if (!form.length) return;
-				// récupération de la catégorie
-				var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/, "$1");
-				switchCat(cat);
-			}
-		};
-		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+	var waitAjaxSuccessPreouvert = function () {
+		// on vérifie si l'image de chargement est encore là
+		if ($('#messageContent>img').length) {
+			logger.log('Attente des messages');
 			setTimeout(waitAjaxSuccessPreouvert, 333);
-		});
-		waitAjaxSuccessPreouvert();
-	} else {
-		alert('[raid facile] Erreur n°154000');
-	}
+		} else {
+			var form = $('#messageContent>form');
+			// si on est sur le carnet d'adresse on ne fait rien
+			if (!form.length) return;
+			// récupération de la catégorie
+			var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/, "$1");
+			switchCat(cat);
+		}
+	};
+	// en cas de clic on attend que l'action se fasse
+	$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+		setTimeout(waitAjaxSuccessPreouvert, 333);
+	});
+	waitAjaxSuccessPreouvert();
 
 	// SCAN POPUP
-	if (info.chrome || info.firefox) {
-		var waitAjaxSuccessPopup = function () {
-			// on vérifie si l'image de chargement est encore là
-			if ($('#messageContent>img').length) {
-				logger.log('Attente de la popup');
-				setTimeout(waitAjaxSuccessPopup, 333);
-			} else {
-				var form = $('#messageContent>form');
-				// si on est sur le carnet d'adresse on ne fait rien
-				if (!form.length) return;
-				scan_pop_up();
-			}
-		};
-		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+	var waitAjaxSuccessPopup = function () {
+		// on vérifie si l'image de chargement est encore là
+		if ($('#messageContent>img').length) {
+			logger.log('Attente de la popup');
 			setTimeout(waitAjaxSuccessPopup, 333);
-		});
-		waitAjaxSuccessPopup();
-	} else {
-		alert('[raid facile] Erreur n°714452');
-	}
+		} else {
+			var form = $('#messageContent>form');
+			// si on est sur le carnet d'adresse on ne fait rien
+			if (!form.length) return;
+			scan_pop_up();
+		}
+	};
+	// en cas de clic on attend que l'action se fasse
+	$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+		setTimeout(waitAjaxSuccessPopup, 333);
+	});
+	waitAjaxSuccessPopup();
 }
 
 /////////////////// TABLEAU ///////////////////
