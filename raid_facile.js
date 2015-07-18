@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Raide Facile [modified by Deberron]
 // @namespace      Snaquekiller
-// @version        8.5.1
+// @version        8.6.0
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile
@@ -106,7 +106,7 @@ logger.log('Salut :)');
 			serveur: location.hostname,
 			univers: location.hostname.replace('ogame.', ''),
 			date: new Date(),
-			startTime: (new Date()).getTime(),
+			startTime: Date.now(),
 			session: $('meta[name=ogame-session]').attr('content') || location.href.replace(/^.*&session=([0-9a-f]*).*$/i, "$1"),
 			pseudo: $('meta[name=ogame-player-name]').attr('content'),
 			playerId: $('meta[name=ogame-player-id]').attr('content')
@@ -467,7 +467,7 @@ logger.log('Salut :)');
 			func[method] = instance[method].bind(instance);
 		}
 		return func;
-	};
+	}
 
 	/** Permet d'exécuter une fonction, mais plus tard */
 	function plusTard(callback, temps) {
@@ -788,22 +788,33 @@ logger.log('Salut :)');
 			return parseInt(str, 10);
 		},
 		shortenNumber: function (number, factor) {
-			return Math.round(number / factor);
+			var dividedNumber = number / factor;
+			if (dividedNumber < 100) {
+				return Math.round(dividedNumber * 10) / 10;
+			} else {
+				return Math.round(dividedNumber);
+			}
 		},
 		toPrettyString: function (number) {
 			var k = 1000;
 			var m = 1000000;
 			var g = 1000000000;
-			if (number >= g * 100) {
-				return this.shortenNumber(number, g) + 'G';
+			var factor;
+			var unit;
+			if (number >= g * 10) {
+				factor = g;
+				unit = 'G';
+			} else if (number >= m * 10) {
+				factor = m;
+				unit = 'M';
+			} else if (number >= k * 10) {
+				factor = k;
+				unit = 'k';
+			} else {
+				factor = 1;
+				unit = '';
 			}
-			if (number >= m * 100) {
-				return this.shortenNumber(number, m) + 'M';
-			}
-			if (number >= k * 100) {
-				return this.shortenNumber(number, k) + 'k';
-			}
-			return number;
+			return this.shortenNumber(number, factor).toLocaleString() + unit;
 		}
 	};
 
@@ -933,6 +944,29 @@ logger.log('Salut :)');
 
 		$(document).on('keyup', findKeyCallback);
 	}
+
+	/** Affiche le temps de manière lisible */
+	function timeFormat(time) {
+		var size = 2;
+		var formattedTime = [];
+		var steps = [
+			{label: 'j', min: 60 * 60 * 24},
+			{label: 'h', min: 60 * 60},
+			{label: 'm', min: 60},
+			{label: 's', min: 1},
+		];
+		steps.forEach(function(step) {
+			if (formattedTime.length >= size || time < step.min) {
+				return;
+			}
+			var nb = Math.floor(time / step.min);
+			time = time % step.min;
+			if (nb !== 0) {
+				formattedTime.push(nb + step.label);
+			}
+		});
+		return formattedTime.join(' ');
+	}
 //}endregion
 
 init();
@@ -1023,7 +1057,7 @@ init();
 	/**option4_variable**/{
 		//Changement dans les colonnes :
 		var q_date_type_rep = option4_split[8];
-		var cdr_q_type_affiche = option4_split[2];
+		var cdr_q_type_affiche = parseInt(option4_split[2]);
 
 		//Changement dans boutons de droites :
 		var simulateur = option4_split[11];
@@ -2426,13 +2460,7 @@ init();
 		return (a > b ? 1 : -1);
 	}
 
-	// separateur de milier
-	function addPoints(nombre) {
-		if (nombre === '?' || nombre === 0) {
-			return nombre;
-		}
-		return nombre.toLocaleString();
-	}
+	var addPoints = numberConverter.toPrettyString.bind(numberConverter);
 
 	function insertAfter(elem, after) {
 		var dad = after.parentNode;
@@ -4209,7 +4237,7 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 						if (filtre) {
 							// date
-							var date_scan = scan_info_i[0];
+							var date_scan = parseInt(scan_info_i[0]);
 							var datecc = new Date();
 							datecc.setTime(date_scan);
 							var date_final = datecc.getDate() + '/' + (datecc.getMonth() + 1) + '/' + datecc.getFullYear() + ' ' +
@@ -4217,48 +4245,18 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 
 
 							// si la date est demander en chronos
+							var date2;
 							if (q_date_type_rep == 0) {
-								var datecc2 = parseInt(info.startTime) - parseInt(date_scan);
-
-								// Je peux avoir une diff de date entre l'heure de mon pc et celle du serveur
-								if (document.getElementsByName('ogame-timestamp')[0])
-									datecc2 = parseInt(document.getElementsByName('ogame-timestamp')[0].content) * 1000 - parseInt(date_scan);
-
-								var seconde = Math.floor(datecc2 / 1000); // pour avoir le nb de seconde qui s'est ecouler depuis le scan.
-								var minutes = Math.floor(seconde / 60);
-								var heures = Math.floor(minutes / 60);
-								var jours = Math.floor(heures / 24);
-								seconde = Math.floor(seconde % 60);
-								minutes = Math.floor(minutes % 60);
-								heures = Math.floor(heures % 24);
-
-								if (datecc2 != 0) {
-									var date2 = '';
-									if (jours > 0)
-									{ date2 += jours + 'j '; }
-									if (jours > 0 || heures > 0)
-									{ date2 += ((heures < 10) ? '0' : '') + heures + 'h '; }
-									if (jours > 0 || heures > 0 || minutes > 0)
-									{ date2 += ((minutes < 10) ? '0' : '') + minutes + 'm '; }
-									date2 += ((seconde < 10) ? '0' : '') + seconde + 's';
-								}
-								else { var date2 = '--:--:--'; }
-
+								var datecc2 = (info.ogameMeta['ogame-timestamp'] ? parseInt(info.ogameMeta['ogame-timestamp']) * 1000 : info.startTime) - date_scan;
+								date2 = timeFormat(datecc2 / 1000);
+							} else {
+								date2 = ((datecc.getDate() < 10) ? '0' : '') + datecc.getDate() + '/'
+									+ (datecc.getMonth() < 10 ? '0' : '') + (datecc.getMonth() + 1) + '/'
+									+ (datecc.getFullYear() - 2000) + ' '
+									+ (datecc.getHours() < 10 ? '0' : '') + datecc.getHours() + ':'
+									+ (datecc.getMinutes() < 10 ? '0' : '') + datecc.getMinutes() + ':'
+									+ (datecc.getSeconds() < 10 ? '0' : '') + datecc.getSeconds();
 							}
-							else {
-								var date2 = ((datecc.getDate() < 10) ? '0' : '') +
-									datecc.getDate() + '/' +
-									((datecc.getMonth() < 10) ? '0' : '') +
-									(datecc.getMonth() + 1) + '/' +
-									(datecc.getFullYear() - 2000) + ' ' +
-									((datecc.getHours() < 10) ? '0' : '') +
-									datecc.getHours() + ':' +
-									((datecc.getMinutes() < 10) ? '0' : '') +
-									datecc.getMinutes() + ':' +
-									((datecc.getSeconds() < 10) ? '0' : '') +
-									datecc.getSeconds();
-							}
-
 
 							// type de la planette
 							var type_planette = scan_info_i[14];
@@ -4359,7 +4357,13 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							var ressource_total = parseInt(ressource_m) + parseInt(ressource_c) + parseInt(ressource_d);
 
 							if (question_rassemble_col == 0) {
-								var ressource = '<acronym title="' + pourcent + '% de ressources pillables <br> ' + addPoints(nb_pt) + text.nb_pt + '/' + addPoints(nb_gt) + text.nb_gt + ' <br> ' + text.metal + ' : ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ' : ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ' : ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100))) + '">' + addPoints(Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
+								var ressourceTitle = [
+									pourcent + '% de ressources pillables',
+									addPoints(nb_pt) + ' ' + text.nb_pt + ' | ' + addPoints(nb_gt) + ' '  + text.nb_gt,
+									text.metal + ': ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ': ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ': ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100)))
+
+								];
+								var ressource = '<acronym title="' + ressourceTitle.join('<br>') + '">' + addPoints(Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
 							}
 
 							// vitesse minimum.
@@ -4400,17 +4404,14 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 							else { cdr_aff = cdr_aff; }
 
 							if (question_rassemble_col == 0) {
-								if (cdr_q_type_affiche == 0) {
-									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + '<br>' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + ' ">' + addPoints(cdr_possible) + '</acronym>';
-								}
-								else {
-									var cdr_aco = '<acronym title="' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + '<br>' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + ' ">' + addPoints(Math.ceil(cdr_aff / 20000)) + '</acronym>';
-								}
+								var cdrTitle = addPoints(Math.ceil(cdr_aff / 20000)) + ' ' + text.nb_rc + '<br>' + text.met_rc + ': ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ': ' + addPoints(cdr_possible_c);
+								var cdrDisplayedNumber = addPoints(cdr_q_type_affiche === 0 ? cdr_possible : Math.ceil(cdr_aff / 20000));
+								var cdr_aco = '<acronym title="' + cdrTitle + ' ">' + cdrDisplayedNumber + '</acronym>';
 							}
 
 							// colonne cdr +  resource
 							if (question_rassemble_col == 1) {
-								var col_cdr = '<acronym title="' + pourcent + '% | ' + addPoints(nb_pt) + text.nb_pt + '/' + addPoints(nb_gt) + text.nb_gt + ' | ' + text.metal + ' : ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ' : ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ' : ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100))) + '\n' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + ' | ' + text.met_rc + ' : ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ' : ' + addPoints(cdr_possible_c) + '">' + addPoints(cdr_aff + Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
+								var col_cdr = '<acronym title="' + pourcent + '% | ' + addPoints(nb_pt) + text.nb_pt + '/' + addPoints(nb_gt) + text.nb_gt + ' | ' + text.metal + ': ' + addPoints(Math.round(parseInt(ressource_m) * (pourcent / 100))) + ' | ' + text.cristal + ': ' + addPoints(Math.round(parseInt(ressource_c) * (pourcent / 100))) + ' | ' + text.deut + ': ' + addPoints(Math.round(parseInt(ressource_d) * (pourcent / 100))) + '\n' + addPoints(Math.ceil(cdr_aff / 20000)) + text.nb_rc + ' | ' + text.met_rc + ': ' + addPoints(cdr_possible_m) + ' | ' + text.cri_rc + ': ' + addPoints(cdr_possible_c) + '">' + addPoints(cdr_aff + Math.round(ressource_total * (pourcent / 100))) + '</acronym>';
 							}
 
 							//recherhe adersersaire
@@ -5066,9 +5067,9 @@ else if (info.page === 'tableauRaidFacile' || info.page === 'optionsRaidFacile')
 			if(pt_gt != 0)
 				titre_colonne_tableau += '\n<th id="cfleet">'+ text.th_fleet +'</th>';
 			titre_colonne_tableau += '\n<th id="cress"><a>'+ text.th_ress +'</a></th>';
-			if(cdr_q_type_affiche == 0)
+			if(cdr_q_type_affiche === 0)
 				titre_colonne_tableau += '<th id="ccdr"><a>' + text.cdr_pos+'</a></th>';
-			else if(cdr_q_type_affiche == 1)
+			else if(cdr_q_type_affiche === 1)
 				titre_colonne_tableau += '<th id="ccdr"><a>' + text.nb_recycl+'</a></th>';
 		}else{
 			titre_colonne_tableau += '\n<th id="ccdr_ress"><a>'+ text.th_ress_cdr_col +'</a></th>';
