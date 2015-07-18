@@ -5,6 +5,7 @@
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile
+// @require        http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js
 // @homepage       http://lastworld.etenity.free.fr/ogame/raid_facile
 // @updateURL      http://lastworld.etenity.free.fr/ogame/raid_facile/userscript.header.js
 // @downloadURL    http://lastworld.etenity.free.fr/ogame/raid_facile/72438.user.js
@@ -19,6 +20,12 @@
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=techtree*
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=techinfo*
 // @exclude        http://*.ogame.gameforge.com/game/index.php?page=globalTechtree*
+// @grant          GM_info
+// @grant          GM_getValue
+// @grant          GM_setValue
+// @grant          GM_deleteValue
+// @grant          GM_addStyle
+// @grant          GM_xmlhttpRequest
 // ==/UserScript==
 
 
@@ -68,7 +75,12 @@ logger.log('Salut :)');
 /** Variables utilitaires **///{region
 	// Si jQuery n'est pas dans le scope courant c'est qu'il est dans le scope de l'unsafeWindow
 	if (typeof $ === 'undefined') {
-		var $ = unsafeWindow.$;
+		var $;
+		if(typeof jQuery === 'undefined'){
+			$ = unsafeWindow.$;
+		} else{
+			$ = jQuery;
+		}
 	}
 	// Variable contenant tout un tas d'informations utiles, pour ne pas laisser les variables dans le scope global.
 	var info;
@@ -208,7 +220,7 @@ logger.log('Salut :)');
 			'couleur espionnage': ['f', '#FF8C00'],
 			'couleur espionnage retour': ['f_r', ''],
 			'touche raid suivant': ['trs', 80], // touche P
-			'langue': ['l', navigator.language],
+			'langue': ['l', navigator.language.substr(0,2)],
 			'popup duration': ['mt', 1000],
 		};
 		if (!this.checkMappingCount()) {
@@ -431,7 +443,7 @@ logger.log('Salut :)');
 
 	/** Fait l'action appropiée quand une touche du clavier est appuyée */
 	function keyShortcut(eventObject) {
-		// console.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
+		// logger.log(eventObject.type , eventObject.which, String.fromCharCode(eventObject.which));
 		if (eventObject.which === stockageOption.get('touche raid suivant')) {
 			if (info.page === 'tableauRaidFacile') {
 				eventObject.preventDefault();
@@ -931,7 +943,8 @@ init();
 	x/x/x/x/x/.... signifie
 	arme/bouclier/protect/combus/impul/hyper/coordonee/date/option/ressource/classement/sauvegard auto/temps garde scan/exversion/coul_att/coul_att_g/coul_dest/lien/remplace/lien esp/rec/itesse/tps_vol/nom_j/nom_p/coord_q/prod_h/ress_h
 	*/
-	var option1 = GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/4000/0.3/0/1');
+
+	var option1 = GM_getValue('option1' + info.serveur, '0/0/0/0/0/0/x:xxx:x/1/0.3/0/1');
 	var option2 = GM_getValue('option2' + info.serveur, '0/100/100/0/12/1/0/4320/1/1/0/1/1/1/2/0/0');
 	var option3 = GM_getValue('option3' + info.serveur, '#C7050D/#025716/#FFB027/#E75A4F/#33CF57/#EFE67F');
 	var option4 = GM_getValue('option4' + info.serveur, '1/0/0/0/1/1/1/1/0/0/0/1/0/0/0/0/1/0/1/1/0/0/0/1/1/1/1/1/x/x/0/1/1/1');
@@ -3829,67 +3842,44 @@ if (info.page === 'messages') {
 	}
 
 	// SCAN PREVOUERT
-	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
-			//l'url de la requête ajax contient page=messages
-			if (settings.url.indexOf("page=messages") == -1) return;
-			if (settings.data.indexOf("displayPage") == -1) return;
-			// on affiche l'onglet charge
-			var cat = settings.data.replace(/^.*displayCategory=([\d-]*).*$/, "$1");
-			switchCat(cat);
-		}));
-	} else if (info.chrome) {
-		var waitAjaxSuccessPreouvert = function () {
-			// on vérifie si l'image de chargement est encore là
-			if ($('#messageContent>img').length) {
-				console.log('[raid facile] Attente des messages');
-				setTimeout(waitAjaxSuccessPreouvert, 333);
-			} else {
-				var form = $('#messageContent>form');
-				// si on est sur le carnet d'adresse on ne fait rien
-				if (!form.length) return;
-				// récupération de la catégorie
-				var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/, "$1");
-				switchCat(cat);
-			}
-		};
-		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+	var waitAjaxSuccessPreouvert = function () {
+		// on vérifie si l'image de chargement est encore là
+		if ($('#messageContent>img').length) {
+			logger.log('Attente des messages');
 			setTimeout(waitAjaxSuccessPreouvert, 333);
-		});
-		waitAjaxSuccessPreouvert();
-	} else {
-		alert('[raid facile] Erreur n°154000');
-	}
+		} else {
+			var form = $('#messageContent>form');
+			// si on est sur le carnet d'adresse on ne fait rien
+			if (!form.length) return;
+			// récupération de la catégorie
+			var cat = $('#messageContent>form').attr('action').replace(/^.*displayCategory=([\d-]*).*$/, "$1");
+			switchCat(cat);
+		}
+	};
+	// en cas de clic on attend que l'action se fasse
+	$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+		setTimeout(waitAjaxSuccessPreouvert, 333);
+	});
+	waitAjaxSuccessPreouvert();
 
 	// SCAN POPUP
-	if (info.firefox) {
-		unsafeWindow.$(document).ajaxSuccess(safeWrap(function (e, xhr, settings) {
-			//l'url de la requête ajax contient page=showmessage
-			if (settings.url.indexOf("page=showmessage") == -1) return;
-			scan_pop_up();
-		}));
-	} else if (info.chrome) {
-		var waitAjaxSuccessPopup = function () {
-			// on vérifie si l'image de chargement est encore là
-			if ($('#messageContent>img').length) {
-				console.log('[raid facile] Attente de la popup');
-				setTimeout(waitAjaxSuccessPopup, 333);
-			} else {
-				var form = $('#messageContent>form');
-				// si on est sur le carnet d'adresse on ne fait rien
-				if (!form.length) return;
-				scan_pop_up();
-			}
-		};
-		// en cas de clic on attend que l'action se fasse
-		$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+	var waitAjaxSuccessPopup = function () {
+		// on vérifie si l'image de chargement est encore là
+		if ($('#messageContent>img').length) {
+			logger.log('Attente de la popup');
 			setTimeout(waitAjaxSuccessPopup, 333);
-		});
-		waitAjaxSuccessPopup();
-	} else {
-		alert('[raid facile] Erreur n°714452');
-	}
+		} else {
+			var form = $('#messageContent>form');
+			// si on est sur le carnet d'adresse on ne fait rien
+			if (!form.length) return;
+			scan_pop_up();
+		}
+	};
+	// en cas de clic on attend que l'action se fasse
+	$('.mailWrapper, #tab-msg').on('click keypress', function (e) {
+		setTimeout(waitAjaxSuccessPopup, 333);
+	});
+	waitAjaxSuccessPopup();
 }
 
 /////////////////// TABLEAU ///////////////////
