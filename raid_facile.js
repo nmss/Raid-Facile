@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name           Raide Facile [modified by Deberron]
 // @namespace      Snaquekiller
-// @version        8.6.0
+// @version        8.6.1
 // @author         Snaquekiller + Autre + Deberron + Alu
 // @creator        snaquekiller
 // @description    Raide facile
-// @require        http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js
+// @require        https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
+// @require        https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js
 // @homepage       http://lastworld.etenity.free.fr/ogame/raid_facile
 // @updateURL      http://lastworld.etenity.free.fr/ogame/raid_facile/userscript.header.js
 // @downloadURL    http://lastworld.etenity.free.fr/ogame/raid_facile/72438.user.js
@@ -779,12 +780,10 @@ logger.log('Salut :)');
 
 	/** Converti des nombres en affichage numérique et en affichage court (ex: 10k) */
 	var numberConverter = {
-		toInt: function (number, useShortNotation) {
+		toInt: function (number) {
 			var str = number.toString();
-			if (useShortNotation) {
-				str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
-			}
-			str = str.replace(/ /g, '');
+			str = str.replace(/mm/i, '000 000 000').replace(/g/i, '000 000 000').replace(/m/i, '000 000').replace(/k/i, '000');
+			str = str.replace(/[\s.]/g, '');
 			return parseInt(str, 10);
 		},
 		shortenNumber: function (number, factor) {
@@ -2552,9 +2551,9 @@ init();
 
 		{//choix variable
 			//Selection de scan :
-			var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value, true);
-			var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value, true);
-			var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value, true);
+			var ressource_prend = numberConverter.toInt(document.getElementById('val_res_min').value);
+			var cdr_prend = numberConverter.toInt(document.getElementById('valeur_cdr_mini').value);
+			var tot_prend = numberConverter.toInt(document.getElementById('valeur_tot_mini').value);
 
 			var prend_type0 = document.getElementById("prend_type0").checked;
 			var prend_type1 = document.getElementById("prend_type1").checked;
