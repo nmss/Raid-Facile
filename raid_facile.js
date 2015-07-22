@@ -3200,7 +3200,7 @@ var scan = {
 			timestamp: getDate(message.querySelector('.detail_msg_head .msg_date').textContent).getTime(),
 			resources: scan.parseResources(dataElems[0]),
 			fleets: scan.parseFleets(dataElems[1]),
-			defence: scan.parseDefence(dataElems[2]),
+			defence: scan.parseDefense(dataElems[2]),
 			building: scan.parseBuilding(dataElems[3]),
 			research: scan.parseResearch(dataElems[4]),
 		};
@@ -3217,52 +3217,106 @@ var scan = {
 			energie: numberConverter.toInt(energie),
 		};
 	},
-	parseFleets: function(elem) {
-		return {};
+	extractData: function(options) {
+		var data = {};
+		var elem;
+		for (var mapping in options.mapping) {
+			elem = options.elem.querySelector(options.classPart + options.mapping[mapping]);
+			if (elem !== null) {
+				data[mapping] = parseInt(elem.parentElement.parentElement.lastElementChild.textContent);
+			}
+		}
+		return data;
 	},
-	parseDefence: function(elem) {
-		return {};
+	parseFleets: function(elem) {
+		return scan.extractData({
+			elem: elem,
+			classPart: '.tech',
+			mapping: {
+				'Small Cargo': '202',
+				'Large Cargo': '203',
+				'Light Fighter': '204',
+				'Heavy Fighter': '205',
+				'Cruiser': '206',
+				'Battleship': '207',
+				'Colony Ship': '208',
+				'Recycler': '209',
+				'Espionage Probe': '210',
+				'Bomber': '211',
+				'Solar Satellite': '212',
+				'Destroyer': '213',
+				'Deathstar': '214',
+				'Battlecruiser': '215'
+			}
+		});
+	},
+	parseDefense: function(elem) {
+		return scan.extractData({
+			elem: elem,
+			classPart: '.defense',
+			mapping: {
+				'lm': '401',
+				'lle': '402',
+				'llo': '403',
+				'gauss': '404',
+				'ion': '405',
+				'plasma': '406',
+				'pb': '407',
+				'gb': '408',
+				'mic': '502',
+				'mip': '503'
+			}
+		});
 	},
 	parseBuilding: function(elem) {
-		var buildings = {};
-		var buildingsMapping = {
-			'mineMetal': '.building1',
-			'mineCristal': '.building2',
-			'mineDeut': '.building3',
-			'centraleSolaire': '.building4',
-			'usineRobot': '.building14',
-			'usineNanite': '.building15',
-			'chantierSpatial': '.building21',
-			'hangarMetal': '.building22',
-			'hangarCristal': '.building23',
-			'hangarDeuterium': '.building24',
-			'laboRecherche': '.building31',
-		};
-		var buildingElem;
-		for (var mapping in buildingsMapping) {
-			buildingElem = elem.querySelector(buildingsMapping[mapping]);
-			if (buildingElem !== null) {
-				buildings[mapping] = parseInt(buildingElem.parentElement.parentElement.lastElementChild.textContent);
+		return scan.extractData({
+			elem: elem,
+			classPart: '.building',
+			mapping: {
+				'Metal Mine': '1',
+				'Crystal Mine': '2',
+				'Deuterium Synthesizer': '3',
+				'Solar Plant': '4',
+				'Fusion Reactor': '12',
+				'Robotics Factory': '14',
+				'Nanite Factory': '15',
+				'Shipyard': '21',
+				'Metal Storage': '22',
+				'Crystal Storage': '23',
+				'Deuterium Tank': '24',
+				'Research Lab': '31',
+				'Terraformer': '33',
+				'Alliance Depot': '34',
+				'Lunar Base': '41',
+				'Sensor Phalanx': '42',
+				'Jump Gate': '43',
+				'Missile Silo': '44',
 			}
-		}
-		return buildings;
+		});
 	},
 	parseResearch: function(elem) {
-		var research = {};
-		var researchMapping = {
-			'espio': '.research106',
-			'ordi': '.research108',
-			'energie': '.research113',
-			'combustion': '.research115',
-		};
-		var researchElem;
-		for (var mapping in researchMapping) {
-			researchElem = elem.querySelector(researchMapping[mapping]);
-			if (researchElem !== null) {
-				research[mapping] = parseInt(researchElem.parentElement.parentElement.lastElementChild.textContent);
+		return scan.extractData({
+			elem: elem,
+			classPart: '.research',
+			mapping: {
+				'Espionage': '106',
+				'Computer': '108',
+				'Weapons': '109',
+				'Shielding': '110',
+				'Armour': '111',
+				'Energy': '113',
+				'Hyperspace': '114',
+				'Combustion Drive': '115',
+				'Impulse Drive': '117',
+				'Hyperspace Drive': '118',
+				'Laser': '120',
+				'Ion': '121',
+				'Plasma': '122',
+				'Intergalactic Research Network': '123',
+				'Astrophysics': '124',
+				'Graviton': '199'
 			}
-		}
-		return research;
+		});
 	},
 	toOldString: function (scanData) {
 		return [
